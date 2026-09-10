@@ -20,6 +20,9 @@ optdepends=(
   'nmap: deep port and OS scans'
   'tmux: per-target monitor windows'
   'xterm: per-target monitor windows'
+  'avahi: mDNS device name resolution in gnulte-scan'
+  'samba: NetBIOS device name resolution in gnulte-scan'
+  'fping: faster ping sweeps in gnulte-scan'
 )
 source=("git+https://github.com/notmicrosoft2000-cmd/gnulte.git")
 sha256sums=('SKIP')
@@ -33,6 +36,7 @@ pkgver() {
 package() {
   cd "$srcdir/$pkgname"
   install -Dm755 GNULTE "$pkgdir/usr/bin/GNULTE"
+  install -Dm755 gnulte-scan "$pkgdir/usr/bin/gnulte-scan"
   mkdir -p "$pkgdir/usr/share/man/man1"
   gzip -n -c man/GNULTE.1 > "$pkgdir/usr/share/man/man1/GNULTE.1.gz"
   install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"

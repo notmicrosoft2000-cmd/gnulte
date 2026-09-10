@@ -458,17 +458,144 @@ EOF
 # -----------------------------------------------------------------------------
 # DEVICE IDENTIFICATION
 # -----------------------------------------------------------------------------
+# Resolve a device name using every available source. mDNS (avahi) usually
+# reveals real product names on home LANs, then reverse DNS, then NetBIOS.
+resolve_device_name() {
+    local ip=$1
+    local name=""
+
+    # 1) mDNS / Bonjour – the most reliable source on home networks
+    if command -v avahi-resolve-address &>/dev/null; then
+        name=$(timeout 3 avahi-resolve-address "$ip" 2>/dev/null | awk '{print $2}' | head -1)
+    fi
+
+    # 2) Reverse DNS via systemd-resolved/hosts
+    if [ -z "$name" ]; then
+        name=$(getent hosts "$ip" 2>/dev/null | awk '{print $2}' | head -1)
+    fi
+
+    # 3) Reverse DNS via dig (if no local resolver answer)
+    if [ -z "$name" ] && command -v dig &>/dev/null; then
+        name=$(dig +short -x "$ip" 2>/dev/null | head -1 | sed 's/\.$//')
+    fi
+
+    # 4) Reverse DNS via host/nslookup
+    if [ -z "$name" ] && command -v host &>/dev/null; then
+        name=$(host "$ip" 2>/dev/null | head -1 | awk '{print $NF}' | sed 's/\.$//')
+    fi
+    if [ -z "$name" ] && command -v nslookup &>/dev/null; then
+        name=$(nslookup "$ip" 2>/dev/null | grep "name =" | awk '{print $NF}' | sed 's/\.$//' | head -1)
+    fi
+
+    # 5) NetBIOS/SMB name (Windows PCs, NAS, printers)
+    if [ -z "$name" ] && command -v nmblookup &>/dev/null; then
+        name=$(timeout 3 nmblookup -A "$ip" 2>/dev/null | awk '$2=="<00>"||$2=="<20>"{print $1; exit}')
+    fi
+
+    # Clean up: strip trailing dots, drop useless results
+    name=$(echo "$name" | sed 's/\.$//' | cut -c1-40)
+    if [ -z "$name" ] || [ "$name" = "localhost" ] || [ "$name" = "$ip" ]; then
+        echo "Unknown"
+    else
+        echo "$name"
+    fi
+}
+
+# Map a MAC OUI vendor string (from arp-scan) to a human device type.
+vendor_type() {
+    local vendor="$1"
+    local device_type="Unknown"
+    if [ -z "$vendor" ] || [ "$vendor" = "Unknown" ]; then echo "Unknown"; return; fi
+
+    # arp-scan emits vendors in UPPERCASE; normalize to lowercase for matching
+    local v="${vendor,,}"
+
+    case "$v" in
+        # Routers / gateways / switches / APs (dedicated network gear)
+        *frontiir*|*fiberhome*|*zte*|*zyxel*|*d-link*|*tp-link*|*tenda*|*mercusys*|*netgear*|*asus*|*asustek*|*linksys*|*belkin*|*cisco*|*ubiquiti*|*mikrotik*|*ruckus*|*aruba*|*ralink*|*sagemcom*|*technicolor*|*celeno*|*nokia*shanghai*|*archer*|*deco*|*mullions*|*zhongxing*|*arcadyan*|*totolink*|*sercomm*|*h3c*)
+            device_type="Router" ;;
+
+        # Apps / mobile
+        *apple*)                          device_type="Apple" ;;
+        *huawei*)                         device_type="Huawei" ;;
+        *xiaomi*)                         device_type="Xiaomi" ;;
+        *oppo*|*oneplus*|*vivo*|*bbk*)    device_type="Oppo/Vivo" ;;
+        *google*)                         device_type="Google" ;;
+        *samsung*electro*)                device_type="Samsung" ;;
+        *nokia*|*alcatel*|*motorola*|*lenovo*mobile*) device_type="Phone" ;;
+        *sony*mobile*|*sony*ericsson*)    device_type="Phone" ;;
+        *lg*innotek*|*lg*electronics*)    device_type="LG" ;;
+
+        # TVs / streaming
+        *tcl*|*tte*|*tonly*|*vestel*)   device_type="TV" ;;
+        *roku*|*hisense*)               device_type="TV/Streamer" ;;
+        *sony*corporation*|*sony*corp*) device_type="Sony TV" ;;
+        *panasonic*)                    device_type="TV" ;;
+
+        # Smart speakers / assistants / IoT
+        *amazon*|*echo*)                 device_type="Amazon Echo" ;;
+        *nest*)                          device_type="Google Home" ;;
+        *sonos*)                         device_type="Sonos Speaker" ;;
+        *philips*|*signify*)             device_type="Philips Hue" ;;
+        *bilian*|*billian*)              device_type="IoT" ;;
+        *espressif*)                     device_type="ESP IoT" ;;
+        *tuya*)                          device_type="Smart Plug/Light" ;;
+        *azurewave*|*murata*)            device_type="IoT Module" ;;
+        *texas*instruments*)             device_type="IoT" ;;
+        *wistron*|*hon*hai*|*foxconn*)   device_type="Consumer IoT" ;;
+
+        # Computers / laptops / single-board
+        *raspberry*)                     device_type="Pi" ;;
+        *intel*|*intel*corporate*)       device_type="PC" ;;
+        *dell*|*hewlett*packard*|*hp*|*lenovo*|*acer*|*msi*|*giga-byte*|*asrock*|*toshiba*|*fujitsu*|*ibm*|*azw*|*compal*|*quanta*|*lite-on*|*pegatron*|*wistron*information*) device_type="Computer" ;;
+        *nvidia*|*nvidia*)               device_type="NVIDIA" ;;
+
+        # Printers
+        *brother*|*epson*|*canon*|*xerox*|*ricoh*|*lexmark*|*hp*) device_type="Printer" ;;
+
+        # IP cameras
+        *vstarcam*|*hikvision*|*dahua*|*zhejiang*|*reolink*|*instar*|*amcrest*|*tapo*) device_type="IP Camera" ;;
+
+        # Game consoles / media
+        *sony*interactive*|*microsoft*|*nintendo*) device_type="Console" ;;
+
+        *) device_type="Unknown" ;;
+    esac
+
+    echo "$device_type"
+}
+
+# Determine a human device type from the discovered name (mDNS/NetBIOS names
+# are usually descriptive, e.g. "MiBox4", "DESKTOP-ABC123", "tapo-camera").
+name_type() {
+    local name="$1"
+    local n="${name,,}"
+    case "$n" in
+        *tv*|*television*|*bravia*|*androidtv*|*google*cast*|*mibox*|*mi-tv*|*smarttv*|*webos*)      echo "Android TV" ;;
+        *chromecast*)          echo "Chromecast" ;;
+        *firestick*|*firetv*)  echo "FireTV" ;;
+        *galaxy*|*samsung*|*redmi*|*pixel*|*iphone*|*huawei*|*mi*[0-9]*|*mi_*|*mi-*|*oppo*|*vivo*|*oneplus*|*lg-m*|*sm-*|*gt-*|*xt[0-9]*|*motorola*|*nokia[0-9]*) echo "Phone" ;;
+        *desktop*|*laptop*|*pc-*|*pc_*|*-pc*|*notebook*|*workstat*) echo "Computer" ;;
+        *server*|*nas*|*synology*|*qnap*|*raid*|*backup*)            echo "Server/NAS" ;;
+        *printer*|*hp-*|*epson*|*brother-*|*canon-*|*laserjet*)      echo "Printer" ;;
+        *camera*|*-cam*|*cam-*|*tapo*|*hikvision*|*reolink*|*dahua*|*cctv*|*ipc*) echo "Camera" ;;
+        *echo*|*googlehome*|*google-home*|*nest*|*homepod*|*sonos*|*speaker*)    echo "Speaker" ;;
+        *router*|*gateway*|*firewall*|*ap-*|*mikrotik*|*openwrt*|*fiberhome*|*cpe*) echo "Router" ;;
+        *esp*|*espressif*|*sensor*|*shelly*|*plug*|*bulb*|*relay*|*switch*|*tuya*) echo "IoT" ;;
+        *switch*|*hub-filter*)  echo "Network" ;;
+        *) echo "Unknown" ;;
+    esac
+}
+
 identify_device() {
     local ip=$1
     local vendor=$2
+    local is_gateway=${3:-false}
     local hostname=""
     local device_type="Unknown"
     local ports=""
 
-    hostname=$(host "$ip" 2>/dev/null | head -1 | awk '{print $5}' | cut -d. -f1)
-    if [ -z "$hostname" ] || [ "$hostname" = "localhost" ] || [ "$hostname" = "$ip" ]; then
-        hostname="Unknown"
-    fi
+    hostname=$(resolve_device_name "$ip")
 
     if [ "$QUICK_SCAN" = false ]; then
         for p in 22 80 443 445 554 5555 8008 8080 8443 9000 32400; do
@@ -477,27 +604,22 @@ identify_device() {
         ports=$(echo "$ports" | sed 's/,$//')
     fi
 
-    case "$vendor" in
-        *Apple*|*apple*)         device_type="Apple" ;;
-        *Xiaomi*|*xiaomi*)       device_type="Xiaomi" ;;
-        *Intel*|*intel*)         device_type="PC" ;;
-        *Frontiir*)              device_type="Router" ;;
-        *Samsung*|*samsung*)     device_type="Samsung" ;;
-        *Google*|*google*)       device_type="Google" ;;
-        *BILIAN*)                device_type="IoT" ;;
-        *Raspberry*|*raspberry*) device_type="Pi" ;;
-        *TP-Link*)               device_type="TP-Link" ;;
-        *Netgear*)               device_type="Netgear" ;;
-        *Cisco*)                 device_type="Cisco" ;;
-        *Ubiquiti*)              device_type="Ubiquiti" ;;
-        *Sony*|*sony*)           device_type="Sony" ;;
-        *LG*|*lg*)               device_type="LG" ;;
-        *Nvidia*|*nvidia*)       device_type="NVIDIA" ;;
-        *Amazon*|*amazon*)       device_type="Amazon" ;;
-        *Roku*|*roku*)           device_type="Roku" ;;
-        *Philips*|*philips*)     device_type="Philips" ;;
-        *)                       device_type="Unknown" ;;
-    esac
+    # Gateway/router detection always wins
+    if [ "$is_gateway" = true ]; then
+        device_type="Router (Gateway)"
+    else
+        device_type=$(vendor_type "$vendor")
+        # Names often tell more than the OUI vendor
+        local ntype
+        ntype=$(name_type "$hostname")
+        if [ "$ntype" != "Unknown" ]; then
+            case "$device_type" in
+                Router|Router*) ;;                 # keep router/gateway
+                Unknown) device_type="$ntype" ;;
+                *)  [ "$ntype" = "Router" ] && device_type="Router" || true ;;
+            esac
+        fi
+    fi
 
     [[ "$ports" == *"22"* ]] && device_type="$device_type+SSH"
     [[ "$ports" == *"80"* ]] && device_type="$device_type+HTTP"
@@ -507,19 +629,6 @@ identify_device() {
     [[ "$ports" == *"5555"* ]] && device_type="$device_type+ADB(Android)"
     [[ "$ports" == *"8008"* ]] || [[ "$ports" == *"8009"* ]] && device_type="$device_type+Cast(TV)"
     [[ "$ports" == *"32400"* ]] && device_type="$device_type+Plex"
-
-    case "$hostname" in
-        *tv*|*TV*|*television*|*bravia*|*androidtv*)  device_type="Android TV" ;;
-        *phone*|*Phone*|*iphone*|*iPhone*)            device_type="Phone" ;;
-        *laptop*|*Laptop*|*pc*|*PC*|*desktop*)        device_type="Computer" ;;
-        *server*|*Server*|*nas*|*NAS*)                device_type="Server" ;;
-        *printer*|*Printer*)                          device_type="Printer" ;;
-        *camera*|*Camera*|*cam*)                      device_type="Camera" ;;
-        *speaker*|*Speaker*|*echo*|*googlehome*)      device_type="Speaker" ;;
-        *router*|*Router*|*gateway*|*firewall*)       device_type="Router" ;;
-        *chromecast*|*Chromecast*)                    device_type="Chromecast" ;;
-        *firestick*|*Firestick*|*firetv*)             device_type="FireTV" ;;
-    esac
 
     echo "$hostname|$device_type|$ports"
 }
@@ -628,8 +737,12 @@ detect_network() {
         exit 1
     fi
 
+    # Resolve the gateway's MAC so we can always tag the router in the scan
+    ping -c 1 -W 1 "$GATEWAY" >/dev/null 2>&1
+    GATEWAY_MAC=$(ip neigh show "$GATEWAY" 2>/dev/null | grep -oP 'lladdr \K[0-9a-f:]{17}' | head -1)
+
     log_ok "Interface: $INTERFACE"
-    log_ok "Gateway: $GATEWAY"
+    log_ok "Gateway: $GATEWAY ${GATEWAY_MAC:+(MAC: $GATEWAY_MAC)}"
     log_ok "Your IP: $MY_IP"
     echo ""
 }
@@ -696,7 +809,12 @@ scan_devices() {
             MAC_LIST+=("$MAC")
             VENDOR_LIST+=("$VENDOR")
 
-            IDENT=$(identify_device "$IP" "$VENDOR")
+            IS_GATEWAY=false
+            if [[ "$IP" == "$GATEWAY" ]] || { [ -n "$GATEWAY_MAC" ] && [[ "$MAC" == "$GATEWAY_MAC" ]]; }; then
+                IS_GATEWAY=true
+            fi
+
+            IDENT=$(identify_device "$IP" "$VENDOR" "$IS_GATEWAY")
             hostname=$(echo "$IDENT" | cut -d'|' -f1)
             DEV_TYPE=$(echo "$IDENT" | cut -d'|' -f2)
             PORTS=$(echo "$IDENT" | cut -d'|' -f3)

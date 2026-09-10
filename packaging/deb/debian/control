@@ -11,6 +11,7 @@ Package: gnulte
 Architecture: all
 Depends: bash (>= 4), dsniff, iproute2, procps, iputils-ping, arp-scan
 Recommends: nmap
+Suggests: avahi-utils, samba-utils, fping
 Description: GNU LAN Network Testing Environment
  Interactively simulate network degradation (latency, jitter, packet
  loss, duplication, reordering, bandwidth throttling) against devices
@@ -19,5 +20,8 @@ Description: GNU LAN Network Testing Environment
  Features: ARP-based target discovery, single/range/whitelist targeting,
  preset profiles, live multi-target dashboard, sanity validation of
  parameters, CSV export, and post-test HTML/text reports with graphs.
+ Also includes gnulte-scan, a root-free LAN discovery companion that
+ fingerprints every device (OUI vendor, mDNS/rDNS/NetBIOS hostname,
+ device type, gateway tag) and exports JSON/YAML/CSV.
  .
  Authorised use only. Unauthorised network interference is illegal.

@@ -21,6 +21,7 @@ mkdir -p "$DEST/DEBIAN" \
 echo "==> Installing files"
 copy_quiet() { cp -f "$1" "$2"; }
 copy_quiet "$ROOT/GNULTE"                      "$DEST/usr/bin/GNULTE"
+copy_quiet "$ROOT/gnulte-scan"                 "$DEST/usr/bin/gnulte-scan"
 copy_quiet "$ROOT/man/GNULTE.1"                "$DEST/usr/share/man/man1/GNULTE.1"
 copy_quiet "$ROOT/README.md"                   "$DEST/usr/share/doc/$PKG/README.md"
 copy_quiet "$ROOT/LICENSE"                     "$DEST/usr/share/doc/$PKG/LICENSE"
@@ -33,7 +34,7 @@ gzip -n -9 -c "$DEST/usr/share/man/man1/GNULTE.1"  > "$DEST/usr/share/man/man1/G
 gzip -n -9 -c "$DEST/usr/share/doc/$PKG/changelog" > "$DEST/usr/share/doc/$PKG/changelog.gz"
 rm -f "$DEST/usr/share/man/man1/GNULTE.1" "$DEST/usr/share/doc/$PKG/changelog"
 
-chmod 755 "$DEST/usr/bin/GNULTE"
+chmod 755 "$DEST/usr/bin/GNULTE" "$DEST/usr/bin/gnulte-scan"
 
 echo "==> Building .deb"
 dpkg-deb --build --root-owner-group "$DEST" "$HERE/build/${PKG}_${VER}-${REL}_all.deb"

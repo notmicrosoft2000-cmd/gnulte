@@ -29,6 +29,38 @@ applications and devices behave under poor network conditions.
 - Generates a **post-test report** (`gnulte-report-<ts>/report.txt` +
   `report.html` with SVG latency graphs) plus optional CSV export.
 
+## `gnulte-scan` — LAN device discovery companion
+
+`GNULTE` needs root (ARP spoofing + `tc`), but discovering and fingerprinting
+your network does not. The companion tool **`gnulte-scan`** finds every active
+device and extracts the maximum possible detail about each one — no root needed
+when the arp-scan OUI database is present:
+
+- **IP, MAC, OUI vendor, device type** (routers, phones, TVs, printers, cameras,
+  IoT, PCs, …) — vendor from `arp-scan` (if run as root) or from the OUI
+  database file shipped with `arp-scan`, read directly without root.
+- **Device name** from up to five sources, in priority order: **mDNS/Bonjour**
+  (`avahi-resolve-address`), reverse DNS (`getent`/`dig`/`host`/`nslookup`) and
+  **NetBIOS** (`nmblookup`). Device names on home LANs are usually descriptive
+  (`MiBox4`, `tapo-camera`, `DESKTOP-ABC123`), which drives accurate type
+  detection.
+- **Gateway/router detection** by matching the gateway's IP *and* MAC, so the
+  router is always tagged `Router (Gateway)` — even when every OS sleeps.
+- Optional **`--deep`** nmap pass (open ports + OS fingerprint).
+- Export: **JSON / YAML / CSV**.
+
+```sh
+gnulte-scan                     # table
+gnulte-scan --deep              # + ports & OS (slower)
+gnulte-scan -j > devices.json   # JSON export
+gnulte-scan -i wlan0 -C 192.168.0.0/24 -c   # custom iface+subnet, CSV
+```
+
+For best name resolution install the optional tools:
+`avahi` (mDNS), `samba`/`samba-utils` (NetBIOS), `fping` (faster sweeps) and
+`nmap` (`--deep`). The AUR/`.deb` packages install `gnulte-scan` to
+`/usr/bin/gnulte-scan` alongside `GNULTE`.
+
 ## Install from this repo
 
 The single-file script requires only a standard Bash. Install the binary into
@@ -121,8 +153,8 @@ cd packaging/deb
 dpkg-buildpackage -us -uc
 ```
 
-The produced `.deb` installs `/usr/bin/GNULTE`, a man page and documentation.
-Architecture is `all` (pure Bash script).
+The produced `.deb` installs `/usr/bin/GNULTE` and `/usr/bin/gnulte-scan`, a man
+page and documentation. Architecture is `all` (pure Bash scripts).
 
 ## Files and state
 
@@ -136,7 +168,7 @@ Architecture is `all` (pure Bash script).
 - `bash`, `iproute2` (`tc`), `procps` (`sysctl`), `iputils` (`ping`)
 - `arpscan` (`arp-scan`), `dsniff` (`arpspoof`)
 - Optional: `nmap` (deep scans), a terminal emulator / `tmux` (per-target
-  monitor windows)
+  monitor windows), `avahi` + `samba` + `fping` (best `gnulte-scan` results)
 
 ## License
 

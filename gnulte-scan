@@ -1,0 +1,510 @@
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# GNULTE SCAN — stand-alone LAN device discovery & fingerprinting companion tool
+#
+# Discovers every active device on your local network and extracts as much
+# information as possible about each one:
+#   IP, MAC, OUI vendor, hostname (reverse DNS + mDNS/Bonjour + NetBIOS),
+#   device type, gateway/router tag, and (optionally) open ports + OS via nmap.
+#
+# Output: pretty table, optional JSON / YAML / CSV export.
+#
+# Author : poseidonsmile2000 <poseidonsmile2000@gmail.com>
+# License: GPL-3.0
+# -----------------------------------------------------------------------------
+
+VERSION="1.0"
+
+# -----------------------------------------------------------------------------
+# Colors
+# -----------------------------------------------------------------------------
+C_RESET="\e[0m"; C_BOLD="\e[1m"; C_DIM="\e[2m"
+C_RED="\e[31m"; C_GREEN="\e[32m"; C_YELLOW="\e[33m"; C_CYAN="\e[36m"; C_MAGENTA="\e[35m"
+
+# -----------------------------------------------------------------------------
+# Defaults
+# -----------------------------------------------------------------------------
+INTERFACE=""
+CIDR=""
+THREADS=32
+DEEP=false
+OUT_FORMAT="table"     # table | json | yaml | csv
+QUIET=false
+MY_NAME="gnulte-scan"
+declare -gA VENDOR_MAP=()
+
+usage() {
+    cat <<EOF
+${MY_NAME} ${VERSION} — LAN device discovery & fingerprinting
+
+Scans the local network and reports every active device with as much detail
+as possible: vendor, hostname (rDNS + mDNS + NetBIOS), type, gateway flag,
+open ports and OS fingerprint (with --deep).
+
+USAGE:
+  ${MY_NAME} [OPTIONS]
+
+OPTIONS:
+  -i, --interface <IFACE>   Network interface (default: auto-detect)
+  -C, --cidr <CIDR>         Subnet to scan, e.g. 192.168.1.0/24 (default: auto)
+  -t, --threads <N>         Parallel ping sweep threads (default: 32)
+  -d, --deep                Also run nmap: open ports + OS + service detection
+                            (slower; root helps OS detection)
+  -j, --json                JSON export
+  -y, --yaml                YAML export
+  -c, --csv                 CSV export (ip,mac,vendor,hostname,type,ports,os)
+  -q, --quiet               Only print the results table, no banners
+  -h, --help                Show this help
+
+EXAMPLES:
+  ${MY_NAME}
+  ${MY_NAME} -d                    Deep scan (ports + OS)
+  ${MY_NAME} -j > devices.json
+  ${MY_NAME} -i wlan0 -C 192.168.0.0/24 --deep -c
+
+NOTES:
+  * Use on networks you own or are authorized to test.
+  * Hostnames prefer mDNS/avahi when available (avahi-tools), then reverse
+    DNS, then NetBIOS (samba-utils). Install them for best results:
+      Arch:   sudo pacman -S avahi nss-mdns samba nmap
+      Debian: sudo apt install avahi-utils samba-utils nmap
+  * Vendor names come from arp-scan (needs root) or the kernel neighbor table.
+EOF
+    exit 0
+}
+
+# -----------------------------------------------------------------------------
+# Helpers
+# -----------------------------------------------------------------------------
+ok()   { echo -e "${C_GREEN}OK:${C_RESET} $*"; }
+warn() { echo -e "${C_YELLOW}WARN:${C_RESET} $*"; }
+err()  { echo -e "${C_RED}ERROR:${C_RESET} $*"; }
+log()  { echo -e "$*"; }
+
+spinner() {
+    local pid=$1 msg=$2
+    local s=("|" "/" "-" "\\")
+    local i=0
+    while kill -0 "$pid" 2>/dev/null; do
+        printf "\r  ${C_CYAN}%s${C_RESET} %s" "${s[$i]}" "$msg"
+        i=$(((i+1)%4))
+        sleep 0.1
+    done
+    printf "\r%*s\r" "$(( ${#msg} + 8 ))" ""
+}
+
+# -----------------------------------------------------------------------------
+# Network configuration
+# -----------------------------------------------------------------------------
+detect_network() {
+    if [ -z "$INTERFACE" ]; then
+        INTERFACE=$(ip route | awk '/default/{print $5; exit}')
+    fi
+    if [ -z "$INTERFACE" ]; then
+        err "Could not detect a network interface."
+        exit 1
+    fi
+    ip link show "$INTERFACE" >/dev/null 2>&1 || { err "Interface $INTERFACE does not exist."; exit 1; }
+
+    GATEWAY=$(ip route | awk -v i="$INTERFACE" '/default/{if($5==i){print $3; exit}}')
+    GATEWAY=${GATEWAY:-$(ip route | awk '/default/{print $3; exit}')}
+
+    MY_IP=$(ip -4 -o addr show dev "$INTERFACE" | awk '{print $4; exit}')
+    if [ -z "$MY_IP" ]; then
+        err "No IPv4 address on $INTERFACE."
+        exit 1
+    fi
+    IPADDR="${MY_IP%/*}"
+    PREFIX="${MY_IP#*/}"
+
+    if [ -z "$CIDR" ]; then
+        CIDR="$IPADDR/$PREFIX"
+    fi
+
+    ping -c 1 -W 1 "$GATEWAY" >/dev/null 2>&1
+    GATEWAY_MAC=$(ip neigh show "$GATEWAY" 2>/dev/null | grep -oP 'lladdr \K[0-9a-f:]{17}' | head -1)
+}
+
+# -----------------------------------------------------------------------------
+# Host list from CIDR (e.g. 192.168.1.0/24 -> 192.168.1.1..254)
+# -----------------------------------------------------------------------------
+ip2int() {
+    local a b c d
+    IFS=. read -r a b c d <<< "$1"
+    echo "$(((a<<24) + (b<<16) + (c<<8) + d))"
+}
+int2ip() {
+    local n=$1
+    echo "$(( (n>>24)&255 )).$(( (n>>16)&255 )).$(( (n>>8)&255 )).$(( n&255 ))"
+}
+range_from_cidr() {
+    local cidr=$1
+    local addr=${cidr%/*} prefix=${cidr#*/}
+    case "$prefix" in
+        ''|*[!0-9]*) prefix=24 ;;
+    esac
+    [ "$prefix" -gt 32 ] && prefix=24
+    local mask=$(( (0xFFFFFFFF << (32-prefix)) & 0xFFFFFFFF ))
+    local net=$(( $(ip2int "$addr") & mask ))
+    local s=$(( net + 1 ))
+    local e=$(( (net | (~mask & 0xFFFFFFFF)) - 1 ))
+    local total=$(( e - s + 1 ))
+    if [ "$total" -gt 65534 ]; then
+        e=$(( s + 65533 ))
+        warn "Subnet too large, scanning first 65534 hosts."
+    fi
+    echo "$s $e"
+}
+
+# -----------------------------------------------------------------------------
+# Name resolution: mDNS -> rDNS -> NetBIOS
+# -----------------------------------------------------------------------------
+resolve_device_name() {
+    local ip=$1
+    local name=""
+
+    if command -v avahi-resolve-address &>/dev/null; then
+        name=$(timeout 2 avahi-resolve-address "$ip" 2>/dev/null | awk '{print $2}' | head -1)
+    fi
+    if [ -z "$name" ]; then
+        name=$(timeout 2 getent hosts "$ip" 2>/dev/null | awk '{print $2}' | head -1)
+    fi
+    if [ -z "$name" ] && command -v dig &>/dev/null; then
+        name=$(timeout 2 dig +short -x "$ip" 2>/dev/null | head -1 | sed 's/\.$//')
+    fi
+    if [ -z "$name" ] && command -v host &>/dev/null; then
+        name=$(timeout 2 host "$ip" 2>/dev/null | head -1 | awk '{print $NF}' | sed 's/\.$//')
+    fi
+    if [ -z "$name" ] && command -v nslookup &>/dev/null; then
+        name=$(timeout 2 nslookup "$ip" 2>/dev/null | awk '/name =/{print $NF; exit}' | sed 's/\.$//')
+    fi
+    if [ -z "$name" ] && command -v nmblookup &>/dev/null; then
+        name=$(timeout 2 nmblookup -A "$ip" 2>/dev/null | awk '$2=="<20>"{print $1; exit}')
+        [ -z "$name" ] && name=$(timeout 2 nmblookup -A "$ip" 2>/dev/null | awk '$2=="<00>"{print $1; exit}')
+    fi
+
+    name=$(echo "$name" | sed 's/\.$//;s/\.local$//' | cut -c1-40)
+    if [ -z "$name" ] || [ "$name" = "localhost" ] || [ "$name" = "$ip" ]; then
+        echo "Unknown"
+    else
+        echo "$name"
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Device classification
+# -----------------------------------------------------------------------------
+vendor_type() {
+    local vendor="$1" v device_type="Unknown"
+    [ -z "$vendor" ] || [ "$vendor" = "Unknown" ] && { echo "Unknown"; return; }
+    v="${vendor,,}"
+    case "$v" in
+        *frontiir*|*fiberhome*|*zte*|*zyxel*|*d-link*|*tp-link*|*tenda*|*mercusys*|*netgear*|*asus*|*asustek*|*linksys*|*belkin*|*cisco*|*ubiquiti*|*mikrotik*|*ruckus*|*aruba*|*ralink*|*sagemcom*|*technicolor*|*celeno*|*nokia*shanghai*|*zhongxing*|*arcadyan*|*totolink*|*sercomm*|*h3c*)
+            device_type="Router" ;;
+        *apple*)  device_type="Apple" ;;
+        *huawei*) device_type="Huawei" ;;
+        *xiaomi*) device_type="Xiaomi" ;;
+        *oppo*|*oneplus*|*vivo*|*bbk*) device_type="Oppo/Vivo" ;;
+        *google*) device_type="Google" ;;
+        *samsung*electro*) device_type="Samsung" ;;
+        *nokia*|*alcatel*|*motorola*|*lenovo*mobile*|*sony*mobile*|*sony*ericsson*) device_type="Phone" ;;
+        *lg*innotek*|*lg*electronics*) device_type="LG" ;;
+        *tcl*|*tte*|*tonly*|*vestel*|*panasonic*|*sony*corporation*|*sony*corp*) device_type="TV" ;;
+        *roku*|*hisense*) device_type="TV/Streamer" ;;
+        *amazon*|*echo*) device_type="Amazon Echo" ;;
+        *nest*) device_type="Google Home" ;;
+        *sonos*) device_type="Sonos Speaker" ;;
+        *philips*|*signify*) device_type="Philips Hue" ;;
+        *espressif*) device_type="ESP IoT" ;;
+        *tuya*) device_type="Smart Plug/Light" ;;
+        *bilian*|*billian*|*azurewave*|*murata*|*texas*instruments*) device_type="IoT" ;;
+        *raspberry*) device_type="Pi" ;;
+        *intel*|*intel*corporate*) device_type="PC" ;;
+        *dell*|*hewlett*packard*|*hp*|*lenovo*|*acer*|*msi*|*giga-byte*|*asrock*|*toshiba*|*fujitsu*|*ibm*|*compal*|*quanta*|*lite-on*|*pegatron*) device_type="Computer" ;;
+        *nvidia*) device_type="NVIDIA" ;;
+        *brother*|*epson*|*canon*|*xerox*|*ricoh*|*lexmark*) device_type="Printer" ;;
+        *vstarcam*|*hikvision*|*dahua*|*zhejiang*|*reolink*|*instar*|*amcrest*|*tapo*) device_type="IP Camera" ;;
+        *sony*interactive*|*microsoft*|*nintendo*) device_type="Console" ;;
+        *) device_type="Unknown" ;;
+    esac
+    echo "$device_type"
+}
+
+name_type() {
+    local n="${1,,}"
+    case "$n" in
+        *tv*|*television*|*bravia*|*androidtv*|*webos*|*google*tv*) echo "Android TV" ;;
+        *chromecast*) echo "Chromecast" ;;
+        *firestick*|*firetv*) echo "FireTV" ;;
+        *galaxy*|*samsung*|*redmi*|*pixel*|*iphone*|*huawei*|*mi*[0-9]*|*oppo*|*vivo*|*oneplus*|*lg-m*|*sm-*|*gt-*|*xt[0-9]*|*motorola*) echo "Phone" ;;
+        *desktop*|*laptop*|*notebook*|*-pc|*pc_|*pc-|*workstat*) echo "Computer" ;;
+        *server*|*nas*|*synology*|*qnap*|*backup*) echo "Server/NAS" ;;
+        *printer*|*laserjet*|*hp-*|*epson*|*brother-*|*canon-*) echo "Printer" ;;
+        *camera*|*cam-*|*-cam*|*tapo*|*hikvision*|*reolink*|*dahua*|*cctv*|*ipc*) echo "Camera" ;;
+        *echo*|*googlehome*|*nest*|*homepod*|*sonos*|*speaker*) echo "Speaker" ;;
+        *router*|*gateway*|*firewall*|*mikrotik*|*openwrt*|*fiberhome*|*cpe*|*ap-) echo "Router" ;;
+        *esp*|*shelly*|*sensor*|*plug*|*bulb*|*relay*|*tuya*) echo "IoT" ;;
+        *) echo "Unknown" ;;
+    esac
+}
+
+classify() {
+    local vendor=$1 name=$2 gateway=$3
+    local vt ntype
+    if [ "$gateway" = true ]; then
+        echo "Router (Gateway)"
+        return
+    fi
+    vt=$(vendor_type "$vendor")
+    if [ "$vt" != "Unknown" ] && [ "$vt" != "Router" ]; then
+        echo "$vt"
+        return
+    fi
+    ntype=$(name_type "$name")
+    if [ "$ntype" != "Unknown" ]; then
+        echo "$ntype"
+    else
+        echo "$vt"
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Deep per-host scan (open ports + OS) via nmap
+# -----------------------------------------------------------------------------
+deep_scan() {
+    local ip=$1 ports="" os=""
+    command -v nmap &>/dev/null || return 0
+    ports=$(timeout 40 nmap -Pn -n --top-ports 100 -oG - "$ip" 2>/dev/null \
+        | awk '/Ports:/{for(i=1;i<=NF;i++) if($i ~ /open$/){split($i,a,"/"); printf "%s,",a[1]}}' \
+        | sed 's/,$//')
+    os=$(timeout 60 nmap -O "$ip" 2>/dev/null | grep -oP 'OS details: \K.*' | head -1)
+    echo "$ports|$os"
+}
+
+# -----------------------------------------------------------------------------
+# Ping sweep to populate the ARP/neighbor table
+# -----------------------------------------------------------------------------
+run_ping_sweep() {
+    local start=$1 end=$2
+    if command -v fping &>/dev/null; then
+        fping -a -q -g "$(int2ip "$start")" "$(int2ip "$end")" >/dev/null 2>&1
+        return
+    fi
+    local list="/tmp/${MY_NAME}-hosts.txt"
+    : > "$list"
+    local i=$start
+    while [ "$i" -le "$end" ]; do
+        echo "$(int2ip "$i")"
+        i=$((i+1))
+    done > "$list"
+    xargs -P "$THREADS" -n 1 -I{} sh -c 'ping -c1 -W1 {} >/dev/null 2>&1' < "$list" >/dev/null 2>&1
+    rm -f "$list"
+}
+
+# Map MAC -> vendor (arp-scan needs root; its OUI database file does not)
+load_vendors() {
+    local oui_files=("/usr/share/arp-scan/ieee-oui.txt" "/usr/share/ieee-data/oui.txt" "/usr/share/arp-scan/ieee-oui.iab")
+
+    if command -v arp-scan &>/dev/null && [ "$(id -u)" -eq 0 ]; then
+        while IFS='|' read -r mac vendor; do
+            [ -n "$mac" ] && VENDOR_MAP["${mac,,}"]="$vendor"
+        done < <(arp-scan --local 2>/dev/null \
+            | awk '/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/{mac=$2; $1=""; $2=""; sub(/^[ \t]+/,""); sub(/[ \t]+$/,""); print mac "|" $0}')
+        return
+    fi
+
+    # Fallback: read the OUI database shipped with arp-scan (no root required)
+    # Format per entry: <HEX-PREFIX-in-uppercase><TAB><Vendor> (any prefix length)
+    local file line oui v
+    for file in "${oui_files[@]}"; do
+        [ -s "$file" ] || continue
+        while IFS= read -r line; do
+            case "$line" in
+                ''|\#*) continue ;;
+                *$'\t'*)
+                    oui="${line%%	*}"
+                    v="${line#*	}"
+                    [ -n "$oui" ] && [ -n "$v" ] && VENDOR_MAP["$oui"]="${v%%$'\r'}"
+                    ;;
+            esac
+        done < "$file"
+        [ ${#VENDOR_MAP[@]} -gt 0 ] && break
+    done
+
+    if [ ${#VENDOR_MAP[@]} -eq 0 ] && ! command -v arp-scan &>/dev/null; then
+        warn "arp-scan not found — vendor column will be Unknown. Install arp-scan for OUI data."
+    elif [ ${#VENDOR_MAP[@]} -eq 0 ]; then
+        warn "No OUI database found (looked for arp-scan ieee-oui.txt). Run as root for arp-scan vendor data."
+    fi
+}
+
+# Longest-prefix OUI lookup: try 12,10,8,6,4,2 hex chars like arp-scan does
+mac_vendor() {
+    local raw="${1//:/}"
+    local pref len m
+    for ((len=12; len>=2; len-=2)); do
+        m="${raw:0:len}"
+        m="${m^^}"
+        [ -n "${VENDOR_MAP[$m]:-}" ] && { echo "${VENDOR_MAP[$m]}"; return 0; }
+    done
+    echo ""
+    return 1
+}
+
+# -----------------------------------------------------------------------------
+# Output
+# -----------------------------------------------------------------------------
+emit_table() {
+    local ip mac vendor hostname type ports os n=0
+    log ""
+    log "${C_BOLD}Found ${#ROWS[@]} device(s) on $CIDR${C_RESET}"
+    log ""
+    printf "  %-3s %-16s %-20s %-18s %-22s %s\n" "#" "IP" "MAC" "Vendor" "Type" "Hostname"
+    echo "  ────────────────────────────────────────────────────────────────────────────"
+    for row in "${ROWS[@]}"; do
+        n=$((n+1))
+        IFS='|' read -r ip mac vendor hostname type ports os <<< "$row"
+        printf "  ${C_CYAN}%-3s${C_RESET} ${C_GREEN}%-16s${C_RESET} %-20s %-18s %-22s %s\n" \
+            "$n" "$ip" "$mac" "${vendor:0:18}" "${type:0:22}" "${hostname:0:30}"
+        [ -n "$ports" ] && printf "    ${C_DIM}ports: %s${C_RESET}\n" "$ports"
+        [ -n "$os" ]    && printf "    ${C_DIM}os:    %s${C_RESET}\n" "$os"
+    done
+    log ""
+}
+
+jesc() { printf '"%s"' "$(echo "$1" | sed 's/\\/\\\\/g;s/"/\\"/g;s/	/\\t/g')"; }
+
+emit_json() {
+    local ip mac vendor hostname type ports os first=true
+    echo "["
+    for row in "${ROWS[@]}"; do
+        IFS='|' read -r ip mac vendor hostname type ports os <<< "$row"
+        [ "$first" = false ] && echo ","
+        first=false
+        printf '  {"ip":%s,"mac":%s,"vendor":%s,"hostname":%s,"type":%s,"ports":%s,"os":%s}' \
+            "$(jesc "$ip")" "$(jesc "$mac")" "$(jesc "$vendor")" "$(jesc "$hostname")" \
+            "$(jesc "$type")" "$(jesc "$ports")" "$(jesc "$os")"
+    done
+    echo ""
+    echo "]"
+}
+
+emit_yaml() {
+    echo "subnet: $CIDR"
+    echo "devices:"
+    for row in "${ROWS[@]}"; do
+        IFS='|' read -r ip mac vendor hostname type ports os <<< "$row"
+        echo "  - ip: $ip"
+        echo "    mac: $mac"
+        echo "    vendor: ${vendor:--}"
+        echo "    hostname: ${hostname:--}"
+        echo "    type: ${type:--}"
+        echo "    ports: ${ports:-none}"
+        echo "    os: ${os:--}"
+    done
+}
+
+emit_csv() {
+    echo "ip,mac,vendor,hostname,type,ports,os"
+    for row in "${ROWS[@]}"; do
+        IFS='|' read -r ip mac vendor hostname type ports os <<< "$row"
+        echo "$ip,$mac,\"$vendor\",\"$hostname\",\"$type\",\"$ports\",\"$os\""
+    done
+}
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+I_AM_ROOT=false
+[ "$(id -u)" -eq 0 ] && I_AM_ROOT=true
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -i|--interface) INTERFACE="$2"; shift 2 ;;
+        -C|--cidr) CIDR="$2"; shift 2 ;;
+        -t|--threads) THREADS="$2"; shift 2 ;;
+        -d|--deep) DEEP=true; shift ;;
+        -j|--json) OUT_FORMAT="json"; shift ;;
+        -y|--yaml) OUT_FORMAT="yaml"; shift ;;
+        -c|--csv) OUT_FORMAT="csv"; shift ;;
+        -q|--quiet) QUIET=true; shift ;;
+        -h|--help) usage ;;
+        *) err "Unknown option: $1"; usage ;;
+    esac
+done
+
+detect_network
+
+if [ "$QUIET" = false ]; then
+    log ""
+    log "${C_BOLD}${MY_NAME} ${VERSION}${C_RESET} — LAN device discovery & fingerprinting"
+    log "  Interface : ${C_CYAN}$INTERFACE${C_RESET}"
+    log "  Subnet    : ${C_CYAN}$CIDR${C_RESET}"
+    [ "$DEEP" = true ] && log "  Deep scan : ${C_MAGENTA}enabled (nmap ports + OS)${C_RESET}"
+    log "  Gateway   : ${C_CYAN}$GATEWAY${C_RESET} ${GATEWAY_MAC:+($GATEWAY_MAC)}"
+    log "  Your IP   : ${C_CYAN}$IPADDR${C_RESET}"
+    log ""
+    log "${C_BOLD}> DISCLAIMER:${C_RESET} scan only networks you own or are authorized to test."
+    log ""
+fi
+
+read -r START END <<< "$(range_from_cidr "$CIDR")"
+TOTAL=$(( END - START + 1 ))
+
+if [ "$QUIET" = false ]; then
+    log "  ${C_YELLOW}Pinging ${TOTAL} host(s) to populate the ARP table...${C_RESET}"
+fi
+run_ping_sweep "$START" "$END" &
+sweep_pid=$!
+spinner "$sweep_pid" "Ping sweep..."
+wait "$sweep_pid"
+
+load_vendors
+
+if [ "$QUIET" = false ]; then
+    log "  ${C_YELLOW}Resolving device details...${C_RESET}"
+fi
+
+ip neigh show dev "$INTERFACE" 2>/dev/null > /tmp/${MY_NAME}-neighborhood.txt
+
+ROWS=()
+local_ip_lower=""
+
+while read -r rec_ip _ rec_mac rec_state _; do
+    [ -n "$rec_ip" ] && [ -n "$rec_mac" ] || continue
+    [ "$rec_ip" = "$IPADDR" ] && continue
+    case "$rec_state" in
+        REACHABLE|STALE|DELAY|PROBE|CONNECTED|PERMANENT) : ;;
+        *) continue ;;
+    esac
+    mac_lower="${rec_mac,,}"
+    vendor="$(mac_vendor "$mac_lower")"
+    [ -z "$vendor" ] && vendor="Unknown"
+    hostname=$(resolve_device_name "$rec_ip")
+    is_gateway=false
+    if [ "$rec_ip" = "$GATEWAY" ] || { [ -n "$GATEWAY_MAC" ] && [ "$mac_lower" = "${GATEWAY_MAC,,}" ]; }; then
+        is_gateway=true
+    fi
+    dev_type=$(classify "$vendor" "$hostname" "$is_gateway")
+    ports=""
+    os=""
+    if [ "$DEEP" = true ]; then
+        p_o=$(deep_scan "$rec_ip")
+        ports="${p_o%%|*}"
+        os="${p_o##*|}"
+    fi
+    ROWS+=("$rec_ip|$rec_mac|$vendor|$hostname|$dev_type|$ports|$os")
+done < /tmp/${MY_NAME}-neighborhood.txt
+rm -f /tmp/${MY_NAME}-neighborhood.txt
+
+if [ ${#ROWS[@]} -eq 0 ]; then
+    err "No devices found. Run with sudo (for arp-scan vendor data) or install arp-scan/fping."
+    exit 1
+fi
+
+case "$OUT_FORMAT" in
+    json) emit_json ;;
+    yaml) emit_yaml ;;
+    csv)  emit_csv ;;
+    *)    emit_table ;;
+esac
