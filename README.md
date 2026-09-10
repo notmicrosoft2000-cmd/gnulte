@@ -99,6 +99,9 @@ sudo GNULTE --scan -t 192.168.1.20   # deep port/OS scan of one IP
 | `--duration SECONDS` | Auto-stop after N seconds |
 | `--export CSV` | Save per-second results to CSV |
 | `--log-mode MODE` | `normal`, `simple`, or `quiet` |
+| `--verbosity LEVEL` | `easy` (plain language) · `normal` · `expert` (raw commands + confirm each step) |
+| `--theme NAME` | Colour theme: `classic` · `hacker` · `ocean` · `sunset` · `highcontrast` · `mono` · `custom` |
+| `--settings` | Interactive settings app: theme preview, verbosity, log mode |
 | `--log-file FILE` | Save a session log |
 | `--force` | Skip interactive prompts (use with explicit flags) |
 
@@ -159,9 +162,19 @@ page and documentation. Architecture is `all` (pure Bash scripts).
 ## Files and state
 
 - `~/.gnulte_accepted` — disclaimer acceptance marker
-- `~/.gnulte.conf` — user configuration (edit via `GNULTE --config`)
+- `~/.gnulte.conf` — user configuration (edit via `GNULTE --config` or `GNULTE --settings`)
 - `~/.gnulte_profiles.conf` — custom saved profiles
 - `gnulte-report-<ts>/` — post-test reports (created in the working directory)
+
+### Settings & themes
+
+`GNULTE --settings` is a small interactive app to pick a **colour theme** (with a
+live preview of `classic`, `hacker`, `ocean`, `sunset`, `highcontrast`, `mono`,
+`custom`), the **verbosity level** (`easy` = plain-language explanations,
+`normal` = current output, `expert` = raw commands shown *and* a confirmation
+before each spoof/shaping step), and the **console log mode**. Changes are saved
+to `~/.gnulte.conf`. The same options are available as flags:
+`--theme`, `--verbosity`, `--log-mode`.
 
 ## Dependencies
 
