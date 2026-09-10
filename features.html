@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GNULTE features — LAN scanning, traffic shaping with tc netem and a live ping dashboard.">
+  <meta name="theme-color" content="#3584e4">
+  <title>Features — GNULTE</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="GNULTE home">
+      <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#e8f0fb" stroke="#3584e4" stroke-width="5"/><path d="M6 17h52" stroke="#3584e4" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#1c71d8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand-name">GNULTE</span>
+    </a>
+    <nav class="menubar" aria-label="Site navigation">
+      <a href="features.html" aria-current="page">Features</a>
+      <a href="docs.html">Documentation</a>
+      <a href="scan.html">gnulte-scan</a>
+      <a href="download.html" class="nav-cta">Download</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <h1>Features</h1>
+      <p>Apply real network conditions to devices you own.</p>
+    </section>
+
+    <section class="section">
+      <div class="grid">
+        <div class="card">
+          <h3>LAN scanning</h3>
+          <p>Detects your interface, gateway and IP, then scans the network. Every device is fingerprinted — vendor, hostname, open ports and type.</p>
+        </div>
+        <div class="card">
+          <h3>Flexible targeting</h3>
+          <p>One IP, several IPs, a whole subnet, or an IP resolved from a MAC. Whitelist your own devices and they are skipped automatically.</p>
+        </div>
+        <div class="card">
+          <h3>Traffic shaping</h3>
+          <p>Traffic is routed through your machine via ARP spoof and shaped with tc netem — latency, jitter, loss, duplication, reordering and bandwidth, applied on the wire.</p>
+        </div>
+        <div class="card">
+          <h3>Live dashboard</h3>
+          <p>Every target is pinged once per second during a test, with last, min, max, average and loss shown live.</p>
+        </div>
+        <div class="card">
+          <h3>Reports</h3>
+          <p>Each run ends with a report folder containing SVG latency graphs and status summaries.</p>
+        </div>
+        <div class="card">
+          <h3>Self-healing</h3>
+          <p>Spoof processes are monitored and restarted if they die. Cleanup always runs — qdisc removed, forwarding off.</p>
+        </div>
+      </div>
+      <p class="center"><a class="btn btn-primary" href="download.html">Get GNULTE</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <p><a class="nep-link" href="/">Neptune Productions</a> · GNULTE · <a href="https://github.com/notmicrosoft2000-cmd/gnulte">GitHub</a></p>
+    <p>© 2026 · Authorised network testing only.</p>
+  </footer>
+</body>
+</html>

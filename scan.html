@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="GNULTE — GNU LAN Network Testing Environment. A network processing script by Neptune Productions.">
+  <meta name="description" content="gnulte-scan — GNULTE's companion scanner. Discover devices on your network without root.">
   <meta name="theme-color" content="#3584e4">
-  <title>GNULTE — GNU LAN Network Testing Environment</title>
+  <title>gnulte-scan — GNULTE</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,35 +22,41 @@
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
-      <a href="scan.html">gnulte-scan</a>
+      <a href="scan.html" aria-current="page">gnulte-scan</a>
       <a href="download.html" class="nav-cta">Download</a>
     </nav>
   </header>
 
-  <main class="hero">
-    <div class="hero-logo">
-      <svg class="gltlogo" viewBox="0 0 64 64" aria-hidden="true">
-        <rect class="logo-frame" x="5" y="7" width="54" height="40" rx="6"/>
-        <path class="logo-titlebar" d="M5 15h54"/>
-        <circle class="ring" cx="22" cy="37" r="18"/>
-        <circle class="ring r2" cx="22" cy="37" r="18"/>
-        <circle class="ring r3" cx="22" cy="37" r="18"/>
-        <circle class="logo-dot" cx="22" cy="37" r="3"/>
-        <path class="logo-wave" d="M30 37h4v-6h3v11h3v-4h2v6h3v-3h4"/>
-        <circle class="logo-dot2" cx="48" cy="37" r="3"/>
-      </svg>
-    </div>
+  <main>
+    <section class="page-hero">
+      <h1>gnulte-scan</h1>
+      <p>The companion scanner. No root required.</p>
+    </section>
 
-    <h1 class="hero-title">GNULTE</h1>
-    <p class="hero-sub">GNU LAN Network Testing Environment</p>
-    <p class="hero-line">GNULTE is a network processing script.</p>
+    <section class="section">
+      <p class="section-body">GNULTE needs root to shape traffic. Discovering your network does not. gnulte-scan lists every active device and pulls the maximum detail out of each one.</p>
 
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="download.html">Get GNULTE</a>
-      <a class="btn btn-ghost" href="features.html">Features</a>
-    </div>
-
-    <p class="hero-foot">Linux · GPL-3.0-or-later · Neptune Productions</p>
+      <div class="cols">
+        <div>
+          <div class="section-title">What it reports</div>
+          <ul class="checklist" style="margin-top:12px;">
+            <li>IP, MAC, OUI vendor and device type</li>
+            <li>Device names from up to five sources — mDNS, reverse DNS, NetBIOS and more</li>
+            <li>Gateway detected by IP <em>and</em> MAC</li>
+            <li>Open ports and OS fingerprint with <code>--deep</code></li>
+            <li>Export as JSON, YAML or CSV</li>
+          </ul>
+        </div>
+        <div>
+          <div class="section-title">Usage</div>
+          <div class="code-block" style="margin-top:12px;">
+<span class="cb-cmt"># device list, details on each</span>
+<span class="cb-pr">$</span> gnulte-scan --deep
+<span class="cb-cmt"># custom interface and subnet, CSV export</span>
+<span class="cb-pr">$</span> gnulte-scan -i wlan0 -C 192.168.0.0/24 -c &gt; devices.csv</div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer>
