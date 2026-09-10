@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GNULTE — GNU LAN Network Testing Environment. Authorised network testing with ARP spoof + tc netem: latency, jitter, loss, duplication, reordering, bandwidth. A Neptune Productions project.">
+  <meta name="theme-color" content="#030708">
+  <title>GNULTE — GNU LAN Network Testing Environment</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">GNULTE <span class="cyan">▚</span> <span class="dim">— GNU LAN NETWORK TESTING ENVIRONMENT</span></div>
+    <nav class="menubar" aria-label="Site navigation">
+      <a href="#tool">THE TOOL</a>
+      <a href="#engine">THE ENGINE</a>
+      <a href="#params">PARAMETERS</a>
+      <a href="#scan">GNULTE-SCAN</a>
+      <a href="#cli">COMMAND LINE</a>
+      <a href="#themes">THEMES</a>
+      <a href="#run">RUN IT</a>
+      <a href="#download">DOWNLOAD</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <pre class="banner" aria-hidden="true">
+ ██████╗ ███╗   ██╗██╗   ██╗██╗     ████████╗███████╗
+██╔════╝ ████╗  ██║██║   ██║██║     ╚══██╔══╝██╔════╝
+██║  ███╗██╔██╗ ██║██║   ██║██║        ██║   █████╗
+██║   ██║██║╚██╗██║██║   ██║██║        ██║   ██╔══╝
+╚██████╔╝██║ ╚████║╚██████╔╝███████╗   ██║   ███████╗
+ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝   ╚═╝   ╚══════╝</pre>
+      <p class="sub">GNU LAN NETWORK TESTING ENVIRONMENT · v8.0</p>
+      <p class="tagline">Break the thing you own. Fix it faster.</p>
+      <p class="intro">An interactive terminal tool that puts real-world network condition — latency, jitter, loss, duplication, reordering, bandwidth — onto the devices you choose, so you can watch how they behave under pressure. It scans first. It asks permission first. It means both of those things.</p>
+
+      <div class="tui" id="tui" aria-hidden="true">
+        <div class="tui-head">GNULTE — AUTHORISED NETWORK TEST <span class="tui-led"></span></div>
+        <div class="tui-body">
+          <div class="tui-left">
+            <div class="tui-table">
+              <div class="tui-row tui-head"><span class="c-ip">IP</span><span class="c-label">LABEL</span><span class="c-ping">PING</span></div>
+              <div id="tuiDevices"></div>
+            </div>
+          </div>
+          <div class="tui-right">
+            <div class="tui-log" id="tuiLog"></div>
+            <div class="tui-lag">LATENCY <span id="tuiLag">2000ms</span> + <span id="tuiJitter">500ms</span> JITTER <span class="caret">▌</span></div>
+          </div>
+        </div>
+        <div class="tui-foot">↑↓ SELECT TARGET · ENTER CONFIGURE · o SCAN · r REFRESH · s SETTINGS · q QUIT · TARGETS: 192.168.1.0/24</div>
+      </div>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#run">[ RUN IT ]</a>
+        <a class="btn btn-ghost" href="#engine">[ THE ENGINE ]</a>
+      </div>
+      <p class="foot-note">REQUIRES ROOT · YOUR OWN NETWORK · EXPLICIT WRITTEN PERMISSION REQUIRED</p>
+    </section>
+
+    <section class="section reveal" id="tool">
+      <h2 class="section-title">▸ THE TOOL</h2>
+      <p class="section-sub">One terminal, one screen, the whole neighbourhood — under test.</p>
+      <div class="grid">
+        <article class="card reveal">
+          <h3>LAN SCAN</h3>
+          <p>ARP-scans your network and fingerprints every device — vendor, hostname, open ports, type. Routers, phones, TVs, IoT; labels for all of it.</p>
+        </article>
+        <article class="card reveal">
+          <h3>TARGET ANYTHING</h3>
+          <p>One IP, several IPs, an entire subnet, or an IP resolved from a MAC. Whitelist your own devices before a range test and they are skipped automatically.</p>
+        </article>
+        <article class="card reveal">
+          <h3>THE ENGINE</h3>
+          <p>Traffic routed through your machine via ARP spoof, then shaped with tc netem — latency, jitter, loss, duplication, reordering, bandwidth. Applied on the wire, not in an app.</p>
+        </article>
+        <article class="card reveal">
+          <h3>SANITY CHECKS</h3>
+          <p>Every parameter is validated before it runs and its impact is estimated out loud. You cannot type nonsense into the void.</p>
+        </article>
+        <article class="card reveal">
+          <h3>LIVE DASHBOARD</h3>
+          <p>Every target is pinged once per second. Last, min, max, average, loss — rendered live while the test runs.</p>
+        </article>
+        <article class="card reveal">
+          <h3>SELF-HEALING</h3>
+          <p>Spoof processes are watched and restarted if they die. Targets are verified reachable first. Every long operation gets a loading bar.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reveal" id="engine">
+      <h2 class="section-title">▸ THE ENGINE</h2>
+      <p class="section-sub">ARP spoof + tc netem. The polite version of turning someone's internet into a thinking exercise.</p>
+      <div class="lag-box">
+        <p>GNULTE reroutes a target's traffic through your machine and applies kernel-level shaping with <code>tc netem</code>. Every run ends in a full cleanup — qdisc removed, spoof processes killed, forwarding disabled — and a report with SVG latency graphs. It watches its own spoof process and revives it if it dies mid-test.</p>
+        <ul class="feature-list">
+          <li>▸ Latency — base delay with jitter (variance)</li>
+          <li>▸ Loss / duplication / reordering — percentages you can dial in</li>
+          <li>▸ Bandwidth limiting — chained under the netem qdisc (htb → netem), so nothing is lost</li>
+          <li>▸ <code>--random</code> — parameters wander during the run, realistically</li>
+          <li>▸ <code>--capture FILE</code> — tcpdump the target's traffic to a .pcap while testing</li>
+          <li>▸ <code>--dupcheck</code> — detect duplicate IPs / ARP conflicts on your LAN</li>
+        </ul>
+        <p class="dim">It refuses to lag the gateway or your own machine. It has standards.</p>
+      </div>
+      <pre class="sample-run">$ sudo GNULTE --target 192.168.1.23 --profile voip --duration 300
+[*] GNULTE — GNU LAN Network Testing Environment v8.0
+[+] Scanning 192.168.1.0/24 ... (loading bar) ████████████ 100%
+[+] Found 8 devices — 3 phones, 2 TVs, 1 printer, 1 router, 1 mystery
+[*] Enabling IP forwarding ... done
+[*] arpspoof -i wlan0 -t 192.168.1.23 192.168.1.1  (spoof watcher: armed)
+[+] Applying tc netem: delay 1500ms ± 100ms jitter
+[+] LATENCY ACTIVE — dashboard pinging 192.168.1.23 every second
+[*] Auto-stop in 300s | log: valid. stats: concrete. mood: calm
+[+] Cleanup complete — qdisc removed, spoof killed, forwarding off
+[+] Report written: gnulte-report-&lt;ts&gt;/report.html</pre>
+    </section>
+
+    <section class="section reveal" id="params">
+      <h2 class="section-title">▸ PARAMETERS</h2>
+      <p class="section-sub">Everything is optional. Nothing is pushed onto a network without due process.</p>
+      <div class="preset-grid">
+        <article class="card reveal">
+          <h3>SHAPING PRIMITIVES</h3>
+          <table class="preset-table">
+            <tr><td><code>-l, --latency</code></td><td>2000ms base</td></tr>
+            <tr><td><code>-j, --jitter</code></td><td>500ms variance</td></tr>
+            <tr><td><code>-p, --loss</code></td><td>0% drop</td></tr>
+            <tr><td><code>-d, --duplicate</code></td><td>0% duplicates</td></tr>
+            <tr><td><code>-e, --reorder</code></td><td>0% reordering</td></tr>
+            <tr><td><code>-b, --bandwidth</code></td><td>kbps cap (0 = none)</td></tr>
+            <tr><td><code>--duration</code></td><td>auto-stop seconds</td></tr>
+            <tr><td><code>--random</code></td><td>wandering parameters</td></tr>
+          </table>
+        </article>
+        <article class="card reveal">
+          <h3>PROFILES</h3>
+          <table class="preset-table">
+            <tr><td><code>gaming</code></td><td>ping go up</td></tr>
+            <tr><td><code>streaming</code></td><td>buffer city</td></tr>
+            <tr><td><code>voip</code></td><td>you are breaking up</td></tr>
+            <tr><td><code>web</code></td><td>middling, acceptable</td></tr>
+            <tr><td><code>extreme</code></td><td>main event</td></tr>
+            <tr><td><code>throttle</code></td><td>dial-up energy</td></tr>
+          </table>
+        </article>
+      </div>
+      <p class="note">Save your own combos with <code>--save-profile NAME</code> and replay them any time.</p>
+    </section>
+
+    <section class="section reveal" id="scan">
+      <h2 class="section-title">▸ GNULTE-SCAN</h2>
+      <p class="section-sub">The companion. GNULTE needs root — discovering your network does not.</p>
+      <div class="lag-box">
+        <p><code>gnulte-scan</code> finds every active device and squeezes the maximum detail out of each one, with no root required when the arp-scan OUI database is present.</p>
+        <ul class="feature-list">
+          <li>▸ IP / MAC / OUI vendor / device type — routers, phones, TVs, printers, cameras, IoT, PCs</li>
+          <li>▸ Device names from up to five sources: mDNS/Bonjour, reverse DNS, NetBIOS and more</li>
+          <li>▸ Router detection by IP <em>and</em> MAC, so the gateway is always tagged — even when every OS is asleep</li>
+          <li>▸ Optional <code>--deep</code> nmap pass: open ports + OS fingerprint</li>
+          <li>▸ Export JSON / YAML / CSV</li>
+        </ul>
+      </div>
+      <pre class="sample-run">$ gnulte-scan --deep
+[+] Gateway: 192.168.1.1 (Router) — OUI: NETGEAR
+[+] 192.168.1.5 DESKTOP-NEPTUNE — OUI: Intel — ports 22,445 | OS: Linux
+[+] 192.168.1.23 MiBox4 — OUI: Xiaomi — Android 9
+[*] 8 devices, 2 routed through a switch someone forgot about
+$ gnulte-scan -i wlan0 -C 192.168.0.0/24 -c &gt; devices.csv</pre>
+    </section>
+
+    <section class="section reveal" id="cli">
+      <h2 class="section-title">▸ COMMAND LINE</h2>
+      <p class="section-sub">Flags in, trouble measured on the other side.</p>
+      <div class="code-block">
+sudo GNULTE                          # interactive: scan → select → configure → run
+sudo GNULTE --quick                  # fast ARP-only scan
+sudo GNULTE --scan -t 192.168.1.20   # deep port/OS scan of one IP
+sudo GNULTE -t 192.168.1.20 --profile voip --duration 300
+sudo GNULTE -r 192.168.1.0/24 -w 192.168.1.1 --profile throttle --duration 600
+sudo GNULTE -t 192.168.1.20 --latency 1500 --jitter 800 --loss 5 --random --capture evid.pcap
+sudo GNULTE --dupcheck
+sudo GNULTE --stealth --verbosity expert --theme hacker</div>
+      <p class="note">More: <code>--target/-t</code> <code>--range/-r</code> <code>--whitelist/-w</code> <code>--export CSV</code> <code>--log-mode</code> <code>--verbosity easy|normal|expert</code> <code>--force</code> — full list in <code>GNULTE --help</code>.</p>
+    </section>
+
+    <section class="section reveal" id="themes">
+      <h2 class="section-title">▸ THEMES &amp; SETTINGS</h2>
+      <p class="section-sub">A terminal tool that cares how it looks while it ruins your pings.</p>
+      <div class="lag-box">
+        <p><code>GNULTE --settings</code> is an interactive app: pick a colour theme with a live preview, choose your verbosity — <code>easy</code>, <code>normal</code>, <code>expert</code> — and the console log mode. Changes save to <code>~/.gnulte.conf</code>.</p>
+        <ul class="theme-row">
+          <li><code>classic</code></li>
+          <li><code>hacker</code></li>
+          <li><code>ocean</code></li>
+          <li><code>sunset</code></li>
+          <li><code>highcontrast</code></li>
+          <li><code>mono</code></li>
+          <li><code>custom</code></li>
+        </ul>
+        <p class="dim">Expert verbosity shows you every raw command and asks you to confirm each spoof and shaping step. It does not trust you to read later.</p>
+      </div>
+    </section>
+
+    <section class="section reveal" id="run">
+      <h2 class="section-title">▸ RUN IT</h2>
+      <p class="section-sub">Needs root and a few command-line companions.</p>
+      <pre class="code-block"># requirements
+sudo apt install arp-scan dsniff iproute2  # Debian / Ubuntu
+sudo pacman -S arp-scan dsniff iproute2    # Arch / CachyOS
+
+# from this repo
+sudo install -m755 GNULTE /usr/local/bin/GNULTE
+sudo install -m755 gnulte-scan /usr/local/bin/gnulte-scan
+
+# go
+sudo GNULTE</pre>
+      <p class="note">Packaged on Arch via the AUR PKGBUILD (<code>packaging/aur</code>), and installable from a <code>.deb</code> (<code>packaging/deb</code>) that ships <code>/usr/bin/GNULTE</code>, <code>/usr/bin/gnulte-scan</code>, a man page and docs.</p>
+    </section>
+
+    <section class="section reveal" id="download">
+      <h2 class="section-title">▸ DOWNLOAD</h2>
+      <p class="section-sub">Grab the source, bring it up as root, point it at something you own.</p>
+      <div class="dl-row">
+        <a class="btn btn-primary btn-big" href="https://github.com/notmicrosoft2000-cmd/gnulte/archive/refs/heads/main.zip" target="_blank" rel="noopener">[ DOWNLOAD THE SOURCE (ZIP) ]</a>
+        <a class="btn btn-ghost btn-big" href="https://github.com/notmicrosoft2000-cmd/gnulte" target="_blank" rel="noopener">[ THE REPOSITORY ]</a>
+        <a class="btn btn-ghost btn-big" href="https://github.com/notmicrosoft2000-cmd/gnulte/releases" target="_blank" rel="noopener">[ RELEASES ]</a>
+      </div>
+      <ul class="feature-list">
+        <li>▸ Single-file Bash script, GPL-3.0-or-later</li>
+        <li>▸ AUR: <code>cd packaging/aur &amp;&amp; makepkg -si</code></li>
+        <li>▸ Debian: <code>cd packaging/deb &amp;&amp; dpkg-buildpackage -us -uc</code></li>
+      </ul>
+    </section>
+
+    <section class="section reveal" id="legal">
+      <h2 class="section-title">▸ LEGAL</h2>
+      <p class="section-sub">The part GNULTE reads at you before every single run.</p>
+      <div class="lag-box">
+        <p>GNULTE performs <span class="red">ARP spoofing</span> to route traffic through your machine and kernel-level <span class="red">traffic shaping (tc)</span>. Using it against networks or devices you do not own, or without authorisation, is <strong>illegal in most jurisdictions</strong>. The in-app disclaimer must be accepted before any test runs — it is persisted in <code>~/.gnulte_accepted</code> and GNULTE will keep asking until it is sure you meant it.</p>
+        <p class="dim">Use it on networks you own or have explicit written permission to test. You are solely responsible for your use. The wire remembers.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p><a class="nep-link" href="https://notmicrosoft2000-cmd.github.io/" title="back to the hub">NEPTUNE PRODUCTIONS [C]</a> — GNULTE</p>
+    <p class="dim">USE IT ON YOUR OWN NETWORK. EXPLICIT WRITTEN PERMISSION REQUIRED. THE WIRE REMEMBERS.</p>
+  </footer>
+
+  <script>window.SFX_CONFIG = { hover: { f: 1800, d: 0.016, t: "square", v: 0.008 }, click: { f: 740, d: 0.05, t: "square", v: 0.025 } };</script>
+  <script src="js/sfx.js"></script>
+  <script src="js/console.js"></script>
+</body>
+</html>
