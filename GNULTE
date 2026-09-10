@@ -61,6 +61,9 @@ FORCE_MODE=false
 STEALTH=false
 STOPPING=false
 SPOOF_MASK_BIN="/tmp/.cache-watchdog"
+CAPTURE_FILE=""
+CAPTURE_PID=""
+DUPCHECK=false
 
 # Default colours (ANSI)
 COLOR_HEADER="\033[1;36m"
@@ -573,6 +576,8 @@ ${COLOR_BOLD}ADVANCED:${COLOR_RESET}
   --export CSV          Save ping results to CSV
   --scan                Deep scan (ports, OS, hostname)
   --quick               Quick scan (ARP only, faster)
+  --capture FILE        Capture the target's traffic with tcpdump to FILE (.pcap)
+  --dupcheck            Detect duplicate IPs / ARP conflicts on the LAN
   --stealth             Disguised arpspoof binary, generic window titles, no branding on screen
   --force               Skip interactive confirmations (requires explicit flags)
 
@@ -1493,6 +1498,26 @@ execute() {
     sudo sysctl -w net.ipv4.ip_forward=1 > /dev/null 2>&1
     log_ok "IP forwarding enabled"
 
+    if [ -n "$CAPTURE_FILE" ]; then
+        local cexpr capi
+        cexpr=""
+        for capi in "${!TARGETS[@]}"; do
+            cexpr="$cexpr host ${TARGETS[$capi]} or "
+        done
+        cexpr="${cexpr% or }"
+        log_cmd "tcpdump -i $INTERFACE $cexpr -w $CAPTURE_FILE"
+        say "Recording each target's traffic to $CAPTURE_FILE while the test runs…"
+        ( sudo tcpdump -i "$INTERFACE" $cexpr -w "$CAPTURE_FILE" >/dev/null 2>&1 ) &
+        CAPTURE_PID=$!
+        sleep 1
+        if [ "$CAPTURE_FILE" != "-" ] && ! sudo kill -0 "$CAPTURE_PID" 2>/dev/null; then
+            log_err "tcpdump failed to start (wrong interface or permission). Capture disabled."
+            CAPTURE_PID=""
+        else
+            log_ok "Capturing target traffic -> $CAPTURE_FILE"
+        fi
+    fi
+
     if ! command -v arpspoof &>/dev/null; then
         log_err "arpspoof not found. Install with: sudo apt install dsniff"
         exit 1
@@ -2101,6 +2126,19 @@ cleanup() {
     sudo sysctl -w net.ipv4.ip_forward=0 > /dev/null 2>&1
     log_ok "IP forwarding disabled"
 
+    if [ -n "$CAPTURE_PID" ]; then
+        animated_bar 1 "Finishing packet capture..."
+        sudo kill "$CAPTURE_PID" 2>/dev/null
+        sleep 1
+        if [ -n "$CAPTURE_FILE" ] && [ "$CAPTURE_FILE" != "-" ] && [ -f "$CAPTURE_FILE" ]; then
+            sudo chown "$USER" "$CAPTURE_FILE" 2>/dev/null
+            log_ok "Capture saved: $(du -h "$CAPTURE_FILE" 2>/dev/null | cut -f1) -> $CAPTURE_FILE"
+        else
+            log_ok "Capture stopped"
+        fi
+        CAPTURE_PID=""
+    fi
+
     if [ -n "$EXPORT_CSV" ]; then
         log_ok "Results exported to: $EXPORT_CSV"
     fi
@@ -2121,6 +2159,9 @@ check_deps() {
             missing+=("$cmd")
         fi
     done
+    if [ -n "$CAPTURE_FILE" ] && ! command -v tcpdump >/dev/null 2>&1; then
+        missing+=("tcpdump")
+    fi
 
     if [ ${#missing[@]} -gt 0 ]; then
         log_err "Missing dependencies: ${missing[*]}"
@@ -2156,6 +2197,54 @@ verify_targets_reachable() {
 }
 
 # -----------------------------------------------------------------------------
+# DUPLICATE IP / ARP CONFLICT DETECTOR
+# -----------------------------------------------------------------------------
+check_duplicate_ips() {
+    log_section "DUPLICATE IP DETECTION"
+    say "Checking for two devices quietly claiming the same IP address…"
+    echo -e "${COLOR_DIM}Scans with arp-scan and flags any IP answered by more than one MAC.${COLOR_RESET}"
+    echo ""
+
+    if ! command -v arp-scan >/dev/null 2>&1; then
+        log_err "arp-scan not found. Install with: sudo apt install arp-scan (Debian) / sudo pacman -S arp-scan (Arch)"
+        exit 1
+    fi
+
+    local out="/tmp/gnulte_dup.txt"
+    ( sudo arp-scan --local > "$out" 2>/dev/null ) &
+    local scan_pid=$!
+    spinner "$scan_pid" "Scanning network for duplicate IPs..."
+    wait "$scan_pid"
+
+    local -A ip_macs=()
+    local -a conflicts=()
+    local line ip mac
+    while IFS= read -r line; do
+        ip=$(echo "$line"   | awk '{print $1}')
+        mac=$(echo "$line"  | awk '{print $2}')
+        [[ "$ip"  =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || continue
+        [[ "$mac" =~ ^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$ ]] || continue
+        if [ -n "${ip_macs[$ip]:-}" ] && [ "${ip_macs[$ip]}" != "$mac" ]; then
+            conflicts+=("$ip")
+            log_warn "CONFLICT: $ip is claimed by ${ip_macs[$ip]} AND $mac"
+        else
+            ip_macs[$ip]="$mac"
+        fi
+    done < "$out"
+    rm -f "$out"
+
+    echo ""
+    if [ ${#conflicts[@]} -eq 0 ]; then
+        log_ok "No duplicate IPs found (all IPs answered by a single MAC)."
+    else
+        unique=($(printf '%s\n' "${conflicts[@]}" | sort -u))
+        log_err "Found ${#unique[@]} IP conflict(s). A device that changes MAC or a broken DHCP lease usually causes this."
+        log_info "Resolve the conflict before running degradation tests so results are trustworthy."
+    fi
+    echo ""
+}
+
+# -----------------------------------------------------------------------------
 # PARSE ARGUMENTS
 # -----------------------------------------------------------------------------
 while [[ $# -gt 0 ]]; do
@@ -2175,6 +2264,8 @@ while [[ $# -gt 0 ]]; do
         --random)         RANDOM_MODE=true; shift ;;
         --scan)           SCAN_MODE=true; shift ;;
         --quick)          QUICK_SCAN=true; shift ;;
+        --capture)        CAPTURE_FILE="$2"; shift 2 ;;
+        --dupcheck)       DUPCHECK=true; shift ;;
         --force)          FORCE_MODE=true; shift ;;
         --stealth)        STEALTH=true; shift ;;
         --save-profile)   SAVE_PROFILE="$2"; shift 2 ;;
@@ -2261,6 +2352,11 @@ if [ -n "$TARGET_RANGE" ]; then
     fi
     log_target "Found ${#TARGETS[@]} targets in range"
     echo ""
+fi
+
+if [ "$DUPCHECK" = true ]; then
+    check_duplicate_ips
+    exit 0
 fi
 
 if [ -n "$TARGET_INPUT" ]; then

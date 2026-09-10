@@ -102,6 +102,9 @@ sudo GNULTE --scan -t 192.168.1.20   # deep port/OS scan of one IP
 | `--random` | Vary parameters randomly during the run |
 | `--duration SECONDS` | Auto-stop after N seconds |
 | `--export CSV` | Save per-second results to CSV |
+| `--capture FILE` | Capture the target's traffic with `tcpdump` to a `.pcap` while the
+  test runs, so you can inspect what the apps actually experience |
+| `--dupcheck` | Detect duplicate IPs / ARP conflicts on your LAN |
 | `--log-mode MODE` | `normal`, `simple`, or `quiet` |
 | `--verbosity LEVEL` | `easy` (plain language) · `normal` · `expert` (raw commands + confirm each step) |
 | `--theme NAME` | Colour theme: `classic` · `hacker` · `ocean` · `sunset` · `highcontrast` · `mono` · `custom` |

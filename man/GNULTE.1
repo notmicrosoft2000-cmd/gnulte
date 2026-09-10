@@ -69,6 +69,14 @@ Deep scan selected targets (ports, OS detection, hostname) using nmap.
 .B \-\-quick
 Use a fast ARP-only scan.
 .TP
+.BI "\-\-capture " FILE
+Capture the target's traffic with \fBtcpdump\fR to FILE (pcap format) while the
+test runs, so you can later inspect what the applications actually experienced.
+.TP
+.B \-\-dupcheck
+Scan the LAN for duplicate IP addresses / ARP conflicts (an IP answered by more
+than one MAC), then exit.
+.TP
 .B \-\-force
 Skip interactive configuration prompts (requires explicit flags).
 .TP
@@ -128,4 +136,5 @@ you own or have written permission to test.
 .BR arpspoof (8),
 .BR tc (8),
 .BR arp-scan (1),
+.BR tcpdump (1),
 .BR nmap (1)
