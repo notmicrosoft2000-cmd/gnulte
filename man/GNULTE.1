@@ -12,6 +12,9 @@ shaping (\fBtc netem\fR) and ARP spoofing (\fBarpspoof\fR) to simulate network
 degradation against target devices, so you can observe how applications behave
 under poor network conditions.
 .PP
+During monitoring GNULTE pings each target once per second and shows a live
+dashboard; spoof processes are watched and restarted automatically if they die.
+.PP
 A disclaimer must be accepted before any test runs. Unauthorised network
 interference is illegal in most jurisdictions; you are solely responsible for
 your actions.
@@ -68,6 +71,10 @@ Use a fast ARP-only scan.
 .TP
 .B \-\-force
 Skip interactive configuration prompts (requires explicit flags).
+.TP
+.B \-\-stealth
+Disguised \fBarpspoof\fR binary name, generic monitor-window titles, and no
+branding screen, for low-visibility use on networks you own.
 .TP
 .BI "\-\-save\-profile " NAME
 Save the current parameter set as a custom profile.

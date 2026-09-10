@@ -25,7 +25,11 @@ applications and devices behave under poor network conditions.
 - Runs interactive parameter prompting with built-in expected impact estimation
   (`estimate_impact`) and **sanity validation** so you cannot accidentally type
   nonsensical values.
-- Shows a **live dashboard** of per-target stats during the run.
+- Shows a **live dashboard** of per-target stats during the run (it pings each
+  target once per second and renders last/min/max/avg/loss live).
+- **Self-healing**: spoof processes are watched and auto-restarted if they die,
+  targets are verified reachable before the run, and every long operation has a
+  loading bar.
 - Generates a **post-test report** (`gnulte-report-<ts>/report.txt` +
   `report.html` with SVG latency graphs) plus optional CSV export.
 
@@ -104,6 +108,8 @@ sudo GNULTE --scan -t 192.168.1.20   # deep port/OS scan of one IP
 | `--settings` | Interactive settings app: theme preview, verbosity, log mode |
 | `--log-file FILE` | Save a session log |
 | `--force` | Skip interactive prompts (use with explicit flags) |
+| `--stealth` | Disguised `arpspoof` binary name, generic monitor-window titles, and no
+  branding screen — for low-visibility use on networks you own |
 
 ### Example test scenarios
 
