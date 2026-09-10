@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="gnulte-scan — GNULTE's companion scanner. Discover devices on your network without root.">
+  <meta name="description" content="gnulte-scan — GNULTE's companion scanner. Discover every device on your network without root.">
   <meta name="theme-color" content="#3584e4">
   <title>gnulte-scan — GNULTE</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -19,6 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#e8f0fb" stroke="#3584e4" stroke-width="5"/><path d="M6 17h52" stroke="#3584e4" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#1c71d8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
+    <span class="addon"><i></i>v8.0</span>
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
@@ -29,39 +30,108 @@
 
   <main>
     <section class="page-hero">
+      <div class="icon-tile tile-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div>
       <h1>gnulte-scan</h1>
       <p>The companion scanner. No root required.</p>
     </section>
 
-    <section class="section">
-      <p class="section-body">GNULTE needs root to shape traffic. Discovering your network does not. gnulte-scan lists every active device and pulls the maximum detail out of each one.</p>
-
-      <div class="cols">
-        <div>
-          <div class="section-title">What it reports</div>
-          <ul class="checklist" style="margin-top:12px;">
-            <li>IP, MAC, OUI vendor and device type</li>
-            <li>Device names from up to five sources — mDNS, reverse DNS, NetBIOS and more</li>
-            <li>Gateway detected by IP <em>and</em> MAC</li>
-            <li>Open ports and OS fingerprint with <code>--deep</code></li>
-            <li>Export as JSON, YAML or CSV</li>
-          </ul>
+    <section class="body-section">
+      <div class="section-head">
+        <p class="kicker">Discovery</p>
+        <h2 class="section-title">Know what's on your network</h2>
+        <p class="section-sub">GNULTE needs root to shape traffic. Discovering your network does not.</p>
+      </div>
+      <div class="showcase">
+        <div class="show-item">
+          <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 10h16"/><path d="M8 13l2-3 2 4 2-2 1.5 1"/></svg></div>
+          <h3>Full fingerprint</h3>
+          <p>IP, MAC, OUI vendor and device type — routers, phones, TVs, printers, cameras and IoT.</p>
         </div>
-        <div>
-          <div class="section-title">Usage</div>
-          <div class="code-block" style="margin-top:12px;">
-<span class="cb-cmt"># device list, details on each</span>
+        <div class="show-item">
+          <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8 12l3 3 5-6"/></svg></div>
+          <h3>Five name sources</h3>
+          <p>mDNS/Bonjour, reverse DNS, NetBIOS and more — merged into the best label for each device.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h9l4 4 4-8 1 4h0"/></svg></div>
+          <h3>Gateway always tagged</h3>
+          <p>Router detection by IP <em>and</em> MAC, so the gateway is recognised even when nothing answers.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6a2 2 0 0 1 2-2h9l5 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M12 10v4 M10 12h4" fill="currentColor"/></svg></div>
+          <h3>Export anywhere</h3>
+          <p>JSON, YAML or CSV — ready for scripts, dashboards and documentation.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band-shaded">
+      <div class="body-section">
+        <div class="cols">
+          <div>
+            <div class="section-head" style="text-align:left;margin-bottom:18px;">
+              <p class="kicker">Deep scan</p>
+              <h2 class="section-title" style="font-size:26px;">More than a ping</h2>
+            </div>
+            <p style="color:var(--muted);margin-bottom:18px;">Add <code>--deep</code> for a full nmap pass on every active device: open ports and OS fingerprinting on top of the ARP-level inventory.</p>
+            <ul class="checklist">
+              <li>Every active device found and inventoried</li>
+              <li>Open ports and OS guesses with <code>--deep</code></li>
+              <li>Device type detection from OUI and services</li>
+              <li>Switch-adjacent devices grouped clearly</li>
+              <li>JSON / YAML / CSV export</li>
+            </ul>
+          </div>
+          <div>
+            <div class="section-head" style="text-align:left;margin-bottom:18px;">
+              <p class="kicker">Usage</p>
+              <h2 class="section-title" style="font-size:26px;">Three commands</h2>
+            </div>
+            <div class="code-block">
+<span class="cb-cmt"># table view, details on each device</span>
 <span class="cb-pr">$</span> gnulte-scan --deep
 <span class="cb-cmt"># custom interface and subnet, CSV export</span>
 <span class="cb-pr">$</span> gnulte-scan -i wlan0 -C 192.168.0.0/24 -c &gt; devices.csv</div>
+            <p class="dim" style="margin-top:14px;font-size:14px;">No root needed when the arp-scan OUI database is present.</p>
+          </div>
         </div>
       </div>
+    </section>
+
+    <section class="body-section">
+      <p class="center"><a class="btn btn-primary btn-big" href="download.html">Download GNULTE + gnulte-scan</a></p>
     </section>
   </main>
 
   <footer>
-    <p><a class="nep-link" href="/">Neptune Productions</a> · GNULTE · <a href="https://github.com/notmicrosoft2000-cmd/gnulte">GitHub</a></p>
-    <p>© 2026 · Authorised network testing only.</p>
+    <div class="footer-cols">
+      <div>
+        <p style="font-weight:700;color:var(--text);margin-bottom:10px;">GNULTE</p>
+        <p style="font-size:14px;max-width:280px;">GNU LAN Network Testing Environment. Authorised network testing — scan first, ask permission first, clean up after.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Project</h4>
+        <a href="features.html">Features</a>
+        <a href="docs.html">Documentation</a>
+        <a href="scan.html">gnulte-scan</a>
+        <a href="download.html">Download</a>
+      </div>
+      <div class="footer-links">
+        <h4>Code</h4>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0</a>
+      </div>
+      <div class="footer-links">
+        <h4>Neptune Productions</h4>
+        <a href="/">The hub</a>
+        <a href="https://github.com/notmicrosoft2000-cmd" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <p>© 2026 <a class="nep-link" href="/">Neptune Productions</a> · GNULTE · Authorised network testing only.</p>
+    </div>
   </footer>
 </body>
 </html>

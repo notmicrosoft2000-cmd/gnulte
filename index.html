@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="GNULTE — GNU LAN Network Testing Environment. A network processing script by Neptune Productions.">
+  <meta name="description" content="GNULTE — GNU LAN Network Testing Environment. A network processing script by Neptune Productions. Live traffic shaping on your own LAN.">
   <meta name="theme-color" content="#3584e4">
   <title>GNULTE — GNU LAN Network Testing Environment</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -19,6 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#e8f0fb" stroke="#3584e4" stroke-width="5"/><path d="M6 17h52" stroke="#3584e4" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#1c71d8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
+    <span class="addon"><i></i>v8.0</span>
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
@@ -28,34 +29,160 @@
   </header>
 
   <main class="hero">
-    <div class="hero-logo">
-      <svg class="gltlogo" viewBox="0 0 64 64" aria-hidden="true">
-        <rect class="logo-frame" x="5" y="7" width="54" height="40" rx="6"/>
-        <path class="logo-titlebar" d="M5 15h54"/>
-        <circle class="ring" cx="22" cy="37" r="18"/>
-        <circle class="ring r2" cx="22" cy="37" r="18"/>
-        <circle class="ring r3" cx="22" cy="37" r="18"/>
-        <circle class="logo-dot" cx="22" cy="37" r="3"/>
-        <path class="logo-wave" d="M30 37h4v-6h3v11h3v-4h2v6h3v-3h4"/>
-        <circle class="logo-dot2" cx="48" cy="37" r="3"/>
-      </svg>
+    <div class="hero-deco" aria-hidden="true"><span class="b1"></span><span class="b2"></span><span class="b3"></span></div>
+
+    <div class="hero-art">
+      <div class="hero-logo">
+        <svg viewBox="0 0 64 64" style="width:100%;height:100%;" aria-hidden="true">
+          <rect x="5" y="7" width="54" height="40" rx="6" fill="#fff" opacity=".55"/>
+          <rect x="5" y="7" width="54" height="40" rx="6" fill="none" stroke="#3584e4" stroke-width="3"/>
+          <path d="M5 15h54" stroke="#3584e4" stroke-width="3"/>
+          <circle class="ring" cx="22" cy="37" r="18" fill="none" stroke="#3584e4" stroke-width="2.2" transform-box="fill-box" transform-origin="center"/>
+          <circle class="ring r2" cx="22" cy="37" r="18" fill="none" stroke="#3584e4" stroke-width="2.2" transform-box="fill-box" transform-origin="center"/>
+          <circle class="ring r3" cx="22" cy="37" r="18" fill="none" stroke="#3584e4" stroke-width="2.2" transform-box="fill-box" transform-origin="center"/>
+          <circle cx="22" cy="37" r="3" fill="#1c71d8"/>
+          <path d="M30 37h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#1c71d8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="48" cy="37" r="3" fill="#3584e4"/>
+        </svg>
+      </div>
     </div>
 
     <h1 class="hero-title">GNULTE</h1>
     <p class="hero-sub">GNU LAN Network Testing Environment</p>
     <p class="hero-line">GNULTE is a network processing script.</p>
+    <p class="hero-intro">An interactive testing tool that reroutes a target's traffic through your machine and applies kernel-level shaping with <code>tc netem</code> — so you can measure how devices behave under real latency, jitter, packet loss and bandwidth limits. It scans first, asks permission first, and cleans up after itself.</p>
 
     <div class="hero-actions">
-      <a class="btn btn-primary" href="download.html">Get GNULTE</a>
-      <a class="btn btn-ghost" href="features.html">Features</a>
+      <a class="btn btn-primary btn-big" href="download.html">Get GNULTE</a>
+      <a class="btn btn-ghost btn-big" href="features.html">Explore features</a>
     </div>
-
-    <p class="hero-foot">Linux · GPL-3.0-or-later · Neptune Productions</p>
   </main>
 
+  <section class="section">
+    <div class="section-head">
+      <p class="kicker">The toolkit</p>
+      <h2 class="section-title">Scan. Shape. Measure.</h2>
+      <p class="section-sub">Everything GNULTE does, from discovery to a finished report.</p>
+    </div>
+    <div class="showcase">
+      <div class="show-item">
+        <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 10h16"/><path d="M8 13l2-3 2 4 2-2 1.5 1"/></svg></div>
+        <h3>Scan</h3>
+        <p>Discovers every device and its vendor, hostname, ports and type.</p>
+      </div>
+      <div class="show-item">
+        <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h3l2-6 4 12 3-9 1.5 3H21"/></svg></div>
+        <h3>Shape</h3>
+        <p>Applies conditions on the wire via ARP spoof routing and <code>tc netem</code>.</p>
+      </div>
+      <div class="show-item">
+        <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h3l2-4 3 7 2-5 1.5 2H20"/><path d="M4 5v3 M4 19h3"/></svg></div>
+        <h3>Monitor</h3>
+        <p>Per-target dashboard, pinged every second while the test runs.</p>
+      </div>
+      <div class="show-item">
+        <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6a2 2 0 0 1 2-2h9l5 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M12 10v4 M10 12h4"/></svg></div>
+        <h3>Report</h3>
+        <p>Each run ends with SVG latency graphs and a clean-up.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band-shaded">
+    <div class="section">
+      <div class="section-head">
+        <p class="kicker">Capabilities</p>
+        <h2 class="section-title">Built for real networks</h2>
+        <p class="section-sub">A terminal tool that treats testing seriously.</p>
+      </div>
+      <div class="grid">
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <h3>LAN scanning</h3>
+          </div>
+          <div class="card-body">ARP scan with full device fingerprinting — OUI vendor, hostname, open ports and type. Routers, phones, TVs and IoT, all labelled.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 12l5-5"/><circle cx="8" cy="8" r="1.4" fill="currentColor" stroke="none"/><circle cx="17" cy="16" r="1.4" fill="currentColor" stroke="none"/></svg></div>
+            <h3>Targeting</h3>
+          </div>
+          <div class="card-body">One IP, several IPs, a whole subnet, or an IP looked up from a MAC. Whitelist your own devices and range tests skip them automatically.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 3h7v7"/><path d="M21 3l-8 8"/><path d="M3 14h7v7"/><path d="M3 21l8-8"/></svg></div>
+            <h3>Traffic shaping</h3>
+          </div>
+          <div class="card-body">Latency, jitter, loss, duplication, reordering and bandwidth via <code>tc netem</code>, with caps chained so nothing is dropped. <code>--duration</code> auto-stops runs; <code>--random</code> varies conditions live.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <h3>Validation</h3>
+          </div>
+          <div class="card-body">Every parameter is checked before it runs and its impact is estimated out loud. It refuses to target the gateway or your own machine.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3 M12 19v3 M2 12h3 M19 12h3"/></svg></div>
+            <h3>Live dashboard</h3>
+          </div>
+          <div class="card-body">Every target is pinged once per second — last, min, max, average and loss, and the report is an SVG graph of the whole run.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3a7 7 0 0 0-7 7v6a2 2 0 0 0 2 2h2"/><path d="M12 21a7 7 0 0 0 7-7V8a2 2 0 0 0-2-2h-2"/><path d="M9 13v3 M15 13v3"/></svg></div>
+            <h3>Self-healing</h3>
+          </div>
+          <div class="card-body">The spoof monitor revives dead <code>arpspoof</code> processes mid-test. Targets are verified reachable first, and cleanup always runs — qdisc removed, forwarding off.</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="cta-band">
+      <p class="kicker" style="color:rgba(255,255,255,0.7);">Linux · GPL-3.0-or-later · Neptune Productions</p>
+      <h2>Get started on your own network</h2>
+      <p>Install the source in a minute, then run <code>sudo GNULTE</code>.</p>
+      <div class="cta-row">
+        <a class="btn btn-light btn-big" href="download.html">Download GNULTE</a>
+        <a class="btn btn-outline-light btn-big" href="docs.html">Read the docs</a>
+      </div>
+    </div>
+  </section>
+
   <footer>
-    <p><a class="nep-link" href="/">Neptune Productions</a> · GNULTE · <a href="https://github.com/notmicrosoft2000-cmd/gnulte">GitHub</a></p>
-    <p>© 2026 · Authorised network testing only.</p>
+    <div class="footer-cols">
+      <div>
+        <p style="font-weight:700;color:var(--text);margin-bottom:10px;">GNULTE</p>
+        <p style="font-size:14px;max-width:280px;">GNU LAN Network Testing Environment. Authorised network testing — scan first, ask permission first, clean up after.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Project</h4>
+        <a href="features.html">Features</a>
+        <a href="docs.html">Documentation</a>
+        <a href="scan.html">gnulte-scan</a>
+        <a href="download.html">Download</a>
+      </div>
+      <div class="footer-links">
+        <h4>Code</h4>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0</a>
+      </div>
+      <div class="footer-links">
+        <h4>Neptune Productions</h4>
+        <a href="/">The hub</a>
+        <a href="https://github.com/notmicrosoft2000-cmd" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <p>© 2026 <a class="nep-link" href="/">Neptune Productions</a> · GNULTE · Authorised network testing only.</p>
+    </div>
   </footer>
 </body>
 </html>

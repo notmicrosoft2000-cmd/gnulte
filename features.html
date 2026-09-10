@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="GNULTE features — LAN scanning, traffic shaping with tc netem and a live ping dashboard.">
+  <meta name="description" content="GNULTE features — LAN scanning, tc netem traffic shaping, live dashboard and report generation.">
   <meta name="theme-color" content="#3584e4">
   <title>Features — GNULTE</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -19,6 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#e8f0fb" stroke="#3584e4" stroke-width="5"/><path d="M6 17h52" stroke="#3584e4" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#1c71d8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
+    <span class="addon"><i></i>v8.0</span>
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html" aria-current="page">Features</a>
       <a href="docs.html">Documentation</a>
@@ -29,44 +30,146 @@
 
   <main>
     <section class="page-hero">
+      <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 10h16"/><path d="M8 13l2-3 2 4 2-2 1.5 1"/></svg></div>
       <h1>Features</h1>
-      <p>Apply real network conditions to devices you own.</p>
+      <p>Network testing the way network testing should be done.</p>
     </section>
 
-    <section class="section">
+    <section class="body-section">
+      <div class="section-head" style="margin-bottom:36px;">
+        <p class="kicker">Capabilities</p>
+        <h2 class="section-title">What GNULTE does</h2>
+      </div>
       <div class="grid">
-        <div class="card">
-          <h3>LAN scanning</h3>
-          <p>Detects your interface, gateway and IP, then scans the network. Every device is fingerprinted — vendor, hostname, open ports and type.</p>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <h3>LAN scanning</h3>
+          </div>
+          <div class="card-body">ARP-scans your network and fingerprints every device — OUI vendor, hostname, open ports and device type. Routers, phones, TVs, printers, cameras and IoT, all labelled and colour-coded by connection type.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 12l5-5"/><circle cx="8" cy="8" r="1.4" fill="currentColor" stroke="none"/><circle cx="17" cy="16" r="1.4" fill="currentColor" stroke="none"/></svg></div>
+            <h3>Flexible targeting</h3>
+          </div>
+          <div class="card-body">Select one IP, several IPs, an entire subnet, or resolve a target from its MAC address. Whitelist your own devices and range tests skip them automatically.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 3h7v7"/><path d="M21 3l-8 8"/><path d="M3 14h7v7"/><path d="M3 21l8-8"/></svg></div>
+            <h3>Traffic shaping</h3>
+          </div>
+          <div class="card-body">IP forwarding on, ARP spoof routing the target through your machine, and <code>tc netem</code> applied on the wire: latency, jitter, loss, duplication, reordering and bandwidth. Bandwidth caps chain underneath the qdisc, so shaping is never lost.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <h3>Parameter validation</h3>
+          </div>
+          <div class="card-body">Every parameter is validated before it runs and its impact is estimated out loud before applying. It refuses to target the gateway or your own machine.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3 M12 19v3 M2 12h3 M19 12h3"/></svg></div>
+            <h3>Live dashboard</h3>
+          </div>
+          <div class="card-body">Every target is pinged once per second during a run — last, min, max, average and loss — rendered live with a full-screen, full-data view.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6a2 2 0 0 1 2-2h9l5 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M12 10v4 M10 12h4"/></svg></div>
+            <h3>Reports &amp; capture</h3>
+          </div>
+          <div class="card-body">Every run ends in a report — <code>gnulte-report-&lt;ts&gt;/</code> with SVG latency graphs. Capture a <code>.pcap</code> with <code>--capture</code>, or export per-second CSV with <code>--export</code>.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3a7 7 0 0 0-7 7v6a2 2 0 0 0 2 2h2"/><path d="M12 21a7 7 0 0 0 7-7V8a2 2 0 0 0-2-2h-2"/><path d="M9 13v3 M15 13v3"/></svg></div>
+            <h3>Self-healing</h3>
+          </div>
+          <div class="card-body">The spoof monitor watches <code>arpspoof</code> and revives it if it dies mid-test. Targets are verified reachable first, and cleanup always runs — qdisc removed, spoof processes killed, forwarding restored.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 1 0-14 0"/><path d="M12 9v6"/></svg></div>
+            <h3>LAN hygiene</h3>
+          </div>
+          <div class="card-body"><code>--dupcheck</code> detects duplicate IPs and ARP conflicts; <code>--stealth</code> hides GNULTE's presence on systems you own; profiles and <code>--save-profile</code> reproduce conditions exactly.</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="band-shaded">
+      <div class="body-section">
+        <div class="section-head">
+          <p class="kicker">Workflow</p>
+          <h2 class="section-title">From scan to report</h2>
+          <p class="section-sub">Four steps, a live dashboard in the middle, and a report on the way out.</p>
         </div>
-        <div class="card">
-          <h3>Flexible targeting</h3>
-          <p>One IP, several IPs, a whole subnet, or an IP resolved from a MAC. Whitelist your own devices and they are skipped automatically.</p>
-        </div>
-        <div class="card">
-          <h3>Traffic shaping</h3>
-          <p>Traffic is routed through your machine via ARP spoof and shaped with tc netem — latency, jitter, loss, duplication, reordering and bandwidth, applied on the wire.</p>
-        </div>
-        <div class="card">
-          <h3>Live dashboard</h3>
-          <p>Every target is pinged once per second during a test, with last, min, max, average and loss shown live.</p>
-        </div>
-        <div class="card">
-          <h3>Reports</h3>
-          <p>Each run ends with a report folder containing SVG latency graphs and status summaries.</p>
-        </div>
-        <div class="card">
-          <h3>Self-healing</h3>
-          <p>Spoof processes are monitored and restarted if they die. Cleanup always runs — qdisc removed, forwarding off.</p>
+        <div class="steps">
+          <div class="step">
+            <span class="step-n">STEP 01</span>
+            <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3l8 3v6c0 4.5-3.4 7.7-8 9-4.6-1.3-8-4.5-8-9V6z"/><path d="M12 8v5"/></svg></div>
+            <h3>Accept the disclaimer</h3>
+            <p>Acceptance is persisted to <code>~/.gnulte_accepted</code> and re-verified every session.</p>
+          </div>
+          <div class="step">
+            <span class="step-n">STEP 02</span>
+            <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 12l5-5"/></svg></div>
+            <h3>Scan and select</h3>
+            <p>Interface, gateway and IP are detected, then the network is scanned. Pick a target, several, or a subnet.</p>
+          </div>
+          <div class="step">
+            <span class="step-n">STEP 03</span>
+            <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h3l2-6 4 12 3-9 1.5 3H21"/></svg></div>
+            <h3>Shape the link</h3>
+            <p>Forwarding is enabled, arpspoof reroutes the target, and <code>tc netem</code> applies the conditions you chose.</p>
+          </div>
+          <div class="step">
+            <span class="step-n">STEP 04</span>
+            <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <h3>Verify and clean up</h3>
+            <p>The dashboard pings every second; when it's over, everything is removed and a report with SVG graphs is written.</p>
+          </div>
         </div>
       </div>
-      <p class="center"><a class="btn btn-primary" href="download.html">Get GNULTE</a></p>
+    </section>
+
+    <section class="body-section">
+      <p class="center"><a class="btn btn-primary btn-big" href="download.html">Get GNULTE</a></p>
     </section>
   </main>
 
   <footer>
-    <p><a class="nep-link" href="/">Neptune Productions</a> · GNULTE · <a href="https://github.com/notmicrosoft2000-cmd/gnulte">GitHub</a></p>
-    <p>© 2026 · Authorised network testing only.</p>
+    <div class="footer-cols">
+      <div>
+        <p style="font-weight:700;color:var(--text);margin-bottom:10px;">GNULTE</p>
+        <p style="font-size:14px;max-width:280px;">GNU LAN Network Testing Environment. Authorised network testing — scan first, ask permission first, clean up after.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Project</h4>
+        <a href="features.html">Features</a>
+        <a href="docs.html">Documentation</a>
+        <a href="scan.html">gnulte-scan</a>
+        <a href="download.html">Download</a>
+      </div>
+      <div class="footer-links">
+        <h4>Code</h4>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0</a>
+      </div>
+      <div class="footer-links">
+        <h4>Neptune Productions</h4>
+        <a href="/">The hub</a>
+        <a href="https://github.com/notmicrosoft2000-cmd" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <p>© 2026 <a class="nep-link" href="/">Neptune Productions</a> · GNULTE · Authorised network testing only.</p>
+    </div>
   </footer>
 </body>
 </html>
