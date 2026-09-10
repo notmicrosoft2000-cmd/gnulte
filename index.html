@@ -115,7 +115,7 @@
       </div>
       <pre class="sample-run">$ sudo GNULTE --target 192.168.1.23 --profile voip --duration 300
 [*] GNULTE — GNU LAN Network Testing Environment v8.0
-[+] Scanning 192.168.1.0/24 ... (loading bar) ████████████ 100%
+[+] Scanning 192.168.1.0/24 ... 100% done
 [+] Found 8 devices — 3 phones, 2 TVs, 1 printer, 1 router, 1 mystery
 [*] Enabling IP forwarding ... done
 [*] arpspoof -i wlan0 -t 192.168.1.23 192.168.1.1  (spoof watcher: armed)
@@ -191,7 +191,7 @@ sudo GNULTE -r 192.168.1.0/24 -w 192.168.1.1 --profile throttle --duration 600
 sudo GNULTE -t 192.168.1.20 --latency 1500 --jitter 800 --loss 5 --random --capture evid.pcap
 sudo GNULTE --dupcheck
 sudo GNULTE --stealth --verbosity expert --theme hacker</div>
-      <p class="note">More: <code>--target/-t</code> <code>--range/-r</code> <code>--whitelist/-w</code> <code>--export CSV</code> <code>--log-mode</code> <code>--verbosity easy|normal|expert</code> <code>--force</code> — full list in <code>GNULTE --help</code>.</p>
+      <p class="note">More flags live in <code>GNULTE --help</code> — targeting, shaping, export, logging, and the rest.</p>
     </section>
 
     <section class="section reveal" id="themes">
@@ -215,22 +215,21 @@ sudo GNULTE --stealth --verbosity expert --theme hacker</div>
     <section class="section reveal" id="run">
       <h2 class="section-title">▸ RUN IT</h2>
       <p class="section-sub">Needs root and a few command-line companions.</p>
-      <pre class="code-block"># requirements
-sudo apt install arp-scan dsniff iproute2  # Debian / Ubuntu
-sudo pacman -S arp-scan dsniff iproute2    # Arch / CachyOS
+      <pre class="code-block"># dependencies
+sudo apt install arp-scan dsniff iproute2   # Debian / Ubuntu
+sudo pacman -S arp-scan dsniff iproute2     # Arch / CachyOS
 
-# from this repo
+# install from this repo
 sudo install -m755 GNULTE /usr/local/bin/GNULTE
 sudo install -m755 gnulte-scan /usr/local/bin/gnulte-scan
 
-# go
 sudo GNULTE</pre>
       <p class="note">Packaged on Arch via the AUR PKGBUILD (<code>packaging/aur</code>), and installable from a <code>.deb</code> (<code>packaging/deb</code>) that ships <code>/usr/bin/GNULTE</code>, <code>/usr/bin/gnulte-scan</code>, a man page and docs.</p>
     </section>
 
     <section class="section reveal" id="download">
       <h2 class="section-title">▸ DOWNLOAD</h2>
-      <p class="section-sub">Grab the source, bring it up as root, point it at something you own.</p>
+      <p class="section-sub">Runs straight from the repo, or get a packaged build.</p>
       <div class="dl-row">
         <a class="btn btn-primary btn-big" href="https://github.com/notmicrosoft2000-cmd/gnulte/archive/refs/heads/main.zip" target="_blank" rel="noopener">[ DOWNLOAD THE SOURCE (ZIP) ]</a>
         <a class="btn btn-ghost btn-big" href="https://github.com/notmicrosoft2000-cmd/gnulte" target="_blank" rel="noopener">[ THE REPOSITORY ]</a>
