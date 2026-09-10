@@ -1,0 +1,114 @@
+.TH GNULTE 1 "2026-09-10" "GNULTE 8.0" "User Commands"
+.SH NAME
+GNULTE \- GNU LAN Network Testing Environment
+.SH SYNOPSIS
+.B GNULTE
+[\fIoptions\fR]
+.SH DESCRIPTION
+.B GNULTE
+is an interactive tool for running authorised network tests on networks you own
+or have explicit written permission to test. It applies kernel-level traffic
+shaping (\fBtc netem\fR) and ARP spoofing (\fBarpspoof\fR) to simulate network
+degradation against target devices, so you can observe how applications behave
+under poor network conditions.
+.PP
+A disclaimer must be accepted before any test runs. Unauthorised network
+interference is illegal in most jurisdictions; you are solely responsible for
+your actions.
+.SH OPTIONS
+.TP
+.BI "\-t, \-\-target " IP
+Target one or more comma-separated IP addresses.
+.TP
+.BI "\-m, \-\-mac " MAC
+Resolve and target a device by MAC address.
+.TP
+.BI "\-r, \-\-range " CIDR
+Target every host in a CIDR range (e.g. 192.168.1.0/24). Your own IP and any
+whitelisted IPs are excluded automatically.
+.TP
+.BI "\-w, \-\-whitelist " IP
+Exclude IP(s) from a range test (comma-separated).
+.TP
+.BI "\-l, \-\-latency " MS
+Base delay in milliseconds (default 2000).
+.TP
+.BI "\-j, \-\-jitter " MS
+Random delay variation in milliseconds (default 500).
+.TP
+.BI "\-p, \-\-loss " PERCENT
+Percentage of packets to drop (default 0).
+.TP
+.BI "\-d, \-\-duplicate " PERCENT
+Percentage of packets to duplicate (default 0).
+.TP
+.BI "\-e, \-\-reorder " PERCENT
+Percentage of packets to reorder (default 0).
+.TP
+.BI "\-b, \-\-bandwidth " KBPS
+Bandwidth cap in kbit/s; 0 means unlimited (default 0).
+.TP
+.BI "\-\-profile " NAME
+Use a preset profile: gaming, streaming, voip, web, extreme, throttle.
+.TP
+.B \-\-random
+Vary parameters randomly during the run.
+.TP
+.BI "\-\-duration " SECONDS
+Automatically stop after N seconds.
+.TP
+.BI "\-\-export " CSV
+Append per-second ping results to a CSV file.
+.TP
+.B \-\-scan
+Deep scan selected targets (ports, OS detection, hostname) using nmap.
+.TP
+.B \-\-quick
+Use a fast ARP-only scan.
+.TP
+.B \-\-force
+Skip interactive configuration prompts (requires explicit flags).
+.TP
+.BI "\-\-save\-profile " NAME
+Save the current parameter set as a custom profile.
+.TP
+.BI "\-\-log\-mode " MODE
+Output verbosity: normal, simple, or quiet.
+.TP
+.BI "\-\-log\-file " FILE
+Write a session log to FILE.
+.TP
+.B \-\-config
+Edit the user configuration file.
+.TP
+.B \-\-version
+Print the version and exit.
+.TP
+.BI "\-h, \-\-help"
+Show help text and exit.
+.SH FILES
+.TP
+.I ~/.gnulte_accepted
+Disclaimer acceptance marker.
+.TP
+.I ~/.gnulte.conf
+User configuration.
+.TP
+.I ~/.gnulte_profiles.conf
+Custom saved profiles.
+.TP
+.I gnulte-report-<timestamp>/
+Post-test reports containing report.txt and report.html with latency graphs.
+.SH EXIT STATUS
+.B 0
+on success (including normal Ctrl+C cleanup).
+.PP
+non-zero on configuration failure, interrupted setup, or missing dependencies.
+.SH SECURITY
+Requires root for arpspoof, tc, and sysctl operations. Only ever use on networks
+you own or have written permission to test.
+.SH SEE ALSO
+.BR arpspoof (8),
+.BR tc (8),
+.BR arp-scan (1),
+.BR nmap (1)

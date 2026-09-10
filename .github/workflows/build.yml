@@ -1,0 +1,74 @@
+name: build
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-deb:
+    name: Build .deb
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dpkg tooling
+        run: sudo apt-get update && sudo apt-get install -y dpkg-dev
+
+      - name: Build package
+        run: ./packaging/deb/build-deb.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gnulte-deb
+          path: packaging/deb/build/*.deb
+
+  build-aur:
+    name: Build AUR package
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install toolchain and clone
+        shell: bash
+        run: |
+          pacman -Syu --noconfirm --needed base-devel git \
+            dsniff iproute2 procps-ng iputils arp-scan
+          useradd -m builder
+          git clone "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git" /tmp/gnulte
+          chown -R builder:builder /tmp/gnulte
+          sed -i "s|<OWNER>|${GITHUB_REPOSITORY_OWNER}|g; s|<REPO>|${GITHUB_REPOSITORY#${GITHUB_REPOSITORY_OWNER}/}|g" \
+            /tmp/gnulte/packaging/aur/PKGBUILD \
+            /tmp/gnulte/packaging/aur/.SRCINFO
+
+      - name: Build with makepkg
+        run: |
+          su builder -c "cd /tmp/gnulte/packaging/aur && makepkg -f"
+          cp /tmp/gnulte/packaging/aur/*.pkg.tar.zst "$GITHUB_WORKSPACE"/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gnulte-aur
+          path: '*.pkg.tar.zst'
+
+  lint:
+    name: Shellcheck + syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Syntax check
+        run: bash -n GNULTE
+
+      - name: Static analysis
+        run: |
+          shellcheck -S warning GNULTE \
+            packaging/deb/build-deb.sh || true
+          # Note: shellcheck discovers warnings as a linter; CI does not fail
+          # the build on warnings because the script must stay POSIX-lean Bash.

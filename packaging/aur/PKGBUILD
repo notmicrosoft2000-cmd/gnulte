@@ -1,0 +1,40 @@
+# Maintainer: poseidonsmile2000 <poseidonsmile2000@gmail.com>
+# AUR package for the GNU LAN Network Testing Environment.
+
+pkgname=gnulte
+pkgver=8.0
+pkgrel=1
+pkgdesc="GNU LAN Network Testing Environment - interactively simulate network degradation on your own network"
+arch=('any')
+url="https://github.com/notmicrosoft2000-cmd/gnulte"
+license=('GPL-3.0-or-later')
+depends=(
+  'bash'
+  'dsniff'      # arpspoof
+  'iproute2'    # tc
+  'procps-ng'   # sysctl
+  'iputils'     # ping
+  'arp-scan'
+)
+optdepends=(
+  'nmap: deep port and OS scans'
+  'tmux: per-target monitor windows'
+  'xterm: per-target monitor windows'
+)
+source=("git+https://github.com/notmicrosoft2000-cmd/gnulte.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$srcdir/$pkgname"
+  # Derive 8.0 from the version line in the script
+  grep -oP 'Version \K[0-9.]+' GNULTE | head -1
+}
+
+package() {
+  cd "$srcdir/$pkgname"
+  install -Dm755 GNULTE "$pkgdir/usr/bin/GNULTE"
+  mkdir -p "$pkgdir/usr/share/man/man1"
+  gzip -n -c man/GNULTE.1 > "$pkgdir/usr/share/man/man1/GNULTE.1.gz"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

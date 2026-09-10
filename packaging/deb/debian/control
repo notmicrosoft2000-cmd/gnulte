@@ -1,0 +1,23 @@
+Source: gnulte
+Section: net
+Priority: optional
+Maintainer: poseidonsmile2000 <poseidonsmile2000@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/notmicrosoft2000-cmd/gnulte
+Vcs-Git: https://github.com/notmicrosoft2000-cmd/gnulte.git
+
+Package: gnulte
+Architecture: all
+Depends: bash (>= 4), dsniff, iproute2, procps, iputils-ping, arp-scan
+Recommends: nmap
+Description: GNU LAN Network Testing Environment
+ Interactively simulate network degradation (latency, jitter, packet
+ loss, duplication, reordering, bandwidth throttling) against devices
+ on a network you own or are authorised to test.
+ .
+ Features: ARP-based target discovery, single/range/whitelist targeting,
+ preset profiles, live multi-target dashboard, sanity validation of
+ parameters, CSV export, and post-test HTML/text reports with graphs.
+ .
+ Authorised use only. Unauthorised network interference is illegal.

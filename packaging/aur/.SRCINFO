@@ -1,0 +1,21 @@
+pkgbase = gnulte
+	pkgdesc = GNU LAN Network Testing Environment - interactively simulate network degradation on your own network
+	pkgver = 8.0
+	pkgrel = 1
+	url = https://github.com/notmicrosoft2000-cmd/gnulte
+	arch = any
+	license = GPL-3.0-or-later
+	makedepends = git
+	depends = bash
+	depends = dsniff
+	depends = iproute2
+	depends = procps-ng
+	depends = iputils
+	depends = arp-scan
+	optdepends = nmap: deep port and OS scans
+	optdepends = tmux: per-target monitor windows
+	optdepends = xterm: per-target monitor windows
+	source = git+https://github.com/notmicrosoft2000-cmd/gnulte.git
+	sha256sums = SKIP
+
+pkgname = gnulte
