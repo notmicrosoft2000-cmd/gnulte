@@ -1,4 +1,4 @@
-.TH GNULTE 1 "2026-09-10" "GNULTE 8.0" "User Commands"
+.TH GNULTE 1 "2026-09-10" "GNULTE 8.1" "User Commands"
 .SH NAME
 GNULTE \- GNU LAN Network Testing Environment
 .SH SYNOPSIS
@@ -18,6 +18,20 @@ dashboard; spoof processes are watched and restarted automatically if they die.
 A disclaimer must be accepted before any test runs. Unauthorised network
 interference is illegal in most jurisdictions; you are solely responsible for
 your actions.
+.SH SCOPE
+IPv4 only. Traffic control is applied through
+.B tc
+filters that match only the selected target devices; unrelated devices on the
+interface are not shaped. On exit the original
+.B net.ipv4.ip_forward
+value and the previous root qdisc are restored, only the
+.B arpspoof
+instances GNULTE started are terminated, and the gateway's ARP entry is
+broadcast so target caches re-converge quickly.
+.B \-\-capture
+stores everything a target sends unencrypted — treat the resulting
+.B .pcap
+as a secret.
 .SH OPTIONS
 .TP
 .BI "\-t, \-\-target " IP

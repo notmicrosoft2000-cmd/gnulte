@@ -13,7 +13,7 @@
 # License: GPL-3.0
 # -----------------------------------------------------------------------------
 
-VERSION="1.0"
+VERSION="1.1"
 
 # -----------------------------------------------------------------------------
 # Colors
@@ -48,8 +48,8 @@ OPTIONS:
   -i, --interface <IFACE>   Network interface (default: auto-detect)
   -C, --cidr <CIDR>         Subnet to scan, e.g. 192.168.1.0/24 (default: auto)
   -t, --threads <N>         Parallel ping sweep threads (default: 32)
-  -d, --deep                Also run nmap: open ports + OS + service detection
-                            (slower; root helps OS detection)
+  -d, --deep                Also run nmap: open ports + OS fingerprint
+                            (labeled as active recon; slower; root helps OS detection)
   -j, --json                JSON export
   -y, --yaml                YAML export
   -c, --csv                 CSV export (ip,mac,vendor,hostname,type,ports,os)
@@ -64,6 +64,9 @@ EXAMPLES:
 
 NOTES:
   * Use on networks you own or are authorized to test.
+  * IPv4 only — IPv6 hosts are not enumerated in this version.
+  * The "Type" column is a LIKELY guess derived from OUI vendor + hostname,
+    not a guaranteed identification.
   * Hostnames prefer mDNS/avahi when available (avahi-tools), then reverse
     DNS, then NetBIOS (samba-utils). Install them for best results:
       Arch:   sudo pacman -S avahi nss-mdns samba nmap
@@ -73,12 +76,28 @@ EOF
     exit 0
 }
 
+# Strict IPv4 validity check (4 octets, each 0-255)
+valid_ip4() {
+    local ip="$1" oct et
+    [[ "$ip" =~ ^[0-9.]+$ ]] || return 1
+    IFS=. read -ra oct <<< "$ip"
+    [ "${#oct[@]}" -eq 4 ] || return 1
+    for et in "${oct[@]}"; do
+        [[ "$et" =~ ^[0-9]{1,3}$ ]] && [ "$et" -le 255 ] || return 1
+    done
+    return 0
+}
+
+valid_mac() {
+    [[ "$1" =~ ^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$ ]]
+}
+
 # -----------------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------------
 ok()   { echo -e "${C_GREEN}OK:${C_RESET} $*"; }
 warn() { echo -e "${C_YELLOW}WARN:${C_RESET} $*"; }
-err()  { echo -e "${C_RED}ERROR:${C_RESET} $*"; }
+err()  { echo -e "${C_RED}ERROR:${C_RESET} $*" >&2; }
 log()  { echo -e "$*"; }
 
 spinner() {
@@ -140,18 +159,35 @@ int2ip() {
 range_from_cidr() {
     local cidr=$1
     local addr=${cidr%/*} prefix=${cidr#*/}
-    case "$prefix" in
-        ''|*[!0-9]*) prefix=24 ;;
-    esac
-    [ "$prefix" -gt 32 ] && prefix=24
-    local mask=$(( (0xFFFFFFFF << (32-prefix)) & 0xFFFFFFFF ))
-    local net=$(( $(ip2int "$addr") & mask ))
-    local s=$(( net + 1 ))
-    local e=$(( (net | (~mask & 0xFFFFFFFF)) - 1 ))
-    local total=$(( e - s + 1 ))
+
+    valid_ip4 "$addr" || { err "Invalid CIDR address: '$addr'"; return 1; }
+    [[ "$prefix" =~ ^[0-9]+$ ]] || { err "Invalid CIDR prefix: '$prefix'"; return 1; }
+    [ "$prefix" -le 32 ] || { err "CIDR prefix must be 0-32 (got $prefix)."; return 1; }
+    if [ "$prefix" -le 15 ]; then
+        err "Refusing a /${prefix} scan: too large (use a /16 or smaller subnet)."
+        return 1
+    fi
+
+    local int net s e total
+    int=$(ip2int "$addr")
+
+    if [ "$prefix" -eq 32 ]; then
+        s=$int; e=$int
+    elif [ "$prefix" -eq 31 ]; then
+        # point-to-point link: both addresses are usable
+        net=$(( int & ~1 ))
+        s=$net; e=$((net + 1))
+    else
+        local mask=$(( (0xFFFFFFFF << (32-prefix)) & 0xFFFFFFFF ))
+        net=$(( int & mask ))
+        s=$(( net + 1 ))
+        e=$(( (net | (~mask & 0xFFFFFFFF)) - 1 ))
+    fi
+
+    total=$(( e - s + 1 ))
     if [ "$total" -gt 65534 ]; then
         e=$(( s + 65533 ))
-        warn "Subnet too large, scanning first 65534 hosts."
+        warn "Subnet has ${total} hosts; capping at first 65534 hosts."
     fi
     echo "$s $e"
 }
@@ -274,10 +310,11 @@ classify() {
 deep_scan() {
     local ip=$1 ports="" os=""
     command -v nmap &>/dev/null || return 0
-    ports=$(timeout 40 nmap -Pn -n --top-ports 100 -oG - "$ip" 2>/dev/null \
-        | awk '/Ports:/{for(i=1;i<=NF;i++) if($i ~ /open$/){split($i,a,"/"); printf "%s,",a[1]}}' \
-        | sed 's/,$//')
-    os=$(timeout 60 nmap -O "$ip" 2>/dev/null | grep -oP 'OS details: \K.*' | head -1)
+    # Single structured (-oG) run reused for BOTH ports and OS fingerprint.
+    local out
+    out=$(timeout 90 nmap -O -Pn --top-ports 100 -oG - "$ip" 2>/dev/null)
+    ports=$(grep -oP '\b[0-9]+(?=/open/tcp/)' <<< "$out" | sort -un | tr '\n' ',' | sed 's/,$//')
+    os=$(awk -F'OS: ' 'NF>1{print $2}' <<< "$out" | head -1 | cut -d'|' -f1 | sed -E 's/[[:space:]]*Seq:.*//')
     echo "$ports|$os"
 }
 
@@ -290,14 +327,14 @@ run_ping_sweep() {
         fping -a -q -g "$(int2ip "$start")" "$(int2ip "$end")" >/dev/null 2>&1
         return
     fi
-    local list="/tmp/${MY_NAME}-hosts.txt"
+    local list="$TMP_DIR/hosts.txt"
     : > "$list"
     local i=$start
     while [ "$i" -le "$end" ]; do
         echo "$(int2ip "$i")"
         i=$((i+1))
     done > "$list"
-    xargs -P "$THREADS" -n 1 -I{} sh -c 'ping -c1 -W1 {} >/dev/null 2>&1' < "$list" >/dev/null 2>&1
+    xargs -P "$THREADS" -n 1 -I{} sh -c 'ping -c1 -W1 "$1" >/dev/null 2>&1' _ {} < "$list" >/dev/null 2>&1
     rm -f "$list"
 }
 
@@ -359,7 +396,7 @@ emit_table() {
     log ""
     log "${C_BOLD}Found ${#ROWS[@]} device(s) on $CIDR${C_RESET}"
     log ""
-    printf "  %-3s %-16s %-20s %-18s %-22s %s\n" "#" "IP" "MAC" "Vendor" "Type" "Hostname"
+    printf "  %-3s %-16s %-20s %-18s %-22s %s\n" "#" "IP" "MAC" "Vendor" "Likely Type" "Hostname"
     echo "  ────────────────────────────────────────────────────────────────────────────"
     for row in "${ROWS[@]}"; do
         n=$((n+1))
@@ -367,50 +404,92 @@ emit_table() {
         printf "  ${C_CYAN}%-3s${C_RESET} ${C_GREEN}%-16s${C_RESET} %-20s %-18s %-22s %s\n" \
             "$n" "$ip" "$mac" "${vendor:0:18}" "${type:0:22}" "${hostname:0:30}"
         [ -n "$ports" ] && printf "    ${C_DIM}ports: %s${C_RESET}\n" "$ports"
-        [ -n "$os" ]    && printf "    ${C_DIM}os:    %s${C_RESET}\n" "$os"
+        if [ -n "$os" ]; then
+            printf "    ${C_DIM}os:    %s${C_RESET}\n" "$os"
+        elif [ "$DEEP" = true ]; then
+            printf "    ${C_DIM}os:    (no answer from active fingerprint)${C_RESET}\n"
+        fi
     done
+    log ""
+    log "${C_DIM}* 'Likely Type' is estimated from OUI vendor + hostname.${C_RESET}"
+    if [ "$DEEP" = true ]; then
+        log "${C_MAGENTA}* Deep mode = active recon: nmap port/OS probes were sent to each host.${C_RESET}"
+    fi
     log ""
 }
 
-jesc() { printf '"%s"' "$(echo "$1" | sed 's/\\/\\\\/g;s/"/\\"/g;s/	/\\t/g')"; }
-
-emit_json() {
-    local ip mac vendor hostname type ports os first=true
-    echo "["
-    for row in "${ROWS[@]}"; do
-        IFS='|' read -r ip mac vendor hostname type ports os <<< "$row"
-        [ "$first" = false ] && echo ","
-        first=false
-        printf '  {"ip":%s,"mac":%s,"vendor":%s,"hostname":%s,"type":%s,"ports":%s,"os":%s}' \
-            "$(jesc "$ip")" "$(jesc "$mac")" "$(jesc "$vendor")" "$(jesc "$hostname")" \
-            "$(jesc "$type")" "$(jesc "$ports")" "$(jesc "$os")"
-    done
-    echo ""
-    echo "]"
-}
-
-emit_yaml() {
-    echo "subnet: $CIDR"
-    echo "devices:"
-    for row in "${ROWS[@]}"; do
-        IFS='|' read -r ip mac vendor hostname type ports os <<< "$row"
-        echo "  - ip: $ip"
-        echo "    mac: $mac"
-        echo "    vendor: ${vendor:--}"
-        echo "    hostname: ${hostname:--}"
-        echo "    type: ${type:--}"
-        echo "    ports: ${ports:-none}"
-        echo "    os: ${os:--}"
-    done
-}
+# RFC-4180-style field escaping (quotes doubled), safe for commas/newlines.
+cesc() { printf '%s' "$1" | sed 's/"/""/g'; }
 
 emit_csv() {
     echo "ip,mac,vendor,hostname,type,ports,os"
+    local ip mac vendor hostname type ports os
     for row in "${ROWS[@]}"; do
         IFS='|' read -r ip mac vendor hostname type ports os <<< "$row"
-        echo "$ip,$mac,\"$vendor\",\"$hostname\",\"$type\",\"$ports\",\"$os\""
+        printf '"%s","%s","%s","%s","%s","%s","%s"\n' \
+            "$(cesc "$ip")" "$(cesc "$mac")" "$(cesc "$vendor")" \
+            "$(cesc "$hostname")" "$(cesc "$type")" "$(cesc "$ports")" "$(cesc "$os")"
     done
 }
+
+# YAML-safe single-quoted scalars.
+yesc() { printf "'%s'" "${1//\'/\'\'}"; }
+
+emit_yaml() {
+    echo "subnet: ${CIDR}"
+    echo "device_count: ${#ROWS[@]}"
+    if [ "$DEEP" = true ]; then
+        echo "deep: true   # active recon (nmap probes were sent)"
+    fi
+    echo "devices:"
+    local ip mac vendor hostname type ports os
+    for row in "${ROWS[@]}"; do
+        IFS='|' read -r ip mac vendor hostname type ports os <<< "$row"
+        echo "  - ip: $(yesc "$ip")"
+        echo "    mac: $(yesc "$mac")"
+        echo "    vendor: $(yesc "$vendor")"
+        echo "    hostname: $(yesc "$hostname")"
+        echo "    likely_type: $(yesc "$type")"
+        echo "    ports: $(yesc "$ports")"
+        echo "    os: $(yesc "$os")"
+    done
+}
+
+emit_json() {
+    local ip mac vendor hostname type ports os
+    if command -v jq &>/dev/null; then
+        local -a objs=()
+        for row in "${ROWS[@]}"; do
+            IFS='|' read -r ip mac vendor hostname type ports os <<< "$row"
+            objs+=("$(jq -cn \
+                --arg ip "$ip" --arg mac "$mac" --arg vendor "$vendor" \
+                --arg hostname "$hostname" --arg type "$type" \
+                --arg ports "$ports" --arg os "$os" \
+                '{ip:$ip,mac:$mac,vendor:$vendor,hostname:$hostname,likely_type:$type,ports:$ports,os:$os}')")
+        done
+        jq -n --arg cidr "$CIDR" \
+            --argjson devices "$(printf '%s\n' "${objs[@]}" | jq -s .)" \
+            '{cidr:$cidr, device_count:($devices|length), devices:$devices}'
+        return
+    fi
+
+    # No jq: manual, fully escaped fallback (same shape as the jq output)
+    local first=true
+    printf '{'
+    printf '"cidr":%s,"device_count":%d,"devices":[' "$(jesc "$CIDR")" "${#ROWS[@]}"
+    for row in "${ROWS[@]}"; do
+        IFS='|' read -r ip mac vendor hostname type ports os <<< "$row"
+        [ "$first" = false ] && printf ","
+        first=false
+        printf '{"ip":%s,"mac":%s,"vendor":%s,"hostname":%s,"likely_type":%s,"ports":%s,"os":%s}' \
+            "$(jesc "$ip")" "$(jesc "$mac")" "$(jesc "$vendor")" "$(jesc "$hostname")" \
+            "$(jesc "$type")" "$(jesc "$ports")" "$(jesc "$os")"
+    done
+    printf ']}'
+    echo ""
+}
+
+jesc() { printf '"%s"' "$(printf '%s' "$1" | sed 's/\\/\\\\/g;s/"/\\"/g;s/\t/\\t/g;s/\r//g')"; }
 
 # -----------------------------------------------------------------------------
 # Main
@@ -418,17 +497,25 @@ emit_csv() {
 I_AM_ROOT=false
 [ "$(id -u)" -eq 0 ] && I_AM_ROOT=true
 
+TMP_DIR="$(mktemp -d /tmp/gnulte-scan.XXXXXX 2>/dev/null)" || { err "Could not create temp dir."; exit 1; }
+trap 'rm -rf "$TMP_DIR" 2>/dev/null' EXIT
+
 while [ $# -gt 0 ]; do
     case "$1" in
         -i|--interface) INTERFACE="$2"; shift 2 ;;
         -C|--cidr) CIDR="$2"; shift 2 ;;
-        -t|--threads) THREADS="$2"; shift 2 ;;
+        -t|--threads)
+            THREADS="$2"; shift 2
+            [[ "$THREADS" =~ ^[0-9]+$ ]] || { err "--threads must be a positive integer (got '$THREADS')."; exit 1; }
+            [ "$THREADS" -ge 1 ] && [ "$THREADS" -le 512 ] || { err "--threads must be between 1 and 512."; exit 1; }
+            ;;
         -d|--deep) DEEP=true; shift ;;
         -j|--json) OUT_FORMAT="json"; shift ;;
         -y|--yaml) OUT_FORMAT="yaml"; shift ;;
         -c|--csv) OUT_FORMAT="csv"; shift ;;
         -q|--quiet) QUIET=true; shift ;;
         -h|--help) usage ;;
+        --version) echo "$MY_NAME $VERSION"; exit 0 ;;
         *) err "Unknown option: $1"; usage ;;
     esac
 done
@@ -440,49 +527,59 @@ if [ "$QUIET" = false ]; then
     log "${C_BOLD}${MY_NAME} ${VERSION}${C_RESET} — LAN device discovery & fingerprinting"
     log "  Interface : ${C_CYAN}$INTERFACE${C_RESET}"
     log "  Subnet    : ${C_CYAN}$CIDR${C_RESET}"
-    [ "$DEEP" = true ] && log "  Deep scan : ${C_MAGENTA}enabled (nmap ports + OS)${C_RESET}"
+    if [ "$DEEP" = true ]; then
+        log "  Deep scan : ${C_MAGENTA}enabled — ACTIVE recon (nmap ports + OS fingerprints)${C_RESET}"
+    fi
     log "  Gateway   : ${C_CYAN}$GATEWAY${C_RESET} ${GATEWAY_MAC:+($GATEWAY_MAC)}"
     log "  Your IP   : ${C_CYAN}$IPADDR${C_RESET}"
     log ""
     log "${C_BOLD}> DISCLAIMER:${C_RESET} scan only networks you own or are authorized to test."
+    log "${C_BOLD}> "Type" is a LIKELY guess from OUI vendor + hostname, not a guarantee.${C_RESET}"
     log ""
 fi
 
-read -r START END <<< "$(range_from_cidr "$CIDR")"
-TOTAL=$(( END - START + 1 ))
+# --- discovery ---
+ROWS=()
+USE_ARP_SOURCE=false
 
-if [ "$QUIET" = false ]; then
-    log "  ${C_YELLOW}Pinging ${TOTAL} host(s) to populate the ARP table...${C_RESET}"
+if [ "$I_AM_ROOT" = true ] && command -v arp-scan &>/dev/null; then
+    if [ "$QUIET" = false ]; then
+        log "  ${C_YELLOW}Discovering via arp-scan (ARP, tolerates ICMP-blocking subnets)...${C_RESET}"
+    fi
+    arp_primary &
+    dpid=$!
+    spinner "$dpid" "ARP discovery..."
+    wait "$dpid"
+    [ ${#ROWS[@]} -gt 0 ] && USE_ARP_SOURCE=true
 fi
-run_ping_sweep "$START" "$END" &
-sweep_pid=$!
-spinner "$sweep_pid" "Ping sweep..."
-wait "$sweep_pid"
 
-load_vendors
+if [ "$USE_ARP_SOURCE" = false ]; then
+    RANGE_OUT=$(range_from_cidr "$CIDR") || exit 1
+    read -r START END <<< "$RANGE_OUT"
+    TOTAL=$(( END - START + 1 ))
+    if [ "$QUIET" = false ]; then
+        log "  ${C_YELLOW}Pinging ${TOTAL} host(s) to populate the ARP table...${C_RESET}"
+    fi
+    run_ping_sweep "$START" "$END" &
+    sweep_pid=$!
+    spinner "$sweep_pid" "Ping sweep..."
+    wait "$sweep_pid"
+    load_vendors
+    neighbor_fallback
+fi
 
 if [ "$QUIET" = false ]; then
     log "  ${C_YELLOW}Resolving device details...${C_RESET}"
 fi
 
-ip neigh show dev "$INTERFACE" 2>/dev/null > /tmp/${MY_NAME}-neighborhood.txt
-
-ROWS=()
-local_ip_lower=""
-
-while read -r rec_ip _ rec_mac rec_state _; do
+# --- enrich: hostname, gateway tag, likely type, optional deep (active) recon ---
+ROW2=()
+for row in "${ROWS[@]}"; do
+    IFS='|' read -r rec_ip rec_mac vendor _ign <<< "$row"
     [ -n "$rec_ip" ] && [ -n "$rec_mac" ] || continue
-    [ "$rec_ip" = "$IPADDR" ] && continue
-    case "$rec_state" in
-        REACHABLE|STALE|DELAY|PROBE|CONNECTED|PERMANENT) : ;;
-        *) continue ;;
-    esac
-    mac_lower="${rec_mac,,}"
-    vendor="$(mac_vendor "$mac_lower")"
-    [ -z "$vendor" ] && vendor="Unknown"
     hostname=$(resolve_device_name "$rec_ip")
     is_gateway=false
-    if [ "$rec_ip" = "$GATEWAY" ] || { [ -n "$GATEWAY_MAC" ] && [ "$mac_lower" = "${GATEWAY_MAC,,}" ]; }; then
+    if [ "$rec_ip" = "$GATEWAY" ] || { [ -n "$GATEWAY_MAC" ] && [ "${rec_mac,,}" = "${GATEWAY_MAC,,}" ]; }; then
         is_gateway=true
     fi
     dev_type=$(classify "$vendor" "$hostname" "$is_gateway")
@@ -492,13 +589,15 @@ while read -r rec_ip _ rec_mac rec_state _; do
         p_o=$(deep_scan "$rec_ip")
         ports="${p_o%%|*}"
         os="${p_o##*|}"
+        [ "$ports" = "None" ] && [ "$os" = "Unknown" ] && os="(active scan: no answer)"
     fi
-    ROWS+=("$rec_ip|$rec_mac|$vendor|$hostname|$dev_type|$ports|$os")
-done < /tmp/${MY_NAME}-neighborhood.txt
-rm -f /tmp/${MY_NAME}-neighborhood.txt
+    ROW2+=("$rec_ip|$rec_mac|$vendor|$hostname|$dev_type|$ports|$os")
+done
+ROWS=("${ROW2[@]}")
 
 if [ ${#ROWS[@]} -eq 0 ]; then
-    err "No devices found. Run with sudo (for arp-scan vendor data) or install arp-scan/fping."
+    err "Scanned ${TOTAL:-0} host(s): no responses observed."
+    err "Try: sudo ${MY_NAME} (ARP discovery), or install fping/arp-scan — many networks block ICMP ping."
     exit 1
 fi
 

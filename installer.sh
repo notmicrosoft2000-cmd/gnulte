@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-VERSION="8.0"
+VERSION="8.1"
 REPO="https://github.com/notmicrosoft2000-cmd/gnulte.git"
 PREFIX="${PREFIX:-/usr/local}"
 BINDIR="${PREFIX}/bin"
@@ -113,6 +113,7 @@ info "Checking for updates..."
 cd "$SRC_DIR"
 git fetch --quiet 2>/dev/null || { warn "Could not reach remote. Continuing with local version."; }
 
+BRANCH=$(git symbolic-ref --short -q HEAD 2>/dev/null || echo "")
 LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse @{u} 2>/dev/null || echo "$LOCAL")
 
@@ -127,6 +128,8 @@ if [[ "$LOCAL" != "$REMOTE" ]]; then
             ans="Y"
         fi
         if [[ "${ans^^}" == "Y" ]]; then
+            warn "SECURITY: answering Y pulls and executes REMOTE CODE AS ROOT."
+            warn "         Only do this after reviewing the changes (git log origin/${BRANCH:-HEAD}..HEAD)."
             git pull --ff-only || err "Pull failed. Resolve manually."
             ok "Updated to latest."
         fi
@@ -146,6 +149,14 @@ info "Installing to ${BINDIR}..."
 mkdir -p "$BINDIR"
 install -m755 "$SRC_DIR/GNULTE" "$BINDIR/GNULTE"
 install -m755 "$SRC_DIR/gnulte-scan" "$BINDIR/gnulte-scan"
+
+# Verify what we just installed before calling it done
+if ! bash -n "$SRC_DIR/GNULTE" || ! bash -n "$SRC_DIR/gnulte-scan"; then
+    err "Syntax check of installed scripts FAILED — not installing. Fix the repository first."
+fi
+if ! grep -q "Version 8.1" "$SRC_DIR/GNULTE"; then
+    err "Installed GNULTE does not look like v8.1 (version marker missing). Aborting."
+fi
 ok "GNULTE and gnulte-scan installed."
 
 # --- install man page ---
