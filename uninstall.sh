@@ -54,7 +54,7 @@ for f in GNULTE gnulte-scan; do
     if [[ -f "$BINDIR/$f" ]]; then
         rm -f "$BINDIR/$f"
         ok "Removed $BINDIR/$f"
-        ((removed++))
+        removed=$((removed + 1))
     else
         warn "Not found: $BINDIR/$f"
     fi
