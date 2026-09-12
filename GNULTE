@@ -422,9 +422,23 @@ review_doc() {
     done
 }
 
+# Write the shared acceptance record (data only; never sourced/evalled).
+write_acceptance() {
+    mkdir -p "$GNULTE_ACCEPTANCE_DIR" || { echo -e "${COLOR_ERR}Could not create $GNULTE_ACCEPTANCE_DIR.${COLOR_RESET}"; exit 1; }
+    ( umask 077; printf 'SAFETY_POLICY_VERSION=%s\nSAFETY_ACKNOWLEDGED=1\nDISCLAIMER_ACKNOWLEDGED=1\nAUTHORIZATION_ACKNOWLEDGED=1\nNETWORK_TESTING_ACKNOWLEDGED=1\nTIMESTAMP=%s\n' \
+        "$SAFETY_POLICY_VERSION" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$GNULTE_ACCEPTANCE_FILE" )
+    echo ""
+    echo -e "${COLOR_OK}You have been shown the required documents and acknowledged the"
+    echo -e "safety and authorization requirements.${COLOR_RESET}"
+    echo -e "${COLOR_DIM}This is an acknowledgment record — it cannot prove you read the"
+    echo -e "documents, and it does not make any unauthorized activity lawful.${COLOR_RESET}"
+    echo ""
+    return 0
+}
+
 legal_onboarding() {
     local -a docs=()
-    local i name
+    local i name cfm
 
     mapfile -t docs < <(safety_docs)
 
@@ -450,29 +464,20 @@ legal_onboarding() {
         echo "    [$((i+1))] ${docs[$i]}"
     done
     echo ""
-    echo -e "${COLOR_DIM}  You can stop at any time with [Q]; nothing is recorded until all"
-    echo -e "  documents have been acknowledged.${COLOR_RESET}"
-    echo ""
-    read -p "  Press Enter to begin the review, or 'Q' to quit: " cfm
+    read -p "  Type 'I AGREE' to accept these documents, or press Enter to review each one (Q quits): " cfm
+    cfm="${cfm//[[:space:]]/}"
     case "${cfm^^}" in
-        Q) echo -e "${COLOR_ERR}Exiting. GNULTE will require this review on next launch.${COLOR_RESET}"; exit 1 ;;
+        Q)   echo -e "${COLOR_ERR}Exiting. GNULTE will require this review on next launch.${COLOR_RESET}"; exit 1 ;;
+        IAGREE) write_acceptance; return 0 ;;
     esac
 
+    echo -e "${COLOR_DIM}  Nothing is recorded until all documents have been acknowledged.${COLOR_RESET}"
+    echo ""
     for i in "${!docs[@]}"; do
         review_doc "${docs[$i]}" "$((i+1))" "${#docs[@]}"
     done
 
-    # Write the acceptance record (generated as data; validated on read; never sourced).
-    mkdir -p "$GNULTE_ACCEPTANCE_DIR" || { echo -e "${COLOR_ERR}Could not create $GNULTE_ACCEPTANCE_DIR.${COLOR_RESET}"; exit 1; }
-    ( umask 077; printf 'SAFETY_POLICY_VERSION=%s\nSAFETY_ACKNOWLEDGED=1\nDISCLAIMER_ACKNOWLEDGED=1\nAUTHORIZATION_ACKNOWLEDGED=1\nNETWORK_TESTING_ACKNOWLEDGED=1\nTIMESTAMP=%s\n' \
-        "$SAFETY_POLICY_VERSION" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$GNULTE_ACCEPTANCE_FILE" )
-
-    echo ""
-    echo -e "${COLOR_OK}You have been shown the required documents and acknowledged the"
-    echo -e "safety and authorization requirements.${COLOR_RESET}"
-    echo -e "${COLOR_DIM}This is an acknowledgment record — it cannot prove you read the"
-    echo -e "documents, and it does not make any unauthorized activity lawful.${COLOR_RESET}"
-    echo ""
+    write_acceptance
 }
 
 # Gate: if the current safety-policy version is not acknowledged, run onboarding.
