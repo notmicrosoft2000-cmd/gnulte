@@ -19,7 +19,7 @@
 
 set -euo pipefail
 
-VERSION="8.2"
+VERSION="8.3"
 REPO="https://github.com/notmicrosoft2000-cmd/gnulte.git"
 PREFIX="${PREFIX:-/usr/local}"
 BINDIR="${PREFIX}/bin"
@@ -168,8 +168,8 @@ install -m755 "$SRC_DIR/gnulte-scan" "$BINDIR/gnulte-scan"
 if ! bash -n "$SRC_DIR/GNULTE" || ! bash -n "$SRC_DIR/gnulte-scan"; then
     err "Syntax check of installed scripts FAILED — not installing. Fix the repository first."
 fi
-if ! grep -q "Version 8.2" "$SRC_DIR/GNULTE"; then
-    err "Installed GNULTE does not look like v8.2 (version marker missing). Aborting."
+if ! grep -q "Version 8.3" "$SRC_DIR/GNULTE"; then
+    err "Installed GNULTE does not look like v8.3 (version marker missing). Aborting."
 fi
 ok "GNULTE and gnulte-scan installed."
 

@@ -28,7 +28,7 @@
 # License: GPL-3.0
 # -----------------------------------------------------------------------------
 
-VERSION="1.2"
+VERSION="1.3"
 
 # -----------------------------------------------------------------------------
 # Colors
@@ -45,6 +45,7 @@ THREADS=32
 DEEP=false
 OUT_FORMAT="table"     # table | json | yaml | csv
 QUIET=false
+SOUND=false
 MY_NAME="gnulte-scan"
 declare -gA VENDOR_MAP=()
 
@@ -75,6 +76,7 @@ OPTIONS:
   -y, --yaml                YAML export
   -c, --csv                 CSV export (ip,mac,vendor,hostname,type,ports,os)
   -q, --quiet               Only print the results table, no banners
+  --sound                   Beep per device found; low buzz when nothing answers
   -h, --help                Show this help
 
 EXAMPLES:
@@ -122,6 +124,42 @@ err()  { echo -e "${C_RED}ERROR:${C_RESET} $*" >&2; }
 log()  { echo -e "$*"; }
 
 # -----------------------------------------------------------------------------
+# Optional discovery beeps (--sound). One short tone per device found; a low
+# buzz plays when nothing answers. Prefers aplay/play/paplay, else terminal bell.
+# -----------------------------------------------------------------------------
+SCAN_PLAYER="$(command -v aplay 2>/dev/null || command -v play 2>/dev/null || command -v paplay 2>/dev/null)"
+
+scan_beep() {
+    [ "$SOUND" = true ] || return 0
+    local freq="$1" dur="$2" wav="$TMP_DIR/scan-beep.wav"
+    if [ -z "$SCAN_PLAYER" ] || [ -z "$TMP_DIR" ]; then
+        printf '\a' 2>/dev/null
+        return 0
+    fi
+    awk -v f="$freq" -v d="$dur" -v r=44100 'BEGIN{
+        n=int(r*d); total=36+n*2;
+        printf "RIFF%c%c%c%c", total%256, int(total/256)%256, int(total/65536)%256, int(total/16777216)%256;
+        printf "WAVEfmt %c%c%c%c", 16,0,0,0;
+        printf "%c%c%c%c", 1,0,0,0;
+        printf "%c%c%c%c", 1,0,0,0;
+        printf "%c%c%c%c", 68,172,0,0;
+        printf "%c%c%c%c", 136,88,1,0;
+        printf "%c%c%c%c", 2,0,16,0;
+        printf "data%c%c%c%c", (n*2)%256, int(n*2/256)%256, int(n*2/65536)%256, int(n*2/16777216)%256;
+        for(i=0;i<n;i++){ v=int(127*sin(6.28318530718*f*i/r))*256; if(v<0) v+=65536; printf "%c%c", v%256, int(v/256)%256 }
+    }' > "$wav" 2>/dev/null
+    case "$SCAN_PLAYER" in
+        *aplay) aplay -q "$wav" >/dev/null 2>&1 &
+            ;;
+        *play) play -q "$wav" >/dev/null 2>&1 &
+            ;;
+        *paplay) paplay "$wav" >/dev/null 2>&1 &
+            ;;
+    esac
+    return 0
+}
+
+# -----------------------------------------------------------------------------
 # Legal / safety first-run gate (shared acceptance record with GNULTE)
 # -----------------------------------------------------------------------------
 scan_find_doc() {
@@ -138,7 +176,19 @@ scan_read_doc() {
     local name="$1" f
     f="$(scan_find_doc "$name")"
     if [ -n "$f" ]; then
-        cat "$f"
+        local line
+        while IFS= read -r line; do
+            line="${line//\*\*/}"; line="${line//\`/}"
+            case "$line" in
+                '```'*|'~~~'*) printf "\n${C_DIM}────────────────────────────────${C_RESET}\n" ;;
+                '### '*|'## '*|'# '*) printf "\n${C_BOLD}${C_CYAN}%s${C_RESET}\n" "${line#[#]}" ;;
+                '---'*) printf "${C_DIM}────────────────────────────────${C_RESET}\n" ;;
+                '>'*) printf "  ${C_DIM}%s${C_RESET}\n" "${line#\> }" ;;
+                '-'*|'*'*) printf "    %s\n" "$line" ;;
+                '') printf "\n" ;;
+                *) printf "%s\n" "$line" ;;
+            esac
+        done < "$f"
     else
         case "$name" in
             LICENSE)         echo "GNU GPL version 3 or later. See LICENSE in the repository." ;;
@@ -526,6 +576,7 @@ emit_table() {
     for row in "${ROWS[@]}"; do
         n=$((n+1))
         IFS='|' read -r ip mac vendor hostname type ports os <<< "$row"
+        [ "$SOUND" = true ] && scan_beep 1200 0.1
         printf "  ${C_CYAN}%-3s${C_RESET} ${C_GREEN}%-16s${C_RESET} %-20s %-18s %-22s %s\n" \
             "$n" "$ip" "$mac" "${vendor:0:18}" "${type:0:22}" "${hostname:0:30}"
         [ -n "$ports" ] && printf "    ${C_DIM}ports: %s${C_RESET}\n" "$ports"
@@ -639,6 +690,7 @@ while [ $# -gt 0 ]; do
         -y|--yaml) OUT_FORMAT="yaml"; shift ;;
         -c|--csv) OUT_FORMAT="csv"; shift ;;
         -q|--quiet) QUIET=true; shift ;;
+        --sound) SOUND=true; shift ;;
         -h|--help) usage ;;
         --version) echo "$MY_NAME $VERSION"; exit 0 ;;
         *) err "Unknown option: $1"; usage ;;
@@ -728,6 +780,7 @@ done
 ROWS=("${ROW2[@]}")
 
 if [ ${#ROWS[@]} -eq 0 ]; then
+    [ "$SOUND" = true ] && scan_beep 196 0.3
     err "Scanned ${TOTAL:-0} host(s): no responses observed."
     err "Try: sudo ${MY_NAME} (ARP discovery), or install fping/arp-scan — many networks block ICMP ping."
     exit 1

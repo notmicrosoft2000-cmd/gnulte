@@ -43,6 +43,13 @@ NETWORK-TESTING.md
 
 BEFORE CONTINUING.
 
+After this notice you may either:
+
+* Type `I AGREE` to accept these documents immediately and skip the
+  per-document review, or
+* Press Enter to review each document individually, or
+* Type `Q` to quit without recording anything.
+
 ## Version
 
 This notice is part of GNULTE safety policy version 1.

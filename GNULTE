@@ -26,7 +26,7 @@
 #   ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝   ╚══════╝
 #
 #    GNU LAN Network Testing Environment
-#    Version 8.2
+#    Version 8.3
 #
 # =============================================================================
 #  DISCLAIMER – READ CAREFULLY
@@ -77,10 +77,13 @@ SPOOF2_PIDS=()
 TERMINAL_PIDS=()
 FORCE_MODE=false
 NO_BANNER=false
+BLOCK_MODE=false
+SOUND=false
 STOPPING=false
 CAPTURE_FILE=""
 CAPTURE_PID=""
 DUPCHECK=false
+IPTABLES_DROPS=()
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 
 # Restored-on-exit system state (captured just before we change anything)
@@ -91,6 +94,7 @@ QDISCS_APPLIED=false
 STATE_DIRTY=false
 SUDO_PING_PID=""
 TMP_DIR="$(mktemp -d /tmp/gnulte.XXXXXX 2>/dev/null)" || TMP_DIR=""
+AUDIO_PLAYER="$(command -v aplay 2>/dev/null || command -v play 2>/dev/null || command -v paplay 2>/dev/null)"
 
 # Default colours (ANSI)
 COLOR_HEADER="\033[1;36m"
@@ -269,7 +273,7 @@ show_header() {
     echo '  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝   ╚══════╝'
     echo -e "${COLOR_RESET}"
     echo -e "  ${COLOR_INFO}${COLOR_BOLD}GNU LAN Network Testing Environment${COLOR_RESET}"
-    echo -e "  ${COLOR_DIM}Version 8.2 ${COLOR_HEADER}•${COLOR_RESET} ${COLOR_DIM}Authorised testing on networks you own${COLOR_RESET}"
+    echo -e "  ${COLOR_DIM}Version 8.3 ${COLOR_HEADER}•${COLOR_RESET} ${COLOR_DIM}Authorised testing on networks you own${COLOR_RESET}"
     echo ""
 }
 
@@ -370,11 +374,29 @@ embedded_doc() {
     esac
 }
 
+# Render a markdown doc to the terminal: headings emphasized, code fences
+# removed, bullets/blockquotes indented, inline bold/backticks stripped.
+render_doc_text() {
+    local line
+    while IFS= read -r line; do
+        line="${line//\*\*/}"; line="${line//\`/}"
+        case "$line" in
+            '```'*|'~~~'*) printf "\n${COLOR_DIM}────────────────────────────────${COLOR_RESET}\n" ;;
+            '### '*|'## '*|'# '*) printf "\n${COLOR_BOLD}${COLOR_HEADER}%s${COLOR_RESET}\n" "${line#[#]}" ;;
+            '---'*) printf "${COLOR_DIM}────────────────────────────────${COLOR_RESET}\n" ;;
+            '>'*) printf "  ${COLOR_DIM}%s${COLOR_RESET}\n" "${line#\> }" ;;
+            '-'*|'*'*) printf "    %s\n" "$line" ;;
+            '') printf "\n" ;;
+            *) printf "%s\n" "$line" ;;
+        esac
+    done
+}
+
 read_doc() {
     local name="$1" f
     f="$(find_safety_doc "$name")"
     if [ -n "$f" ]; then
-        cat "$f"
+        render_doc_text < "$f"
     else
         embedded_doc "$name"
     fi
@@ -464,6 +486,7 @@ legal_onboarding() {
         echo "    [$((i+1))] ${docs[$i]}"
     done
     echo ""
+    echo -e "${COLOR_BOLD}  Shortcut: type  I AGREE  to skip the review and accept these documents.${COLOR_RESET}"
     read -p "  Type 'I AGREE' to accept these documents, or press Enter to review each one (Q quits): " cfm
     cfm="${cfm//[[:space:]]/}"
     case "${cfm^^}" in
@@ -555,25 +578,49 @@ animated_bar() {
     printf "\n"
 }
 
-# Animated staged boot sequence shown while initialising
-show_boot() {
-    local -a stages=(
-        "Initialising modules"
-        "Loading configuration"
-        "Calibrating network interfaces"
-        "Preparing traffic engine"
-        "Verifying utilities"
-        "Starting"
-    )
-    local -a icons=("●" "▲" "■" "◆" "★" "▶")
-    printf "\n${COLOR_INFO}${COLOR_BOLD}  GNULTE-BIOS v8.2${COLOR_RESET}\n"
-    for idx in "${!stages[@]}"; do
-        printf "\r  ${COLOR_DIM}${icons[$idx]}${COLOR_RESET} ${stages[$idx]}..."
-        sleep 1
-        printf "\r  ${COLOR_OK}${icons[$idx]}${COLOR_RESET} ${stages[$idx]}${COLOR_DIM} [ OK ]${COLOR_RESET}   \n"
-        sleep 0.45
-    done
+# Real startup initialisation: every line below is the result of an actual
+# check that just ran. Nothing here is simulated and there are no artificial
+# pauses — if a stage is not done, it is not reported as done.
+real_boot() {
+    local fail=0 forward
+    printf "\n${COLOR_INFO}${COLOR_BOLD}  GNULTE v8.3 — Initialising${COLOR_RESET}\n"
+    printf "  ${COLOR_DIM}Real checks only — nothing here is simulated or delayed.${COLOR_RESET}\n\n"
+
+    printf "  ● Loading configuration...\n"
+    if [ -f "$CONFIG_FILE" ]; then
+        printf "  ${COLOR_OK}    loaded $CONFIG_FILE${COLOR_RESET}\n"
+    else
+        printf "  ${COLOR_WARN}    no config file — built-in defaults in use (run --settings to create one)${COLOR_RESET}\n"
+    fi
+
+    printf "  ● Calibrating network interfaces...\n"
+    detect_network || fail=1
+
+    printf "  ● Verifying utilities...\n"
+    check_deps || fail=1
+
+    printf "  ● Preparing traffic engine...\n"
+    forward="$(sysctl -n net.ipv4.ip_forward 2>/dev/null || echo 0)"
+    printf "  ${COLOR_DIM}    ip_forward=${forward} (GNULTE toggles it only during a test)${COLOR_RESET}\n"
+
     printf "\n"
+    [ "$fail" -eq 0 ]
+}
+
+# Brief startup hint line showing the main arguments (full list: -h)
+startup_quickref() {
+    [ "$LOG_MODE" = "quiet" ] && return 0
+    echo -e "${COLOR_DIM}  ─────────────────────────────────────────────────${COLOR_RESET}"
+    echo -e "  ${COLOR_BOLD}${COLOR_HEADER}QUICK REFERENCE${COLOR_RESET}  ${COLOR_DIM}(full list: -h / --help)${COLOR_RESET}"
+    echo "    GNULTE -t 192.168.1.20 --profile voip --duration 300"
+    echo "    GNULTE -r 192.168.1.0/24 -w 192.168.1.100     range attack"
+    echo "    GNULTE --scan | --quick | --dupcheck           discovery tools"
+    echo "    GNULTE --block -t IP                           100% block (no forwarding)"
+    echo "    GNULTE --sound -t IP                           ping beeps (pitch = connection)"
+    echo "    GNULTE --capture file.pcap --log-file log.txt"
+    echo -e "  ${COLOR_DIM}  First run is gated on the safety review — type  I AGREE  to accept.${COLOR_RESET}"
+    echo -e "${COLOR_DIM}  ─────────────────────────────────────────────────${COLOR_RESET}"
+    echo ""
 }
 
 # Blinking-ready style pulse line
@@ -794,9 +841,60 @@ log_section() {
     echo -e "${COLOR_DIM}  ───────────────────────────────────────────────${COLOR_RESET}"
 }
 
+# -----------------------------------------------------------------------------
+# PING SOUNDS (optional, enabled with --sound)
+# -----------------------------------------------------------------------------
+# Plays a short tone for each ping result: faster replies sound higher,
+# slower replies lower, and a missing reply gets a distinct low buzz.
+AUDIO_WAV="$TMP_DIR/gnulte-beep.wav"
+
+gnulte_beep() {
+    [ "$SOUND" = true ] || return 0
+    local freq="$1" dur="$2"
+    if [ -z "$AUDIO_PLAYER" ] || [ -z "$AUDIO_WAV" ]; then
+        printf '\a' 2>/dev/null
+        return 0
+    fi
+    # One shared wav file, rewritten per beep (16-bit mono 44.1kHz sine).
+    awk -v f="$freq" -v d="$dur" -v r=44100 'BEGIN{
+        n=int(r*d); total=36+n*2;
+        printf "RIFF%c%c%c%c", total%256, int(total/256)%256, int(total/65536)%256, int(total/16777216)%256;
+        printf "WAVEfmt %c%c%c%c", 16,0,0,0;
+        printf "%c%c%c%c", 1,0,0,0;
+        printf "%c%c%c%c", 1,0,0,0;
+        printf "%c%c%c%c", 68,172,0,0;
+        printf "%c%c%c%c", 136,88,1,0;
+        printf "%c%c%c%c", 2,0,16,0;
+        printf "data%c%c%c%c", (n*2)%256, int(n*2/256)%256, int(n*2/65536)%256, int(n*2/16777216)%256;
+        for(i=0;i<n;i++){ v=int(127*sin(6.28318530718*f*i/r))*256; if(v<0) v+=65536; printf "%c%c", v%256, int(v/256)%256 }
+    }' > "$AUDIO_WAV" 2>/dev/null
+    case "$AUDIO_PLAYER" in
+        *aplay) aplay -q "$AUDIO_WAV" >/dev/null 2>&1 &
+            ;;
+        *play) play -q "$AUDIO_WAV" >/dev/null 2>&1 &
+            ;;
+        *paplay) paplay "$AUDIO_WAV" >/dev/null 2>&1 &
+            ;;
+    esac
+    return 0
+}
+
+# Sound for one ping outcome. rtt is the round-trip time in milliseconds
+# (0 for no reply). Faster replies are higher pitched.
+ping_sound() {
+    local rtt="$1" ok="$2" freq
+    if [ "$ok" = 1 ]; then
+        freq=$(( 1200 - (rtt / 2) ))
+        [ "$freq" -lt 300 ] && freq=300
+        gnulte_beep "$freq" 0.1
+    else
+        gnulte_beep 196 0.3
+    fi
+}
+
 show_help() {
     cat << EOF
-${COLOR_HEADER}GNULTE${COLOR_RESET} – ${COLOR_DIM}GNU LAN Network Testing Environment v8.2${COLOR_RESET}
+${COLOR_HEADER}GNULTE${COLOR_RESET} – ${COLOR_DIM}GNU LAN Network Testing Environment v8.3${COLOR_RESET}
 
 ${COLOR_BOLD}TARGETING:${COLOR_RESET}
   -t, --target IP       Target IP (or multiple: IP1,IP2,IP3)
@@ -823,6 +921,10 @@ ${COLOR_BOLD}ADVANCED:${COLOR_RESET}
   --capture FILE        Capture the target's traffic with tcpdump to FILE (.pcap)
                         NOTE: contains whatever the target sends UNENCRYPTED — treat it like a secret
   --dupcheck            Detect duplicate IPs / ARP conflicts on the LAN
+  --block               Fully block the target: ARP-spoof its traffic to this
+                        box WITHOUT forwarding anything (connectivity severed)
+  --sound               Beep per ping result — faster reply = higher pitch,
+                        no reply = low buzz (uses aplay/play/paplay if present)
   --no-banner           Skip the branding/boot screen (plain startup)
   --minimal             Alias for --no-banner
   --force               Skip interactive confirmations (requires explicit flags)
@@ -1560,6 +1662,7 @@ estimate_impact() {
 # SANITY VALIDATION
 # -----------------------------------------------------------------------------
 validate_params() {
+    [ "$BLOCK_MODE" = true ] && return 0
     local ok=true
     local var val
 
@@ -1760,15 +1863,23 @@ safety_summary() {
     echo ""
     echo -e "  ${COLOR_BOLD}NETWORK-IMPACTING OPERATIONS:${COLOR_RESET}"
     echo "      • ARP-based MITM routing (arpspoof)"
-    echo "      • Traffic shaping / impairment (tc netem)"
+    if [ "$BLOCK_MODE" = true ]; then
+        echo -e "      • ${COLOR_ERR}100% BLOCK — packets are NOT forwarded${COLOR_RESET}"
+        echo -e "        ${COLOR_ERR}(target connectivity fully severed + FORWARD-chain DROP rules)${COLOR_RESET}"
+    else
+        echo "      • Traffic shaping / impairment (tc netem)"
+    fi
     if [ -n "$CAPTURE_FILE" ]; then
         echo "      • Packet capture → $CAPTURE_FILE"
         echo "        (UNENCRYPTED data the target sends may be stored — treat it as a secret)"
     fi
     echo ""
-    echo -e "  ${COLOR_BOLD}IMPAIRMENT:${COLOR_RESET}"
-    echo "      Latency ${LATENCY}ms / Jitter ${JITTER}ms / Loss ${LOSS}% / Duplicate ${DUPLICATE}% / Reorder ${REORDER}% / Bandwidth ${BANDWIDTH} kbps"
-    echo -e "      ${COLOR_DIM}(bandwidth 0 = unlimited)${COLOR_RESET}"
+    if [ "$BLOCK_MODE" = true ]; then
+        echo -e "  ${COLOR_BOLD}MODE:${COLOR_RESET} 100% block — no shaping parameters apply."
+    else
+        echo -e "  ${COLOR_BOLD}IMPAIRMENT:${COLOR_RESET} Latency ${LATENCY}ms / Jitter ${JITTER}ms / Loss ${LOSS}% / Duplicate ${DUPLICATE}% / Reorder ${REORDER}% / Bandwidth ${BANDWIDTH} kbps"
+        echo -e "      ${COLOR_DIM}(bandwidth 0 = unlimited)${COLOR_RESET}"
+    fi
     echo ""
     echo -e "  ${COLOR_BOLD}WARNING:${COLOR_RESET} this can disrupt the target's connectivity and sees its traffic."
     echo -e "  ${COLOR_DIM}Proceed only where you are authorized to test these systems, and only"
@@ -1784,9 +1895,23 @@ execute() {
     echo -e "${COLOR_INFO}◆ The next operations require elevated (root) privileges via sudo.${COLOR_RESET}"
     echo ""
 
-    # -- Step 1: IP forwarding (only if the operator actually confirms) --
+    # -- Step 1: packet flow (forward mode routes through us; block mode stops it) --
     ORIG_IP_FORWARD=$(sysctl -n net.ipv4.ip_forward 2>/dev/null || echo 0)
-    if expert_confirm "Enable IP forwarding (route the target's traffic through this computer)" \
+    if [ "$BLOCK_MODE" = true ]; then
+        log_section "100% BLOCK MODE"
+        echo -e "${COLOR_ERR}  The target's connectivity will be fully severed: ARP spoofing"
+        echo -e "  redirects its traffic here and this computer will NOT forward it.${COLOR_RESET}"
+        echo ""
+        # Force forwarding OFF so nothing can slip through, restore later.
+        if [ "$ORIG_IP_FORWARD" != "0" ]; then
+            log_cmd "sysctl -w net.ipv4.ip_forward=0"
+            sudo sysctl -w net.ipv4.ip_forward=0 > /dev/null 2>&1
+            IP_FORWARD_CHANGED=true; STATE_DIRTY=true
+            log_ok "IP forwarding disabled (block mode)"
+        else
+            log_ok "IP forwarding already off — blocking is absolute"
+        fi
+    elif expert_confirm "Enable IP forwarding (route the target's traffic through this computer)" \
         "sudo sysctl -w net.ipv4.ip_forward=1"; then
         say "Step 1 — turning on routing so the chosen device's data flows through this computer…"
         log_cmd "sysctl -w net.ipv4.ip_forward=1"
@@ -1801,6 +1926,19 @@ execute() {
         fi
     else
         log_warn "Skipped IP forwarding by user."
+    fi
+
+    # Block/forward modes both install absolute netfilter DROPs in the FORWARD
+    # chain so no target packet can ever pass this router, even fleetingly.
+    if [ "$BLOCK_MODE" = true ]; then
+        local BT
+        for BT in "${TARGETS[@]}"; do
+            if [ -n "$TARGET_RANGE" ] && [ "$BT" = "$TARGET_RANGE" ]; then continue; fi
+            log_cmd "iptables -I FORWARD -d $BT -j DROP ; iptables -I FORWARD -s $BT -j DROP"
+            sudo iptables -I FORWARD -d "$BT" -j DROP 2>/dev/null && IPTABLES_DROPS+=("-d $BT -j DROP")
+            sudo iptables -I FORWARD -s "$BT" -j DROP 2>/dev/null && IPTABLES_DROPS+=("-s $BT -j DROP")
+        done
+        [ ${#IPTABLES_DROPS[@]} -gt 0 ] && STATE_DIRTY=true && log_ok "FORWARD chain blocks installed for ${TARGETS[*]}"
     fi
 
     # -- Step 1b: optional packet capture (with overwrite guard + warning) --
@@ -1875,7 +2013,10 @@ execute() {
         log_warn "Skipped spoofing by user — shaping will only affect direct traffic to/from targets."
     fi
 
-    # -- Step 3: target-specific traffic shaping (bypass class for everyone else) --
+    # -- Step 3: target-specific traffic shaping (skipped in block mode) --
+    if [ "$BLOCK_MODE" = true ]; then
+        log_warn "Block mode active — the link is fully severed, so traffic shaping is skipped."
+    else
     local -a NETEM_ARGS=()
     NETEM_ARGS=(delay "${LATENCY}ms" "${JITTER}ms")
     [ "$LOSS" -gt 0 ] && NETEM_ARGS+=(loss "${LOSS}%")
@@ -1894,6 +2035,7 @@ execute() {
         QDISCS_APPLIED=true; STATE_DIRTY=true
     else
         log_warn "Skipped traffic control by user."
+    fi
     fi
     echo ""
 }
@@ -2214,7 +2356,7 @@ generate_report() {
     local html="$outdir/report.html"
 
     {
-        echo "GNULTE v8.2 – Post-Test Report"
+        echo "GNULTE v8.3 – Post-Test Report"
         echo "==============================="
         echo "Generated : $(date)"
         echo "Interface : $INTERFACE"
@@ -2271,7 +2413,7 @@ EOF
     done
 
     echo "</table>" >> "$html"
-    echo "<p class='p'>Generated by GNULTE v8.2. Keep within authorised use.</p></body></html>" >> "$html"
+    echo "<p class='p'>Generated by GNULTE v8.3. Keep within authorised use.</p></body></html>" >> "$html"
 
     if [ -n "$EXPORT_CSV" ] && [ -f "$EXPORT_CSV" ]; then
         cp "$EXPORT_CSV" "$outdir/" 2>/dev/null
@@ -2346,6 +2488,11 @@ monitor() {
 
     trap 'dash_clear; echo ""; log_warn "Stopping..."; cleanup; exit 0' INT TERM
 
+    if [ ${#TARGETS[@]} -eq 1 ]; then
+        log_info "Console log style — each ping result appends a history line (Ctrl+C stops)."
+        echo ""
+    fi
+
     while true; do
         if [ "$DURATION" -gt 0 ]; then
             ELAPSED=$(($(date +%s) - START_TIME))
@@ -2375,8 +2522,6 @@ monitor() {
                 delay "${RAND_LATENCY}ms" "${RAND_JITTER}ms" \
                 ${RAND_LOSS:+loss ${RAND_LOSS}%} 2>/dev/null
         fi
-
-        dash_clear
 
         for i in "${!TARGETS[@]}"; do
             TARGET_IP="${TARGETS[$i]}"
@@ -2435,8 +2580,29 @@ monitor() {
         fi
 
         if [ ${#TARGETS[@]} -eq 1 ]; then
-            render_single_dashboard
+            # Console output style: each ping gets its own permanent line (history).
+            local ip0="${TARGETS[0]}" L="${STAT_LAST[0]}" try avg
+            STAMP=$(date +%T)
+            if [ "$L" -ge 0 ]; then
+                local st="ok"
+                [ "$L" -gt 300 ] && st="degraded"
+                [ "$L" -gt 800 ] && st="severe"
+                printf "  [%s] %-16s %5sms  %s\n" "$STAMP" "$ip0" "$L" "$st"
+            else
+                printf "  [%s] %-16s %7s  %s\n" "$STAMP" "$ip0" "DOWN" "unreachable"
+            fi
+            try=$((STAT_COUNT[0] + STAT_DROP[0]))
+            if [ $((try % 10)) -eq 0 ] && [ "$try" -gt 0 ]; then
+                avg=0; [ "${STAT_COUNT[0]}" -gt 0 ] && avg=$((STAT_TOTAL[0] / STAT_COUNT[0]))
+                printf "  ${COLOR_DIM}    — summary: min=${STAT_MIN[0]}ms  max=${STAT_MAX[0]}ms  avg=${avg}ms  loss=%s%%  (n=%s)${COLOR_RESET}\n" \
+                    "$(awk -v d="${STAT_DROP[0]}" -v a="$try" 'BEGIN{printf "%.1f", d*100/a}')" "$try"
+            fi
+            if [ "$SOUND" = true ]; then
+                if [ "$L" -ge 0 ]; then ping_sound "$L" 1; else ping_sound 0 0; fi
+            fi
         else
+            # Range/multi attack: live-updating summary dashboard, refreshed each second.
+            dash_clear
             render_multi_dashboard
         fi
 
@@ -2526,6 +2692,17 @@ cleanup() {
         log_ok "IP forwarding restored to $ORIG_IP_FORWARD"
     fi
 
+    # Remove the per-target FORWARD DROP rules we installed in block mode
+    if [ ${#IPTABLES_DROPS[@]} -gt 0 ]; then
+        local IDR
+        for IDR in "${IPTABLES_DROPS[@]}"; do
+            log_cmd "iptables -D FORWARD $IDR"
+            sudo iptables -D FORWARD $IDR 2>/dev/null
+        done
+        log_ok "FORWARD chain restore (${#IPTABLES_DROPS[@]} DROP rule(s) removed)"
+        IPTABLES_DROPS=()
+    fi
+
     if [ -n "$CAPTURE_PID" ]; then
         animated_bar 1 "Finishing packet capture..."
         sudo kill "$CAPTURE_PID" 2>/dev/null
@@ -2581,12 +2758,15 @@ check_deps() {
 }
 
 verify_targets_reachable() {
-    local ip fail=false
+    local ip fail=false rtt
     say "Checking each target is reachable before starting the attack…"
     for ip in "${TARGETS[@]}"; do
-        if ping -c 1 -W 1 "$ip" >/dev/null 2>&1; then
-            log_ok "Target $ip is reachable"
+        if rtt=$(ping -c 1 -W 1 "$ip" 2>/dev/null | sed -n 's/.*time=\([0-9.]*\) ms.*/\1/p') && valid_ip4 "$ip"; then
+            rtt=${rtt%%.*}; rtt=${rtt:-0}
+            ping_sound "$rtt" 1
+            log_ok "Target $ip is reachable (${rtt}ms)"
         else
+            ping_sound 0 0
             log_warn "Target $ip did not respond to a quick ping"
             fail=true
         fi
@@ -2676,6 +2856,8 @@ while [[ $# -gt 0 ]]; do
         --capture)        CAPTURE_FILE="$2"; shift 2 ;;
         --dupcheck)       DUPCHECK=true; shift ;;
         --force)          FORCE_MODE=true; shift ;;
+        --block)          BLOCK_MODE=true; shift ;;
+        --sound)          SOUND=true; shift ;;
         --no-banner|--minimal) NO_BANNER=true; shift ;;
         --save-profile)   SAVE_PROFILE="$2"; shift 2 ;;
         --export)         EXPORT_CSV="$2"; shift 2 ;;
@@ -2685,7 +2867,7 @@ while [[ $# -gt 0 ]]; do
         --theme)          case " $THEME_NAMES " in *" $2 "*) THEME="$2"; apply_theme ;; *) log_err "unknown theme: $2 (options: $THEME_NAMES)"; exit 1 ;; esac; shift 2 ;;
         --settings)       settings_app; shift ;;
         --config)         edit_config; shift ;;
-        --version)        echo "GNULTE v8.2"; exit 0 ;;
+        --version)        echo "GNULTE v8.3"; exit 0 ;;
         -h|--help)        show_help; exit 0 ;;
         *)                log_err "Unknown option: $1"; show_help; exit 1 ;;
     esac
@@ -2701,7 +2883,6 @@ VERBOSITY="${VERBOSITY:-${DEFAULT_VERBOSITY:-normal}}"
 
 if [ "$NO_BANNER" = false ]; then
     show_header
-    show_boot
 fi
 if [ "$(id -u)" -eq 0 ]; then
     echo -e "${COLOR_WARN}[NOTICE] You are running the whole interface as root.${COLOR_RESET}"
@@ -2712,8 +2893,8 @@ fi
 check_acceptance
 check_sudo
 init_session_log
-check_deps
-detect_network
+real_boot
+startup_quickref
 
 if [ "$SCAN_MODE" = true ] || [ "$QUICK_SCAN" = true ]; then
     if [ "$SCAN_MODE" = true ] && [ "$FORCE_MODE" = false ] && [ -t 0 ]; then
@@ -2832,10 +3013,14 @@ BANDWIDTH=${BANDWIDTH:-$DEFAULT_BANDWIDTH}
 
 verify_targets_reachable
 
-if [ "$FORCE_MODE" = true ]; then
-    estimate_impact "$LATENCY" "$JITTER" "$LOSS" "$DUPLICATE" "$REORDER" "$BANDWIDTH"
+if [ "$BLOCK_MODE" = true ]; then
+    log_info "Block mode — parameter negotiation skipped (link is fully severed, no shaping)."
 else
-    configure_params
+    if [ "$FORCE_MODE" = true ]; then
+        estimate_impact "$LATENCY" "$JITTER" "$LOSS" "$DUPLICATE" "$REORDER" "$BANDWIDTH"
+    else
+        configure_params
+    fi
 fi
 
 if ! validate_params; then

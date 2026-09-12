@@ -133,6 +133,8 @@ notes they were shown and acknowledged.
 | `--export CSV` | Save per-second results to CSV |
 | `--capture FILE` | Capture traffic to `.pcap` |
 | `--dupcheck` | Detect duplicate IPs / ARP conflicts |
+| `--block` | Fully block the target: ARP-spoof its traffic here without forwarding (100% outage) |
+| `--sound` | Beep per ping result — faster reply = higher pitch, no reply = low buzz |
 | `--scan -t IP` | Deep port/OS scan of one IP (active recon) |
 | `--quick` | Fast ARP-only scan |
 | `--minimal`, `--no-banner` | Skip the branding/boot screen |
