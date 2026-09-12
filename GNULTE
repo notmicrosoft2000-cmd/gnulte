@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# GNULTE - GNU LAN Network Testing Environment
+# Copyright (C) 2026 GNULTE contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 # =============================================================================
 #
 #   ██████╗ ███╗   ██╗██╗   ██╗██╗  ████████╗███████╗
@@ -10,7 +26,7 @@
 #   ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝   ╚══════╝
 #
 #    GNU LAN Network Testing Environment
-#    Version 8.1
+#    Version 8.2
 #
 # =============================================================================
 #  DISCLAIMER – READ CAREFULLY
@@ -45,7 +61,9 @@
 # -----------------------------------------------------------------------------
 CONFIG_FILE="$HOME/.gnulte.conf"
 PROFILES_FILE="$HOME/.gnulte_profiles.conf"
-ACCEPTANCE_FILE="$HOME/.gnulte_accepted"
+GNULTE_ACCEPTANCE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/gnulte"
+GNULTE_ACCEPTANCE_FILE="$GNULTE_ACCEPTANCE_DIR/acceptance"
+SAFETY_POLICY_VERSION=1
 LOG_MODE="normal"
 DURATION=0
 RANDOM_MODE=false
@@ -58,12 +76,12 @@ SPOOF1_PIDS=()
 SPOOF2_PIDS=()
 TERMINAL_PIDS=()
 FORCE_MODE=false
-STEALTH=false
+NO_BANNER=false
 STOPPING=false
-SPOOF_MASK_BIN="/tmp/.cache-watchdog"
 CAPTURE_FILE=""
 CAPTURE_PID=""
 DUPCHECK=false
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 
 # Restored-on-exit system state (captured just before we change anything)
 ORIG_IP_FORWARD=0
@@ -251,7 +269,7 @@ show_header() {
     echo '  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝   ╚══════╝'
     echo -e "${COLOR_RESET}"
     echo -e "  ${COLOR_INFO}${COLOR_BOLD}GNU LAN Network Testing Environment${COLOR_RESET}"
-    echo -e "  ${COLOR_DIM}Version 8.1 ${COLOR_HEADER}•${COLOR_RESET} ${COLOR_DIM}Authorised testing on networks you own${COLOR_RESET}"
+    echo -e "  ${COLOR_DIM}Version 8.2 ${COLOR_HEADER}•${COLOR_RESET} ${COLOR_DIM}Authorised testing on networks you own${COLOR_RESET}"
     echo ""
 }
 
@@ -291,53 +309,199 @@ check_sudo() {
 }
 
 # -----------------------------------------------------------------------------
-# DISCLAIMER
+# LEGAL / SAFETY FIRST-RUN GATE
 # -----------------------------------------------------------------------------
-show_disclaimer() {
-    if [ -f "$ACCEPTANCE_FILE" ]; then
+# The GPL (LICENSE) covers copyright. Safety, disclaimer, authorization and
+# network-testing policy are separate documents. On first run (or whenever the
+# versioned safety documents change) the operator must review and acknowledge
+# each one before any network-impacting feature can run. The acceptance file is
+# treated as DATA — it is never eval'd or sourced, and no flag bypasses this
+# gate.
+
+safety_docs() {
+    echo "LICENSE
+SAFETY.md
+DISCLAIMER.md
+AUTHORIZED-USE.md
+NETWORK-TESTING.md"
+}
+
+# Locate the installed docs; falls back to the script's own directory (git
+# checkout) and the standard share installation locations.
+find_safety_doc() {
+    local name="$1" d f=""
+    for d in "$GNULTE_DOC_DIR" "$SCRIPT_DIR" /usr/local/share/doc/gnulte /usr/share/doc/gnulte; do
+        [ -n "$d" ] || continue
+        f="$d/$name"
+        [ -f "$f" ] && { echo "$f"; return 0; }
+    done
+    return 1
+}
+
+# Embedded fallback text when the markdown documents are not installed.
+embedded_doc() {
+    case "$1" in
+        LICENSE)
+            echo "LICENSE — GNU GPL version 3 or later."
+            echo "See the LICENSE file in the GNULTE repository for the full"
+            echo "official text. It covers redistribution and modification only;"
+            echo "it grants no permission to test, intercept, or disrupt any network." ;;
+        SAFETY.md)
+            echo "SAFETY.md — GNULTE can perform ARP-based man-in-the-middle"
+            echo "operation, traffic manipulation, impairment, and packet capture."
+            echo "GNULTE-SCAN can perform LAN discovery and active reconnaissance."
+            echo "Use these only on networks/devices you own or are explicitly"
+            echo "authorized to test. Capture and impairment can affect others." ;;
+        DISCLAIMER.md)
+            echo "DISCLAIMER.md — Provided 'AS IS', without warranty, to the"
+            echo "maximum extent permitted by law. Users are solely responsible"
+            echo "for authorization and compliance. This does not modify or"
+            echo "supersede the GPL." ;;
+        AUTHORIZED-USE.md)
+            echo "AUTHORIZED-USE.md — Record who authorized the test, which"
+            echo "systems/IPs are in scope or excluded, which techniques are"
+            echo "allowed, capture/disruption permission, the testing window,"
+            echo "and an emergency contact before you begin." ;;
+        NETWORK-TESTING.md)
+            echo "NETWORK-TESTING.md — Controlled testing chain: GNULTE-SCAN"
+            echo "discovers targets, GNULTE reproduces latency/jitter/loss/"
+            echo "duplication/reorder/bandwidth conditions against authorized"
+            echo "targets so applications can be observed under bad networks." ;;
+    esac
+}
+
+read_doc() {
+    local name="$1" f
+    f="$(find_safety_doc "$name")"
+    if [ -n "$f" ]; then
+        cat "$f"
+    else
+        embedded_doc "$name"
+    fi
+}
+
+# Show a document with restart/quit options, then require an explicit per-doc
+# acknowledgment. We do NOT claim the user "read" anything — only that the
+# document was shown and the requirement acknowledged.
+review_doc() {
+    local name="$1" idx="$2" total="$3" choice
+
+    while : ; do
+        echo ""
+        echo -e "${COLOR_BOLD}◆ Document [${idx}/${total}]: $name${COLOR_RESET}"
+        echo "  Opening document [${idx}/${total}]..."
+        echo ""
+        read_doc "$name"
+        echo ""
+        echo "  [O] Open in editor      [R] Restart document"
+        echo "  [Q] Quit                [C] Continue to acknowledgment"
+        read -p "  Choice: " choice
+        case "${choice^^}" in
+            O)  if [ -t 0 ] && command -v nano &>/dev/null; then
+                    f="$(find_safety_doc "$name")"; [ -n "$f" ] && nano "$f"
+                else
+                    echo -e "${COLOR_DIM}    (no editor/interactive terminal available; scroll up to review)${COLOR_RESET}"
+                fi
+                continue ;;
+            R) continue ;;
+            Q) echo -e "${COLOR_ERR}Review stopped. GNULTE will not proceed without acknowledgment.${COLOR_RESET}"; exit 1 ;;
+            C) break ;;
+            *) echo -e "${COLOR_DIM}    Please choose O, R, Q or C.${COLOR_RESET}" ;;
+        esac
+    done
+
+    local ack=""
+    while : ; do
+        echo ""
+        read -p "  I have reviewed this document. [y/N]: " ack
+        case "$ack" in
+            y|Y) return 0 ;;
+            n|N|"") echo -e "${COLOR_ERR}No acknowledgment recorded for ${name}. Exiting — nothing was shown past this point.${COLOR_RESET}"; exit 1 ;;
+            *)   echo -e "${COLOR_DIM}    Please answer y or N.${COLOR_RESET}" ;;
+        esac
+    done
+}
+
+legal_onboarding() {
+    local -a docs=()
+    local i name
+
+    mapfile -t docs < <(safety_docs)
+
+    echo ""
+    echo -e "${COLOR_ERR}════════════════════════════════════════════════════════════════${COLOR_RESET}"
+    echo -e "${COLOR_BOLD}                     GNULTE FIRST RUN${COLOR_RESET}"
+    echo -e "${COLOR_ERR}════════════════════════════════════════════════════════════════${COLOR_RESET}"
+    echo ""
+    read_doc FIRST-RUN-NOTICE.md
+    echo ""
+    echo -e "${COLOR_BOLD}WARNING${COLOR_RESET}"
+    echo "  GNULTE is capable of ARP-based MITM operation, traffic"
+    echo "  manipulation, packet capture, and network impairment."
+    echo "  GNULTE-SCAN can perform active network discovery and"
+    echo "  reconnaissance."
+    echo ""
+    echo "  These operations may affect other systems and users."
+    echo "  You must have authorization before testing systems or"
+    echo "  networks that you do not own."
+    echo ""
+    echo -e "  ${COLOR_BOLD}You are required to review the following documents:${COLOR_RESET}"
+    for i in "${!docs[@]}"; do
+        echo "    [$((i+1))] ${docs[$i]}"
+    done
+    echo ""
+    echo -e "${COLOR_DIM}  You can stop at any time with [Q]; nothing is recorded until all"
+    echo -e "  documents have been acknowledged.${COLOR_RESET}"
+    echo ""
+    read -p "  Press Enter to begin the review, or 'Q' to quit: " cfm
+    case "${cfm^^}" in
+        Q) echo -e "${COLOR_ERR}Exiting. GNULTE will require this review on next launch.${COLOR_RESET}"; exit 1 ;;
+    esac
+
+    for i in "${!docs[@]}"; do
+        review_doc "${docs[$i]}" "$((i+1))" "${#docs[@]}"
+    done
+
+    # Write the acceptance record (generated as data; validated on read; never sourced).
+    mkdir -p "$GNULTE_ACCEPTANCE_DIR" || { echo -e "${COLOR_ERR}Could not create $GNULTE_ACCEPTANCE_DIR.${COLOR_RESET}"; exit 1; }
+    ( umask 077; printf 'SAFETY_POLICY_VERSION=%s\nSAFETY_ACKNOWLEDGED=1\nDISCLAIMER_ACKNOWLEDGED=1\nAUTHORIZATION_ACKNOWLEDGED=1\nNETWORK_TESTING_ACKNOWLEDGED=1\nTIMESTAMP=%s\n' \
+        "$SAFETY_POLICY_VERSION" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$GNULTE_ACCEPTANCE_FILE" )
+
+    echo ""
+    echo -e "${COLOR_OK}You have been shown the required documents and acknowledged the"
+    echo -e "safety and authorization requirements.${COLOR_RESET}"
+    echo -e "${COLOR_DIM}This is an acknowledgment record — it cannot prove you read the"
+    echo -e "documents, and it does not make any unauthorized activity lawful.${COLOR_RESET}"
+    echo ""
+}
+
+# Gate: if the current safety-policy version is not acknowledged, run onboarding.
+check_acceptance() {
+    local acked=""
+    if [ -f "$GNULTE_ACCEPTANCE_FILE" ]; then
+        acked="$(sed -n 's/^SAFETY_POLICY_VERSION=//p' "$GNULTE_ACCEPTANCE_FILE" 2>/dev/null | tail -1)"
+    fi
+
+    if [ "$acked" = "$SAFETY_POLICY_VERSION" ]; then
         return 0
     fi
 
-    echo -e "${COLOR_ERR}"
-    echo "════════════════════════════════════════════════════════════════════════════"
-    echo "  DISCLAIMER – READ CAREFULLY"
-    echo "════════════════════════════════════════════════════════════════════════════"
-    echo -e "${COLOR_RESET}"
-    echo -e "${COLOR_BOLD}This software is provided STRICTLY for:${COLOR_RESET}"
-    echo "  • Educational purposes"
-    echo "  • Authorised network testing on networks YOU OWN"
-    echo "  • Security research with explicit written permission"
-    echo ""
-    echo -e "${COLOR_ERR}${COLOR_BOLD}DO NOT USE THIS SOFTWARE FOR:${COLOR_RESET}"
-    echo "  • Attacking networks you do not own or have permission to test"
-    echo "  • Disrupting public Wi-Fi or shared networks"
-    echo "  • Any malicious, illegal, or unethical activity"
-    echo "  • Harassing, stalking, or interfering with other users"
-    echo "  • Bypassing network security without authorisation"
-    echo ""
-    echo -e "${COLOR_BOLD}By using this software, you acknowledge and agree that:${COLOR_RESET}"
-    echo "  • You are solely responsible for your actions"
-    echo "  • Unauthorised network interference is ILLEGAL in most jurisdictions"
-    echo "  • The author(s) disclaim ALL liability for damages, legal consequences,"
-    echo "    or harm caused by the use or misuse of this software"
-    echo "  • You will only use this on networks you own or have written permission"
-    echo "    to test"
-    echo "  • You understand that violating these terms may result in criminal"
-    echo "    prosecution"
-    echo ""
-    echo -e "${COLOR_ERR}${COLOR_BOLD}IF YOU DO NOT AGREE TO THESE TERMS, EXIT NOW.${COLOR_RESET}"
-    echo -e "${COLOR_ERR}════════════════════════════════════════════════════════════════════════════${COLOR_RESET}"
-    echo ""
+    if [ -n "$acked" ]; then
+        echo -e "${COLOR_WARN}Your GNULTE safety documents have changed.${COLOR_RESET}"
+        echo -e "  Previous acknowledgment : version ${COLOR_TARGET}$acked${COLOR_RESET}"
+        echo -e "  Current documents       : version ${COLOR_TARGET}$SAFETY_POLICY_VERSION${COLOR_RESET}"
+        echo -e "${COLOR_BOLD}  Please review the updated documents before continuing.${COLOR_RESET}"
+        echo ""
+    fi
 
-    read -p "Do you accept these terms? Type 'I AGREE' to continue: " ACCEPT
-    if [ "$ACCEPT" != "I AGREE" ]; then
-        echo -e "${COLOR_ERR}Terms not accepted. Exiting.${COLOR_RESET}"
+    if [ ! -t 0 ]; then
+        echo -e "${COLOR_ERR}First-run safety acknowledgment must be completed from an"
+        echo -e "interactive terminal. Start GNULTE there to review the required"
+        echo -e "documents before any network-impacting operation.${COLOR_RESET}"
         exit 1
     fi
 
-    echo "$(date)" > "$ACCEPTANCE_FILE"
-    echo -e "${COLOR_OK}[OK] Terms accepted.${COLOR_RESET}"
-    echo ""
+    legal_onboarding
 }
 
 # -----------------------------------------------------------------------------
@@ -397,7 +561,7 @@ show_boot() {
         "Starting"
     )
     local -a icons=("●" "▲" "■" "◆" "★" "▶")
-    printf "\n${COLOR_INFO}${COLOR_BOLD}  GNULTE-BIOS v8.1${COLOR_RESET}\n"
+    printf "\n${COLOR_INFO}${COLOR_BOLD}  GNULTE-BIOS v8.2${COLOR_RESET}\n"
     for idx in "${!stages[@]}"; do
         printf "\r  ${COLOR_DIM}${icons[$idx]}${COLOR_RESET} ${stages[$idx]}..."
         sleep 1
@@ -627,7 +791,7 @@ log_section() {
 
 show_help() {
     cat << EOF
-${COLOR_HEADER}GNULTE${COLOR_RESET} – ${COLOR_DIM}GNU LAN Network Testing Environment v8.1${COLOR_RESET}
+${COLOR_HEADER}GNULTE${COLOR_RESET} – ${COLOR_DIM}GNU LAN Network Testing Environment v8.2${COLOR_RESET}
 
 ${COLOR_BOLD}TARGETING:${COLOR_RESET}
   -t, --target IP       Target IP (or multiple: IP1,IP2,IP3)
@@ -654,7 +818,8 @@ ${COLOR_BOLD}ADVANCED:${COLOR_RESET}
   --capture FILE        Capture the target's traffic with tcpdump to FILE (.pcap)
                         NOTE: contains whatever the target sends UNENCRYPTED — treat it like a secret
   --dupcheck            Detect duplicate IPs / ARP conflicts on the LAN
-  --stealth             Disguised arpspoof binary, generic window titles, no branding on screen
+  --no-banner           Skip the branding/boot screen (plain startup)
+  --minimal             Alias for --no-banner
   --force               Skip interactive confirmations (requires explicit flags)
 
 ${COLOR_BOLD}OUTPUT:${COLOR_RESET}
@@ -1537,28 +1702,15 @@ configure_params() {
         read -p "Profile name: " PROF_NAME
         save_profile "$PROF_NAME"
     fi
-
-    read -p "Start? (y/n): " CONFIRM
-    if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
-        log_info "Aborted."
-        exit 0
-    fi
 }
 
 # -----------------------------------------------------------------------------
-# SPOOF LAUNCHER (with optional disguising)
+# SPOOF LAUNCHER
 # -----------------------------------------------------------------------------
-# Runs arpspoof silently. In stealth mode the binary is copied to a generic
-# path so "ps" shows an innocuous name instead of "arpspoof".
-masked_spoof() {
+# Runs arpspoof silently as the named binary (no process disguising).
+spoof_launch() {
     local iface="$1" victim="$2" gateway="$3"
-    local bin
-    bin="$(command -v arpspoof)"
-    if [ "$STEALTH" = true ]; then
-        [ -x "$SPOOF_MASK_BIN" ] || { cp "$bin" "$SPOOF_MASK_BIN" 2>/dev/null && chmod 700 "$SPOOF_MASK_BIN" 2>/dev/null; }
-        [ -x "$SPOOF_MASK_BIN" ] && bin="$SPOOF_MASK_BIN"
-    fi
-    sudo "$bin" -i "$iface" -t "$victim" "$gateway" >/dev/null 2>&1 &
+    sudo arpspoof -i "$iface" -t "$victim" "$gateway" >/dev/null 2>&1 &
     echo $!
 }
 
@@ -1579,20 +1731,53 @@ alive_spoof() {
     sudo kill -0 "$p" 2>/dev/null
 }
 
-# Generic window title (neutral in stealth mode)
 mon_title() {
-    if [ "$STEALTH" = true ]; then
-        echo "lte-monitor"
-    else
-        echo "GNULTE – $1"
-    fi
+    echo "GNULTE – $1"
 }
 
 # -----------------------------------------------------------------------------
 # EXECUTE
 # -----------------------------------------------------------------------------
+
+# Explicit pre-flight: show exactly what is about to happen and require a
+# deliberate go/no-go. Answered "No" must stop the program before anything
+# touches the network.
+safety_summary() {
+    local T
+    echo ""
+    echo -e "${COLOR_ERR}════════════════════════════════════════════════════════════════${COLOR_RESET}"
+    echo -e "${COLOR_BOLD}                        CONFIRM TEST${COLOR_RESET}"
+    echo -e "${COLOR_ERR}════════════════════════════════════════════════════════════════${COLOR_RESET}"
+    echo -e "  ${COLOR_BOLD}TARGET(S):${COLOR_RESET}"
+    for T in "${TARGETS[@]}"; do
+        echo "      $T"
+    done
+    echo ""
+    echo -e "  ${COLOR_BOLD}NETWORK-IMPACTING OPERATIONS:${COLOR_RESET}"
+    echo "      • ARP-based MITM routing (arpspoof)"
+    echo "      • Traffic shaping / impairment (tc netem)"
+    if [ -n "$CAPTURE_FILE" ]; then
+        echo "      • Packet capture → $CAPTURE_FILE"
+        echo "        (UNENCRYPTED data the target sends may be stored — treat it as a secret)"
+    fi
+    echo ""
+    echo -e "  ${COLOR_BOLD}IMPAIRMENT:${COLOR_RESET}"
+    echo "      Latency ${LATENCY}ms / Jitter ${JITTER}ms / Loss ${LOSS}% / Duplicate ${DUPLICATE}% / Reorder ${REORDER}% / Bandwidth ${BANDWIDTH} kbps"
+    echo -e "      ${COLOR_DIM}(bandwidth 0 = unlimited)${COLOR_RESET}"
+    echo ""
+    echo -e "  ${COLOR_BOLD}WARNING:${COLOR_RESET} this can disrupt the target's connectivity and sees its traffic."
+    echo -e "  ${COLOR_DIM}Proceed only where you are authorized to test these systems, and only"
+    echo -e "  where the activity is lawful.${COLOR_RESET}"
+    echo ""
+}
+
 execute() {
     log_section "EXECUTING"
+
+    # The operations below require root. GNULTE elevates each one via sudo;
+    # you may be asked for your sudo password here.
+    echo -e "${COLOR_INFO}◆ The next operations require elevated (root) privileges via sudo.${COLOR_RESET}"
+    echo ""
 
     # -- Step 1: IP forwarding (only if the operator actually confirms) --
     ORIG_IP_FORWARD=$(sysctl -n net.ipv4.ip_forward 2>/dev/null || echo 0)
@@ -1660,7 +1845,7 @@ execute() {
             log_info "Starting attack on $TARGET_IP..."
 
             log_cmd "arpspoof -i $INTERFACE -t $TARGET_IP $GATEWAY"
-            SPOOF1_PIDS+=("$(masked_spoof "$INTERFACE" "$TARGET_IP" "$GATEWAY")")
+            SPOOF1_PIDS+=("$(spoof_launch "$INTERFACE" "$TARGET_IP" "$GATEWAY")")
             sleep 1
             if ! alive_spoof "${SPOOF1_PIDS[-1]}"; then
                 log_err "arpspoof failed to start for $TARGET_IP (check interface/route + root)."
@@ -1670,7 +1855,7 @@ execute() {
             log_ok "Spoof $TARGET_IP -> $GATEWAY (PID ${SPOOF1_PIDS[-1]})"
 
             log_cmd "arpspoof -i $INTERFACE -t $GATEWAY $TARGET_IP"
-            SPOOF2_PIDS+=("$(masked_spoof "$INTERFACE" "$GATEWAY" "$TARGET_IP")")
+            SPOOF2_PIDS+=("$(spoof_launch "$INTERFACE" "$GATEWAY" "$TARGET_IP")")
             sleep 1
             if ! alive_spoof "${SPOOF2_PIDS[-1]}"; then
                 log_err "arpspoof failed to start for $GATEWAY side (check interface/route + root)."
@@ -1745,25 +1930,7 @@ apply_tc_chain() {
 # Static body reused for every monitor window; values flow in via environment,
 # so nothing user-supplied is ever interpolated into the spawned shell.
 monitor_script() {
-    if [ "$STEALTH" = true ]; then
-        cat <<'SCRIPT'
-IP="${IP:?}"
-echo "Target: $IP"
-echo "Latency: ${LAT}ms | Jitter: ${JIT}ms | Loss: ${LOSS}%"
-echo "────────────────────────────────────────"
-while true; do
-    P=$(ping -c 1 -W 1 "$IP" 2>/dev/null | grep 'time=' | awk -F'time=' '{print $2}' | cut -d' ' -f1)
-    if [ -n "$P" ]; then
-        MS=$(printf '%.0f' "$P")
-        echo "[$(date +%H:%M:%S)] ${MS}ms"
-    else
-        echo "[$(date +%H:%M:%S)] unreachable"
-    fi
-    sleep 1
-done
-SCRIPT
-    else
-        cat <<'SCRIPT'
+    cat <<'SCRIPT'
 IP="${IP:?}"
 echo "GNULTE Monitor – Target: $IP"
 echo "Latency: ${LAT}ms | Jitter: ${JIT}ms | Loss: ${LOSS}%"
@@ -1780,7 +1947,6 @@ while true; do
     sleep 1
 done
 SCRIPT
-    fi
 }
 
 # Single-quote a string so it can be safely embedded inside another shell -c.
@@ -2043,7 +2209,7 @@ generate_report() {
     local html="$outdir/report.html"
 
     {
-        echo "GNULTE v8.1 – Post-Test Report"
+        echo "GNULTE v8.2 – Post-Test Report"
         echo "==============================="
         echo "Generated : $(date)"
         echo "Interface : $INTERFACE"
@@ -2100,7 +2266,7 @@ EOF
     done
 
     echo "</table>" >> "$html"
-    echo "<p class='p'>Generated by GNULTE v8.1. Keep within authorised use.</p></body></html>" >> "$html"
+    echo "<p class='p'>Generated by GNULTE v8.2. Keep within authorised use.</p></body></html>" >> "$html"
 
     if [ -n "$EXPORT_CSV" ] && [ -f "$EXPORT_CSV" ]; then
         cp "$EXPORT_CSV" "$outdir/" 2>/dev/null
@@ -2130,12 +2296,10 @@ monitor() {
     echo ""
 
     echo -e "  ${COLOR_BOLD}Targets:${COLOR_RESET} ${#TARGETS[@]} device(s)"
-    if [ "$STEALTH" != true ]; then
-        echo -e "  ${COLOR_BOLD}Latency:${COLOR_RESET} ${LATENCY}ms  |  ${COLOR_BOLD}Jitter:${COLOR_RESET} ${JITTER}ms  |  ${COLOR_BOLD}Loss:${COLOR_RESET} ${LOSS}%"
-        [ "$BANDWIDTH" -gt 0 ] && echo -e "  ${COLOR_BOLD}Bandwidth:${COLOR_RESET} ${BANDWIDTH} kbps"
-        [ "$DURATION" -gt 0 ] && echo -e "  ${COLOR_BOLD}Duration:${COLOR_RESET} ${DURATION}s"
-        echo -e "  ${COLOR_DIM}A post-test report (txt + html graphs) is generated on exit.${COLOR_RESET}"
-    fi
+    echo -e "  ${COLOR_BOLD}Latency:${COLOR_RESET} ${LATENCY}ms  |  ${COLOR_BOLD}Jitter:${COLOR_RESET} ${JITTER}ms  |  ${COLOR_BOLD}Loss:${COLOR_RESET} ${LOSS}%"
+    [ "$BANDWIDTH" -gt 0 ] && echo -e "  ${COLOR_BOLD}Bandwidth:${COLOR_RESET} ${BANDWIDTH} kbps"
+    [ "$DURATION" -gt 0 ] && echo -e "  ${COLOR_BOLD}Duration:${COLOR_RESET} ${DURATION}s"
+    echo -e "  ${COLOR_DIM}A post-test report (txt + html graphs) is generated on exit.${COLOR_RESET}"
     say "Now pinging each target once per second — the graph below updates live."
     echo ""
     log_info "Live ping: 1 sample/second per target (dashboard shows last/min/max/avg/loss)"
@@ -2257,9 +2421,9 @@ monitor() {
                     kill_own_spoof "${SPOOF1_PIDS[$i]}"
                     kill_own_spoof "${SPOOF2_PIDS[$i]}"
                     sleep 0.5
-                    SPOOF1_PIDS[$i]="$(masked_spoof "$INTERFACE" "${TARGETS[$i]}" "$GATEWAY")"
+                    SPOOF1_PIDS[$i]="$(spoof_launch "$INTERFACE" "${TARGETS[$i]}" "$GATEWAY")"
                     sleep 0.5
-                    SPOOF2_PIDS[$i]="$(masked_spoof "$INTERFACE" "$GATEWAY" "${TARGETS[$i]}")"
+                    SPOOF2_PIDS[$i]="$(spoof_launch "$INTERFACE" "$GATEWAY" "${TARGETS[$i]}")"
                     log_ok "Spoof restarted for ${TARGETS[$i]}"
                 fi
             done
@@ -2330,7 +2494,6 @@ cleanup() {
         for PID in "${SPOOF1_PIDS[@]}" "${SPOOF2_PIDS[@]}"; do
             kill_own_spoof "$PID"
         done
-        [ "$STEALTH" = true ] && rm -f "$SPOOF_MASK_BIN" 2>/dev/null
 
         # Help the target forget our forged ARP entry (gratuitous ARP for gateway).
         if command -v arping &>/dev/null && [ -n "$GATEWAY" ]; then
@@ -2508,7 +2671,7 @@ while [[ $# -gt 0 ]]; do
         --capture)        CAPTURE_FILE="$2"; shift 2 ;;
         --dupcheck)       DUPCHECK=true; shift ;;
         --force)          FORCE_MODE=true; shift ;;
-        --stealth)        STEALTH=true; shift ;;
+        --no-banner|--minimal) NO_BANNER=true; shift ;;
         --save-profile)   SAVE_PROFILE="$2"; shift 2 ;;
         --export)         EXPORT_CSV="$2"; shift 2 ;;
         --log-mode)       LOG_MODE="$2"; shift 2 ;;
@@ -2517,7 +2680,7 @@ while [[ $# -gt 0 ]]; do
         --theme)          case " $THEME_NAMES " in *" $2 "*) THEME="$2"; apply_theme ;; *) log_err "unknown theme: $2 (options: $THEME_NAMES)"; exit 1 ;; esac; shift 2 ;;
         --settings)       settings_app; shift ;;
         --config)         edit_config; shift ;;
-        --version)        echo "GNULTE v8.1"; exit 0 ;;
+        --version)        echo "GNULTE v8.2"; exit 0 ;;
         -h|--help)        show_help; exit 0 ;;
         *)                log_err "Unknown option: $1"; show_help; exit 1 ;;
     esac
@@ -2531,19 +2694,31 @@ if [ -z "$LOG_MODE" ] || [ "$LOG_MODE" = "normal" ]; then
 fi
 VERBOSITY="${VERBOSITY:-${DEFAULT_VERBOSITY:-normal}}"
 
-if [ "$STEALTH" = true ]; then
-    say "Starting..."
-else
+if [ "$NO_BANNER" = false ]; then
     show_header
     show_boot
 fi
-show_disclaimer
+if [ "$(id -u)" -eq 0 ]; then
+    echo -e "${COLOR_WARN}[NOTICE] You are running the whole interface as root.${COLOR_RESET}"
+    echo -e "${COLOR_WARN}         Prefer running as your normal user — GNULTE elevates only"
+    echo -e "${COLOR_WARN}         the privileged operations it needs via sudo.${COLOR_RESET}"
+    echo ""
+fi
+check_acceptance
 check_sudo
 init_session_log
 check_deps
 detect_network
 
 if [ "$SCAN_MODE" = true ] || [ "$QUICK_SCAN" = true ]; then
+    if [ "$SCAN_MODE" = true ] && [ "$FORCE_MODE" = false ] && [ -t 0 ]; then
+        echo -e "${COLOR_WARN}Deep scan performs ACTIVE recon (nmap port + OS probes to each target).${COLOR_RESET}"
+        read -p "Proceed only with authorization. Scan? (y/N): " DSGO
+        if [[ ! "$DSGO" =~ ^[Yy]$ ]]; then
+            log_info "Aborted."
+            exit 0
+        fi
+    fi
     if [ -n "$TARGET_INPUT" ]; then
         IFS=',' read -ra SCAN_TARGETS <<< "$TARGET_INPUT"
         for IP in "${SCAN_TARGETS[@]}"; do
@@ -2665,6 +2840,24 @@ fi
 
 if [ -n "$SAVE_PROFILE" ]; then
     save_profile "$SAVE_PROFILE"
+fi
+
+safety_summary
+if [ "$FORCE_MODE" = true ]; then
+    echo -e "${COLOR_INFO}[--force] Starting automatically from explicit flags."
+    echo -e "        Network-impacting operations still require first-run acknowledgment.${COLOR_RESET}"
+    echo ""
+else
+    if [ ! -t 0 ]; then
+        log_err "This test needs interactive confirmation. Run GNULTE from a terminal."
+        exit 1
+    fi
+    read -p "Begin test? (y/N): " GO
+    if [[ ! "$GO" =~ ^[Yy]$ ]]; then
+        log_info "Aborted — no network operation was started."
+        exit 0
+    fi
+    echo ""
 fi
 
 execute

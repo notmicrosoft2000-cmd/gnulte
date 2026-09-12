@@ -1,4 +1,19 @@
 #!/usr/bin/env bash
+# GNULTE-SCAN - GNU LAN Network Testing Environment scanner
+# Copyright (C) 2026 GNULTE contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # -----------------------------------------------------------------------------
 # GNULTE SCAN — stand-alone LAN device discovery & fingerprinting companion tool
 #
@@ -13,7 +28,7 @@
 # License: GPL-3.0
 # -----------------------------------------------------------------------------
 
-VERSION="1.1"
+VERSION="1.2"
 
 # -----------------------------------------------------------------------------
 # Colors
@@ -32,6 +47,12 @@ OUT_FORMAT="table"     # table | json | yaml | csv
 QUIET=false
 MY_NAME="gnulte-scan"
 declare -gA VENDOR_MAP=()
+
+SAFETY_POLICY_VERSION=1
+GNULTE_ACCEPTANCE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/gnulte"
+GNULTE_ACCEPTANCE_FILE="$GNULTE_ACCEPTANCE_DIR/acceptance"
+GNULTE_DOC_DIR="${GNULTE_DOC_DIR:-}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 
 usage() {
     cat <<EOF
@@ -99,6 +120,100 @@ ok()   { echo -e "${C_GREEN}OK:${C_RESET} $*"; }
 warn() { echo -e "${C_YELLOW}WARN:${C_RESET} $*"; }
 err()  { echo -e "${C_RED}ERROR:${C_RESET} $*" >&2; }
 log()  { echo -e "$*"; }
+
+# -----------------------------------------------------------------------------
+# Legal / safety first-run gate (shared acceptance record with GNULTE)
+# -----------------------------------------------------------------------------
+scan_find_doc() {
+    local name="$1" d f=""
+    for d in "$GNULTE_DOC_DIR" "$SCRIPT_DIR" /usr/local/share/doc/gnulte /usr/share/doc/gnulte; do
+        [ -n "$d" ] || continue
+        f="$d/$name"
+        [ -f "$f" ] && { echo "$f"; return 0; }
+    done
+    return 1
+}
+
+scan_read_doc() {
+    local name="$1" f
+    f="$(scan_find_doc "$name")"
+    if [ -n "$f" ]; then
+        cat "$f"
+    else
+        case "$name" in
+            LICENSE)         echo "GNU GPL version 3 or later. See LICENSE in the repository." ;;
+            FIRST-RUN-NOTICE.md)
+                echo "GNULTE / GNULTE-SCAN can discover devices, perform active"
+                echo "reconnaissance (--deep), capture traffic, and impair networks."
+                echo "Use them only where you are authorized and the activity is lawful." ;;
+            *)               echo "$name — see the GNULTE repository for the full document." ;;
+        esac
+    fi
+}
+
+scan_acceptance_current() {
+    [ -f "$GNULTE_ACCEPTANCE_FILE" ] || return 1
+    [ "$(sed -n 's/^SAFETY_POLICY_VERSION=//p' "$GNULTE_ACCEPTANCE_FILE" 2>/dev/null | tail -1)" = "$SAFETY_POLICY_VERSION" ]
+}
+
+scan_onboarding() {
+    local -a docs=(LICENSE SAFETY.md DISCLAIMER.md AUTHORIZED-USE.md NETWORK-TESTING.md)
+    local i=0 name ack ch
+
+    echo ""
+    echo -e "${C_RED}════════════════════════════════════════════════════════════════${C_RESET}"
+    echo -e "${C_BOLD}                    GNULTE FIRST RUN (gnulte-scan)${C_RESET}"
+    echo -e "${C_RED}════════════════════════════════════════════════════════════════${C_RESET}"
+    echo ""
+    scan_read_doc FIRST-RUN-NOTICE.md
+    echo ""
+    echo -e "${C_BOLD}Required documents:${C_RESET}"
+    for i in "${!docs[@]}"; do
+        echo "  [$((i+1))] ${docs[$i]}"
+    done
+    echo ""
+    read -p "Press Enter to review, or 'Q' to quit: " go
+    case "${go^^}" in Q) echo "Exiting — no scan was performed."; exit 1 ;; esac
+
+    i=0
+    while [ "$i" -lt "${#docs[@]}" ]; do
+        name="${docs[$i]}"
+        echo ""
+        echo -e "${C_BOLD}◆ Document [$((i+1))/${#docs[@]}]: ${name}${C_RESET}"
+        scan_read_doc "$name"
+        echo -e "${C_DIM}  [R] restart document   [C] continue to acknowledgment   [Q] quit${C_RESET}"
+        read -p "  Choice: " ch
+        case "${ch^^}" in
+            R) continue ;;
+            Q) echo -e "${C_RED}Review stopped; no scan will be performed.${C_RESET}"; exit 1 ;;
+            C|"") ;;
+            *) echo -e "${C_DIM}    Please choose R, C or Q.${C_RESET}"; continue ;;
+        esac
+        read -p "  I have reviewed this document. [y/N]: " ack
+        case "$ack" in
+            y|Y) i=$((i+1)) ;;
+            *) echo -e "${C_RED}Not acknowledged. Exiting — no scan was performed.${C_RESET}"; exit 1 ;;
+        esac
+    done
+
+    mkdir -p "$GNULTE_ACCEPTANCE_DIR" || exit 1
+    ( umask 077; printf 'SAFETY_POLICY_VERSION=%s\nSAFETY_ACKNOWLEDGED=1\nDISCLAIMER_ACKNOWLEDGED=1\nAUTHORIZATION_ACKNOWLEDGED=1\nNETWORK_TESTING_ACKNOWLEDGED=1\nTIMESTAMP=%s\n' \
+        "$SAFETY_POLICY_VERSION" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$GNULTE_ACCEPTANCE_FILE" )
+    echo ""
+    echo -e "${C_GREEN}You have been shown the required documents and acknowledged the"
+    echo -e "safety and authorization requirements.${C_RESET}"
+    echo ""
+}
+
+scan_check_acceptance() {
+    scan_acceptance_current && return 0
+    if [ ! -t 0 ]; then
+        err "First-run safety acknowledgment must be completed interactively."
+        err "Run gnulte-scan from a terminal to review the required documents."
+        exit 1
+    fi
+    scan_onboarding
+}
 
 spinner() {
     local pid=$1 msg=$2
@@ -519,6 +634,13 @@ while [ $# -gt 0 ]; do
         *) err "Unknown option: $1"; usage ;;
     esac
 done
+
+scan_check_acceptance
+
+# Re-raise privileges message for deep active recon
+if [ "$DEEP" = true ] && [ "$((EUID))" -ne 0 ]; then
+    warn "Deep scan uses nmap; running as root improves OS detection (sudo ${MY_NAME} ...)."
+fi
 
 detect_network
 

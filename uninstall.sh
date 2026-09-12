@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
-# uninstall.sh — GNULTE uninstaller
+# uninstall.sh - GNULTE uninstaller
+# Copyright (C) 2026 GNULTE contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 set -euo pipefail
 
@@ -25,7 +39,7 @@ while [[ $# -gt 0 ]]; do
         --prefix) PREFIX="$2"; BINDIR="${PREFIX}/bin"; MANDIR="${PREFIX}/share/man/man1"; shift 2 ;;
         --help)
             echo "Usage: sudo ./uninstall.sh [--purge]"
-            echo "  --purge   Also remove config files (~/.gnulte.conf, ~/.gnulte_accepted)"
+            echo "  --purge   Also remove config, acceptance and profile files"
             exit 0
             ;;
         *) echo "Unknown option: $1"; exit 1 ;;
@@ -51,6 +65,11 @@ if [[ -f "$MANDIR/GNULTE.1" ]]; then
     ok "Removed man page"
 fi
 
+if [[ -d "$PREFIX/share/doc/gnulte" ]]; then
+    rm -rf "$PREFIX/share/doc/gnulte"
+    ok "Removed documentation ($PREFIX/share/doc/gnulte)"
+fi
+
 if [[ "$PURGE" == true ]]; then
     for f in ~/.gnulte.conf ~/.gnulte_accepted ~/.gnulte_profiles.conf; do
         if [[ -f "$f" ]]; then
@@ -58,6 +77,11 @@ if [[ "$PURGE" == true ]]; then
             ok "Removed $f"
         fi
     done
+    ACCDIR="${XDG_CONFIG_HOME:-$HOME/.config}/gnulte"
+    if [[ -d "$ACCDIR" ]]; then
+        rm -rf "$ACCDIR"
+        ok "Removed safety acceptance record ($ACCDIR)"
+    fi
 fi
 
 if [[ $removed -gt 0 ]]; then

@@ -1,4 +1,4 @@
-.TH GNULTE 1 "2026-09-10" "GNULTE 8.1" "User Commands"
+.TH GNULTE 1 "2026-09-12" "GNULTE 8.2" "User Commands"
 .SH NAME
 GNULTE \- GNU LAN Network Testing Environment
 .SH SYNOPSIS
@@ -15,9 +15,14 @@ under poor network conditions.
 During monitoring GNULTE pings each target once per second and shows a live
 dashboard; spoof processes are watched and restarted automatically if they die.
 .PP
-A disclaimer must be accepted before any test runs. Unauthorised network
-interference is illegal in most jurisdictions; you are solely responsible for
-your actions.
+On first run (and whenever versioned safety documents change) GNULTE shows the
+legal and safety documents and requires explicit acknowledgment before any
+network-impacting operation can run. There is no flag that bypasses this.
+Unauthorised network interference is illegal in most jurisdictions; you are
+solely responsible for your actions. See SAFETY.md, DISCLAIMER.md,
+AUTHORIZED-USE.md and NETWORK-TESTING.md (installed under
+.I share/doc/gnulte
+when installed via installer.sh).
 .SH SCOPE
 IPv4 only. Traffic control is applied through
 .B tc
@@ -32,6 +37,10 @@ broadcast so target caches re-converge quickly.
 stores everything a target sends unencrypted — treat the resulting
 .B .pcap
 as a secret.
+.B Warning:
+every network-impacting operation (ARP MITM, capture, impairment, active deep
+scanning) requires deliberate confirmation; a \fBNo\fR answer cancels the
+operation before anything touches the network.
 .SH OPTIONS
 .TP
 .BI "\-t, \-\-target " IP
@@ -94,9 +103,9 @@ than one MAC), then exit.
 .B \-\-force
 Skip interactive configuration prompts (requires explicit flags).
 .TP
-.B \-\-stealth
-Disguised \fBarpspoof\fR binary name, generic monitor-window titles, and no
-branding screen, for low-visibility use on networks you own.
+.B \-\-no-banner
+Skip the branding/boot screen and start plainly. Alias:
+.B \-\-minimal.
 .TP
 .BI "\-\-save\-profile " NAME
 Save the current parameter set as a custom profile.
@@ -127,8 +136,8 @@ Print the version and exit.
 Show help text and exit.
 .SH FILES
 .TP
-.I ~/.gnulte_accepted
-Disclaimer acceptance marker.
+.I ~/.config/gnulte/acceptance
+Safety-policy acceptance record (data file, versioned via SAFETY_POLICY_VERSION).
 .TP
 .I ~/.gnulte.conf
 User configuration.
@@ -138,14 +147,18 @@ Custom saved profiles.
 .TP
 .I gnulte-report-<timestamp>/
 Post-test reports containing report.txt and report.html with latency graphs.
+.PP
+The legacy marker \fI~/.gnulte_accepted\fR is no longer read.
 .SH EXIT STATUS
 .B 0
 on success (including normal Ctrl+C cleanup).
 .PP
 non-zero on configuration failure, interrupted setup, or missing dependencies.
 .SH SECURITY
-Requires root for arpspoof, tc, and sysctl operations. Only ever use on networks
-you own or have written permission to test.
+Root is required only for arpspoof, tc, and sysctl operations; GNULTE elevates
+those via sudo. Prefer running GNULTE as your normal user rather than as root.
+Only ever use on networks you own or have written permission to test. Report
+vulnerabilities per SECURITY.md (privately, without credentials or captures).
 .SH SEE ALSO
 .BR arpspoof (8),
 .BR tc (8),

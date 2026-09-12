@@ -1,11 +1,25 @@
 #!/usr/bin/env bash
-# installer.sh — GNULTE installer
+# installer.sh - GNULTE installer
+# Copyright (C) 2026 GNULTE contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # Detects package manager, installs dependencies, binaries and man page.
 # Re-run to check for updates and reinstall.
 
 set -euo pipefail
 
-VERSION="8.1"
+VERSION="8.2"
 REPO="https://github.com/notmicrosoft2000-cmd/gnulte.git"
 PREFIX="${PREFIX:-/usr/local}"
 BINDIR="${PREFIX}/bin"
@@ -154,8 +168,8 @@ install -m755 "$SRC_DIR/gnulte-scan" "$BINDIR/gnulte-scan"
 if ! bash -n "$SRC_DIR/GNULTE" || ! bash -n "$SRC_DIR/gnulte-scan"; then
     err "Syntax check of installed scripts FAILED — not installing. Fix the repository first."
 fi
-if ! grep -q "Version 8.1" "$SRC_DIR/GNULTE"; then
-    err "Installed GNULTE does not look like v8.1 (version marker missing). Aborting."
+if ! grep -q "Version 8.2" "$SRC_DIR/GNULTE"; then
+    err "Installed GNULTE does not look like v8.2 (version marker missing). Aborting."
 fi
 ok "GNULTE and gnulte-scan installed."
 
@@ -167,6 +181,18 @@ if [[ -f "$SRC_DIR/man/GNULTE.1" ]]; then
     ok "Man page installed."
 fi
 
+# --- install legal / safety documents ---
+
+DOCDIR="$PREFIX/share/doc/gnulte"
+mkdir -p "$DOCDIR"
+for doc in LICENSE README.md SAFETY.md DISCLAIMER.md AUTHORIZED-USE.md SECURITY.md \
+           NETWORK-TESTING.md FIRST-RUN-NOTICE.md CONTRIBUTING.md; do
+    if [[ -f "$SRC_DIR/$doc" ]]; then
+        install -m644 "$SRC_DIR/$doc" "$DOCDIR/$doc"
+    fi
+done
+ok "Legal/safety documentation installed to $DOCDIR."
+
 # --- done ---
 
 echo ""
@@ -174,6 +200,10 @@ echo -e "${GREEN}${BOLD}GNULTE v${VERSION} installed successfully.${NC}"
 echo -e "  Binary:  ${BINDIR}/GNULTE"
 echo -e "  Scanner: ${BINDIR}/gnulte-scan"
 echo -e "  Man:     ${MANDIR}/GNULTE.1"
+echo -e "  Docs:    ${DOCDIR}/"
 echo ""
-echo -e "Run ${CYAN}sudo GNULTE${NC} to start."
+echo -e "Run ${CYAN}GNULTE${NC} (your normal user; it elevates via sudo as needed)."
 echo -e "Run ${CYAN}sudo ./installer.sh --update${NC} to check for updates."
+echo ""
+echo -e "${YELLOW}${BOLD}Note:${NC} on first launch GNULTE shows the safety documents and requires"
+echo -e "acknowledgment before any network-impacting operation can run."
