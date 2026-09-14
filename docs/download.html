@@ -19,11 +19,12 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v8.3</span>
+    <span class="addon"><i></i>v11.0</span>
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
       <a href="scan.html">gnulte-scan</a>
+      <a href="devices.html">gnulte-devices</a>
       <a href="download.html" class="nav-cta" aria-current="page">Download</a>
     </nav>
   </header>
@@ -32,7 +33,7 @@
     <section class="page-hero">
       <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></div>
       <h1>Get GNULTE</h1>
-      <p>Linux. Root for shaping, none for scanning.</p>
+      <p>Linux. A normal user can discover and inventory; root is needed for shaping and injection.</p>
     </section>
 
     <section class="body-section">
@@ -42,11 +43,11 @@
       </div>
 
       <div class="code-block" style="max-width:640px;margin:0 auto;">
-<span class="cb-cmt"># clone the repository</span>
-<span class="cb-pr">$</span> git clone https://github.com/notmicrosoft2000-cmd/gnulte.git
-<span class="cb-pr">$</span> cd gnulte
-<span class="cb-cmt"># install (also installs dependencies)</span>
-<span class="cb-pr">$</span> sudo ./installer.sh</div>
+<span class="cb-cmt"># clone the Go repository</span>
+<span class="cb-pr">$</span> git clone https://github.com/notmicrosoft2000-cmd/gnulte-go.git
+<span class="cb-pr">$</span> cd gnulte-go
+<span class="cb-cmt"># build and install to /usr/local/bin</span>
+<span class="cb-pr">$</span> sudo ./install.sh</div>
 
       <div class="grid" style="grid-template-columns:1fr;" >
         <div class="card" style="max-width:640px;margin:0 auto;width:100%;">
@@ -55,10 +56,10 @@
             <h3>What the installer does</h3>
           </div>
           <ul class="checklist">
-            <li>Installs dependencies via your package manager</li>
-            <li>Installs <code>GNULTE</code> and <code>gnulte-scan</code> to <code>/usr/local/bin</code></li>
-            <li>Sets up the man page</li>
-            <li>Re-run to check for updates and reinstall</li>
+            <li>Builds the five binaries: <code>gnulte</code>, <code>gnulte-scan</code>, <code>gnulte-devices</code>, <code>gnulte-traffic</code>, <code>gnulte-wifi</code></li>
+            <li>Installs them to <code>/usr/local/bin</code></li>
+            <li>Installs safety documentation under <code>/usr/local/share/doc/gnulte-go/</code></li>
+            <li>Run <code>sudo ./install.sh</code> again after <code>git pull</code> to update</li>
           </ul>
         </div>
       </div>
@@ -67,39 +68,40 @@
         <div>
           <div class="section-title" style="font-size:18px;">Update</div>
           <div class="code-block" style="margin-top:12px;">
-<span class="cb-pr">$</span> cd gnulte
-<span class="cb-pr">$</span> sudo ./installer.sh --update</div>
-          <p class="dim" style="margin-top:10px;font-size:14px;">Detects whether the remote has new commits and installs them.</p>
+<span class="cb-pr">$</span> cd gnulte-go
+<span class="cb-pr">$</span> git pull
+<span class="cb-pr">$</span> sudo ./install.sh</div>
+          <p class="dim" style="margin-top:10px;font-size:14px;">Pulls latest commits, rebuilds and reinstalls.</p>
         </div>
         <div>
           <div class="section-title" style="font-size:18px;">Uninstall</div>
           <div class="code-block" style="margin-top:12px;">
 <span class="cb-pr">$</span> sudo ./uninstall.sh
-<span class="cb-cmt"># --purge also removes config files</span>
+<span class="cb-cmt"># --purge also removes config and acceptance records</span>
 <span class="cb-pr">$</span> sudo ./uninstall.sh --purge</div>
         </div>
       </div>
 
       <div class="section-head" style="margin-top:56px;margin-bottom:28px;">
-        <p class="kicker">Packages</p>
-        <h2 class="section-title">Distro packages</h2>
+        <p class="kicker">From source</p>
+        <h2 class="section-title">Building without install</h2>
       </div>
       <div class="split" style="gap:40px;">
         <div>
-          <div class="section-title" style="font-size:18px;">Arch / AUR &amp; CachyOS</div>
+          <div class="section-title" style="font-size:18px;">Build locally</div>
           <div class="code-block" style="margin-top:12px;">
-<span class="cb-pr">$</span> cd packaging/aur &amp;&amp; makepkg -si</div>
+<span class="cb-pr">$</span> ./build.sh
+<span class="cb-cmt"># runs tests and vet, then writes ./gnulte ./gnulte-scan ...</span></div>
+          <p class="dim" style="margin-top:10px;font-size:14px;">Needs a working Go toolchain; the script uses <code>~/.local/bin/go</code> if present, or the system Go.</p>
         </div>
         <div>
-          <div class="section-title" style="font-size:18px;">Debian / Ubuntu</div>
-          <div class="code-block" style="margin-top:12px;">
-<span class="cb-pr">$</span> cd packaging/deb &amp;&amp; dpkg-buildpackage -us -uc</div>
-          <p class="dim" style="margin-top:10px;font-size:14px;">The <code>.deb</code> installs <code>/usr/bin/GNULTE</code>, <code>/usr/bin/gnulte-scan</code>, a man page and docs.</p>
+          <div class="section-title" style="font-size:18px;">Requirements</div>
+          <p style="color:var(--muted);margin-top:12px;">Traffic shaping needs root (ARP spoofing + <code>tc netem</code>), <code>iproute2</code> and an ICMP-capable network. Deep scans, inventory and traffic runs work as a normal user. <code>arp-scan</code> is optional and used opportunistically when available as root.</p>
         </div>
       </div>
 
       <div class="legal" style="margin-top:44px;">
-        GNULTE uses <strong>ARP spoofing</strong> and kernel-level traffic shaping. Use it only on networks you own or have written permission to test. Distributed under the GPL-3.0-or-later licence.
+        GNULTE uses <strong>ARP spoofing</strong> and kernel-level traffic shaping on the <code>gnulte</code> binary. Use it only on networks you own or have written permission to test. Distributed under the GPL-3.0-or-later licence.
       </div>
     </section>
   </main>
@@ -115,14 +117,15 @@
         <a href="features.html">Features</a>
         <a href="docs.html">Documentation</a>
         <a href="scan.html">gnulte-scan</a>
+        <a href="devices.html">gnulte-devices</a>
         <a href="download.html">Download</a>
       </div>
       <div class="footer-links">
         <h4>Code</h4>
-        <a href="https://github.com/notmicrosoft2000-cmd/gnulte" target="_blank" rel="noopener">Repository</a>
-        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/releases" target="_blank" rel="noopener">Releases</a>
-        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/issues" target="_blank" rel="noopener">Issues</a>
-        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0</a>
       </div>
       <div class="footer-links">
         <h4>Neptune Productions</h4>

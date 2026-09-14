@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="gnulte-scan — GNULTE's companion scanner. Discover every device on your network without root.">
+  <meta name="description" content="gnulte-devices — instant LAN inventory from your device list. No sweeps, no root: every neighbour with vendor, mDNS name and type.">
   <meta name="theme-color" content="#1e1e1e">
-  <title>gnulte-scan — GNULTE</title>
+  <title>gnulte-devices — GNULTE</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,45 +23,45 @@
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
-      <a href="scan.html" aria-current="page">gnulte-scan</a>
-      <a href="devices.html">gnulte-devices</a>
+      <a href="scan.html">gnulte-scan</a>
+      <a href="devices.html" aria-current="page">gnulte-devices</a>
       <a href="download.html" class="nav-cta">Download</a>
     </nav>
   </header>
 
   <main>
     <section class="page-hero">
-      <div class="icon-tile tile-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div>
-      <h1>gnulte-scan</h1>
-      <p>The companion scanner. No root required.</p>
+      <div class="icon-tile tile-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16"/><path d="M8 15h5"/><circle cx="17" cy="15" r="1.4"/></svg></div>
+      <h1>gnulte-devices</h1>
+      <p>Your LAN, in one table. No sweeps required.</p>
     </section>
 
     <section class="body-section">
       <div class="section-head">
-        <p class="kicker">Discovery</p>
-        <h2 class="section-title">Know what's on your network</h2>
-        <p class="section-sub">GNULTE needs root to shape traffic. Discovering your network does not.</p>
+        <p class="kicker">Inventory</p>
+        <h2 class="section-title">What's on your network, right now</h2>
+        <p class="section-sub">gnulte-devices reads the neighbour table (and, as root, directly from the wire) and enriches every entry with the shared identification stack: OUI vendor database, mDNS and reverse-DNS names, and a device-type guess. Run it whenever you need a snapshot.</p>
       </div>
       <div class="showcase">
         <div class="show-item">
           <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 10h16"/><path d="M8 13l2-3 2 4 2-2 1.5 1"/></svg></div>
-          <h3>Full fingerprint</h3>
-          <p>IP, MAC, OUI vendor and device type — routers, phones, TVs, printers, cameras and IoT.</p>
+          <h3>Instant</h3>
+          <p>Reads the ARP/neighbour table first — every entry is listed before any packet leaves the machine.</p>
         </div>
         <div class="show-item">
-          <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8 12l3 3 5-6"/></svg></div>
-          <h3>Smart naming</h3>
-          <p>Reverse DNS and mDNS <code>.local</code> lookups, time-bounded so a network without a reverse zone never stalls the scan.</p>
+          <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>Identifies</h3>
+          <p>Embedded ~33 000-prefix OUI registry plus your own overrides. mDNS <code>.local</code> names and reverse DNS per host.</p>
         </div>
         <div class="show-item">
           <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h9l4 4 4-8 1 4h0"/></svg></div>
-          <h3>Gateway always tagged</h3>
-          <p>Router detection by IP <em>and</em> MAC, so the gateway is recognised even when nothing answers.</p>
+          <h3>Classifies</h3>
+          <p>Router, phone, TV, printer, camera, Raspberry Pi or plain device — from vendor, hostname and open ports.</p>
         </div>
         <div class="show-item">
           <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6a2 2 0 0 1 2-2h9l5 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M12 10v4 M10 12h4" fill="currentColor"/></svg></div>
-          <h3>Export anywhere</h3>
-          <p>JSON, YAML or CSV — ready for scripts, dashboards and documentation.</p>
+          <h3>Portable output</h3>
+          <p>Colour table, or JSON / YAML / CSV straight to stdout, a file target, or an HTML report per run.</p>
         </div>
       </div>
     </section>
@@ -71,36 +71,39 @@
         <div class="cols">
           <div>
             <div class="section-head" style="text-align:left;margin-bottom:18px;">
-              <p class="kicker">Deep scan</p>
-              <h2 class="section-title" style="font-size:26px;">More than a ping</h2>
+              <p class="kicker">Optional sweep</p>
+              <h2 class="section-title" style="font-size:26px;">Deeper, if you want it</h2>
             </div>
-            <p style="color:var(--muted);margin-bottom:18px;">Add <code>--deep</code> for an in-Go port scan of every active device: per-port services and banners on top of the ARP-level inventory, feeding the device-type classifier.</p>
+            <p style="color:var(--muted);margin-bottom:18px;">By default gnulte-devices is a read-only snapshot. Add <code>-s</code> and it also pings the subnet in parallel, so hosts that are up but briefly absent from the neighbour table are still found.</p>
             <ul class="checklist">
-              <li>Parallel subnet sweep, then a deep in-Go port scan with <code>--deep</code></li>
-              <li>Open ports, services and banners feeding device-type detection</li>
-              <li>Vendor from an embedded OUI registry, plus your own override file</li>
-              <li>mDNS <code>.local</code> names and reverse DNS, both time-bounded</li>
-              <li>JSON / YAML / CSV export and a standalone HTML report</li>
+              <li>ARP-table inventory, no root and no packet noise</li>
+              <li>Optional <code>-s</code> parallel subnet sweep to catch the rest</li>
+              <li>Shared identification engine with gnulte-scan</li>
+              <li>JSON, YAML, CSV, HTML report, or table to a file</li>
+              <li><code>-n</code> skips name lookups for a fast headless list</li>
             </ul>
           </div>
           <div>
             <div class="section-head" style="text-align:left;margin-bottom:18px;">
               <p class="kicker">Usage</p>
-              <h2 class="section-title" style="font-size:26px;">Three commands</h2>
+              <h2 class="section-title" style="font-size:26px;">Everyday commands</h2>
             </div>
             <div class="code-block">
-<span class="cb-cmt"># table view, details on each device</span>
-<span class="cb-pr">$</span> gnulte-scan --deep
-<span class="cb-cmt"># custom interface and subnet, JSON export</span>
-<span class="cb-pr">$</span> gnulte-scan -i wlan0 -C 192.168.0.0/24 -j &gt; devices.json</div>
-            <p class="dim" style="margin-top:14px;font-size:14px;">No root needed — the OUI database is embedded and the port scanner is pure Go.</p>
+<span class="cb-cmt"># quick snapshot of everything the machine already knows</span>
+<span class="cb-pr">$</span> gnulte-devices
+<span class="cb-cmt"># include hosts only reachable via a live sweep</span>
+<span class="cb-pr">$</span> gnulte-devices -s
+<span class="cb-cmt"># machine-readable, for scripts and dashboards</span>
+<span class="cb-pr">$</span> gnulte-devices -j &gt; devices.json
+<span class="cb-cmt"># full HTML report of the run</span>
+<span class="cb-pr">$</span> gnulte-devices -H devices.html</div>
           </div>
         </div>
       </div>
     </section>
 
     <section class="body-section">
-      <p class="center"><a class="btn btn-primary btn-big" href="download.html">Download GNULTE + gnulte-scan</a></p>
+      <p class="center"><a class="btn btn-primary btn-big" href="download.html">Download GNULTE</a></p>
     </section>
   </main>
 

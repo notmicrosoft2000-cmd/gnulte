@@ -19,11 +19,12 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v8.3</span>
+    <span class="addon"><i></i>v11.0</span>
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html" aria-current="page">Documentation</a>
       <a href="scan.html">gnulte-scan</a>
+      <a href="devices.html">gnulte-devices</a>
       <a href="download.html" class="nav-cta">Download</a>
     </nav>
   </header>
@@ -39,19 +40,19 @@
       <div class="section-head" style="margin-bottom:36px;">
         <p class="kicker">Quick start</p>
         <h2 class="section-title">Run it as root</h2>
-        <p class="section-sub">GNULTE requires root and a few command-line companions: <code>arp-scan</code>, <code>dsniff</code> and <code>iproute2</code>.</p>
+        <p class="section-sub">Traffic shaping needs root (ARP spoofing + <code>tc netem</code>); discovery and inventory tools run as a normal user.</p>
       </div>
       <div class="code-block">
 <span class="cb-cmt"># interactive: scan → select → configure → run</span>
-<span class="cb-pr">$</span> GNULTE
+<span class="cb-pr">$</span> sudo gnulte
 <span class="cb-cmt"># one device, voip profile, auto-stop after 5 minutes</span>
-<span class="cb-pr">$</span> GNULTE -t 192.168.1.20 --profile voip --duration 300
+<span class="cb-pr">$</span> sudo gnulte -t 192.168.1.20 --profile voip --duration 300
 <span class="cb-cmt"># whole subnet throttled, excluding your device</span>
-<span class="cb-pr">$</span> GNULTE -r 192.168.1.0/24 -w 192.168.1.100 --profile throttle --duration 600
-<span class="cb-cmt"># deep port/OS scan of one IP</span>
-<span class="cb-pr">$</span> GNULTE --scan -t 192.168.1.20
-<span class="cb-cmt"># detect duplicate IPs / ARP conflicts</span>
-<span class="cb-pr">$</span> GNULTE --dupcheck</div>
+<span class="cb-pr">$</span> sudo gnulte -r 192.168.1.0/24 -w 192.168.1.100 --profile throttle --duration 600
+<span class="cb-cmt"># full-screen settings editor (colours, defaults, log mode)</span>
+<span class="cb-pr">$</span> sudo gnulte --settings
+<span class="cb-cmt"># detect duplicate IPs / ARP conflicts, then exit</span>
+<span class="cb-pr">$</span> sudo gnulte --dupcheck</div>
     </section>
 
     <section class="band-shaded">
@@ -84,9 +85,31 @@
               <tr><td><code>extreme</code></td><td>worst case</td></tr>
               <tr><td><code>throttle</code></td><td>dial-up energy</td></tr>
             </table>
-            <p class="dim" style="margin-top:14px;font-size:14px;">Save your own combos with <code>--save-profile NAME</code> and replay them any time. The full flag reference lives in <code>GNULTE --help</code>.</p>
+            <p class="dim" style="margin-top:14px;font-size:14px;">Save your own combos with <code>--save-profile NAME</code> and replay them any time. The full flag reference lives in <code>gnulte --help</code>.</p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="body-section">
+      <div class="section-head" style="margin-bottom:24px;">
+        <p class="kicker">Companion tools</p>
+        <h2 class="section-title">The full toolbox</h2>
+        <p class="section-sub">One shared identification engine, five focused binaries.</p>
+      </div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div><h3><a href="scan.html">gnulte-scan</a></h3></div>
+          <div class="card-body">Parallel subnet scan + in-Go port scanner with <code>--deep</code>. mDNS <code>.local</code> names, embedded OUI vendor, device types, HTML reports and JSON / YAML / CSV.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16"/><path d="M8 15h5"/><circle cx="17" cy="15" r="1.4"/></svg></div><h3><a href="devices.html">gnulte-devices</a></h3></div>
+          <div class="card-body">Instant ARP/neighbour inventory — vendors, mDNS names, type guesses, HTML reports. Add <code>-s</code> to sweep the subnet in parallel too.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h3l2-6 4 12 3-9 1.5 3H21"/></svg></div><h3>gnulte-traffic</h3></div>
+          <div class="card-body">Live per-second latency + jitter + loss to one or several targets — a lightweight companion to the full shaping engine.</div>
+        </article>
       </div>
     </section>
 
@@ -102,7 +125,7 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="6"/><path d="M12 2v4 M12 18v4 M2 12h4 M18 12h4"/></svg></div>
             <h3>Reports</h3>
           </div>
-          <div class="card-body">Output lands in <code>gnulte-report-&lt;ts&gt;/</code> with SVG latency graphs and a status summary. Ready to attach to ticket or paste into documentation.</div>
+          <div class="card-body">Output lands in <code>gnulte-session-<i>ts</i>.html</code> — SVG latency charts with the full live console log, ready to attach to a ticket or paste into documentation.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">
@@ -116,7 +139,7 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12a10 10 0 0 1 20 0"/><path d="M2 12a7 7 0 0 1 14 0"/><path d="M2 12a4 4 0 0 1 8 0"/><circle cx="6" cy="20" r="1.2" fill="currentColor"/></svg></div>
             <h3>Safety &amp; state</h3>
           </div>
-          <div class="card-body">Versioned safety acceptance persists in <code>~/.config/gnulte/acceptance</code>; the documents (SAFETY.md, DISCLAIMER.md, AUTHORIZED-USE.md, NETWORK-TESTING.md, FIRST-RUN-NOTICE.md) live alongside LICENSE. Settings live in <code>~/.gnulte.conf</code>.</div>
+          <div class="card-body">Versioned safety acceptance persists in <code>~/.config/gnulte-go/acceptance.json</code>; the documents (SAFETY.md, DISCLAIMER.md, AUTHORIZED-USE.md, NETWORK-TESTING.md, FIRST-RUN-NOTICE.md) live alongside LICENSE in the repository and are bundled at install time. Editor defaults live in <code>~/.config/gnulte-go/settings.json</code>.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">
@@ -137,7 +160,7 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16v3H4z"/><path d="M4 11h10v3H4z"/><path d="M4 16h16v3H4z"/><path d="M17 11v8"/></svg></div>
             <h3>Settings</h3>
           </div>
-          <div class="card-body"><code>GNULTE --settings</code> is an interactive app: colour themes with live preview (<code>classic</code>, <code>hacker</code>, <code>ocean</code>, <code>sunset</code>, <code>highcontrast</code>, <code>mono</code>, <code>custom</code>), verbosity — <code>easy</code>, <code>normal</code>, <code>expert</code> — and console log modes.</div>
+          <div class="card-body"><code>sudo gnulte --settings</code> opens a full-screen colour editor with live preview: themes (<code>classic</code>, <code>hacker</code>, <code>ocean</code>, <code>sunset</code>, <code>highcontrast</code>, <code>mono</code>, <code>custom</code>), verbosity (<code>easy</code>, <code>normal</code>, <code>expert</code>) and console log mode. Saved defaults live in <code>~/.config/gnulte-go/settings.json</code>.</div>
         </article>
       </div>
     </section>
@@ -154,14 +177,15 @@
         <a href="features.html">Features</a>
         <a href="docs.html">Documentation</a>
         <a href="scan.html">gnulte-scan</a>
+        <a href="devices.html">gnulte-devices</a>
         <a href="download.html">Download</a>
       </div>
       <div class="footer-links">
         <h4>Code</h4>
-        <a href="https://github.com/notmicrosoft2000-cmd/gnulte" target="_blank" rel="noopener">Repository</a>
-        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/releases" target="_blank" rel="noopener">Releases</a>
-        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/issues" target="_blank" rel="noopener">Issues</a>
-        <a href="https://github.com/notmicrosoft2000-cmd/gnulte/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0</a>
       </div>
       <div class="footer-links">
         <h4>Neptune Productions</h4>
