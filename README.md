@@ -7,7 +7,7 @@ LAN. Scan the network, shape a target, watch the results live, then clean up.
 | Binary | Root | What it does |
 | --- | --- | --- |
 | `gnulte` | **yes** | Interactive traffic shaping engine (ARP spoof → `tc netem` → live dashboard → HTML report) |
-| `gnulte-scan` | no | Parallel subnet scanner + in-Go deep port scanner, OUI vendor, mDNS/NetBIOS names, device types, colour-coded tables |
+| `gnulte-scan` | no | Parallel subnet scanner + in-Go deep port scanner, OUI vendor, mDNS/NetBIOS names, device types, OS fingerprinting, colour-coded tables + interactive `-T` browser |
 | `gnulte-devices` | no | Instant ARP/neighbour inventory — vendors, mDNS hostnames, type guesses, HTML reports |
 | `gnulte-traffic` | no | Lightweight per-second latency / jitter / loss monitor against one or several hosts |
 | `gnulte-wifi` | **yes** | Targeted 802.11 deauthentication for authorized Wi-Fi disassociation testing |
@@ -96,7 +96,8 @@ sudo gnulte                                            # interactive: scan → s
 sudo gnulte -t 192.168.1.20 --profile voip --duration 300
 sudo gnulte -r 192.168.1.0/24 -w 192.168.1.100 --profile throttle --duration 600
 
-gnulte-scan --deep                                     # parallel sweep + in-Go port scan
+gnulte-scan --deep                                     # parallel sweep + in-Go port scan + OS fingerprint
+gnulte-scan -T                                         # interactive full-screen device browser
 gnulte-devices -s                                      # ARP inventory + optional live sweep
 gnulte-traffic -t 192.168.1.20 -duration 60            # watch one host's latency
 ```

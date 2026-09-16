@@ -19,7 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v11.1</span>
+    <span class="addon"><i></i>v11.2</span>
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
@@ -46,17 +46,17 @@
         <div class="show-item">
           <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 10h16"/><path d="M8 13l2-3 2 4 2-2 1.5 1"/></svg></div>
           <h3>Full fingerprint</h3>
-          <p>IP, MAC, OUI vendor and device type — routers, phones, TVs, printers, cameras and IoT.</p>
+          <p>IP, MAC, OUI vendor and device type — routers, phones, TVs, printers, cameras and IoT. Deep scans also guess the OS from TTL, service banners and port signals.</p>
         </div>
         <div class="show-item">
-          <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8 12l3 3 5-6"/></svg></div>
+          <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 9h8M8 13h5M9 5l-3 3 3 3"/><path d="M4 6a2 2 0 0 1 2-2h9l5 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg></div>
+          <h3>Interactive table</h3>
+          <p><code>gnulte-scan -T</code> opens a full-screen, colour-coded device browser with instant filtering, column sorting and a per-device detail pane.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8 12l3 3 5-6"/></svg></div>
           <h3>Smart naming</h3>
-          <p>Reverse DNS and mDNS <code>.local</code> lookups, time-bounded so a network without a reverse zone never stalls the scan.</p>
-        </div>
-        <div class="show-item">
-          <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h9l4 4 4-8 1 4h0"/></svg></div>
-          <h3>Gateway always tagged</h3>
-          <p>Router detection by IP <em>and</em> MAC, so the gateway is recognised even when nothing answers.</p>
+          <p>Reverse DNS and mDNS <code>.local</code> lookups plus NetBIOS names, time-bounded so a network without a reverse zone never stalls the scan.</p>
         </div>
         <div class="show-item">
           <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6a2 2 0 0 1 2-2h9l5 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M12 10v4 M10 12h4" fill="currentColor"/></svg></div>
@@ -74,12 +74,13 @@
               <p class="kicker">Deep scan</p>
               <h2 class="section-title" style="font-size:26px;">More than a ping</h2>
             </div>
-            <p style="color:var(--muted);margin-bottom:18px;">Add <code>--deep</code> for an in-Go port scan of every active device: per-port services and banners on top of the ARP-level inventory, feeding the device-type classifier.</p>
+            <p style="color:var(--muted);margin-bottom:18px;">Add <code>--deep</code> for an in-Go port scan of every active device: per-port services and banners on top of the ARP-level inventory, feeding the device-type classifier and an OS fingerprint.</p>
             <ul class="checklist">
               <li>Parallel subnet sweep, then a deep in-Go port scan with <code>--deep</code></li>
-              <li>Open ports, services and banners feeding device-type detection</li>
+              <li>Open ports, services and banners feeding device-type and OS detection</li>
+              <li>OS guessed from TTL, banners (OpenSSH, dropbear, IIS, Samba…) and port signals (SMB, RDP, VNC, SSH)</li>
+              <li>Full-screen device browser with <code>-T</code>: <code>/</code> filter, <code>s</code> sort, Enter/Space for details</li>
               <li>Vendor from an embedded OUI registry, plus your own override file</li>
-              <li>mDNS <code>.local</code> names and reverse DNS, both time-bounded</li>
               <li>JSON / YAML / CSV export and a standalone HTML report</li>
             </ul>
           </div>
@@ -91,6 +92,8 @@
             <div class="code-block">
 <span class="cb-cmt"># table view, details on each device</span>
 <span class="cb-pr">$</span> gnulte-scan --deep
+<span class="cb-cmt"># interactive full-screen browser (filter, sort, inspect)</span>
+<span class="cb-pr">$</span> gnulte-scan --interactive
 <span class="cb-cmt"># custom interface and subnet, JSON export</span>
 <span class="cb-pr">$</span> gnulte-scan -i wlan0 -C 192.168.0.0/24 -j &gt; devices.json</div>
             <p class="dim" style="margin-top:14px;font-size:14px;">No root needed — the OUI database is embedded and the port scanner is pure Go.</p>
