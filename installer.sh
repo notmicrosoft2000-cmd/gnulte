@@ -162,7 +162,21 @@ fi
 info "Installing to ${BINDIR}..."
 mkdir -p "$BINDIR"
 install -m755 "$SRC_DIR/GNULTE" "$BINDIR/GNULTE"
-install -m755 "$SRC_DIR/gnulte-scan" "$BINDIR/gnulte-scan"
+
+# gnulte-scan is now shipped as a compiled Go binary (v11+, from the gnulte-go
+# repository), not this shell script. Never overwrite an existing compiled
+# installation with the legacy script — the Go tool is the one the docs
+# describe and the one that actually detects devices.
+if [[ -f "$BINDIR/gnulte-scan" ]]; then
+    if head -c 2 "$BINDIR/gnulte-scan" 2>/dev/null | od -An -tx1 | grep -q '7f 45' || \
+       ! head -n 1 "$BINDIR/gnulte-scan" 2>/dev/null | grep -q '^#!'; then
+        warn "Keeping existing compiled gnulte-scan (not the legacy shell script)."
+    else
+        install -m755 "$SRC_DIR/gnulte-scan" "$BINDIR/gnulte-scan"
+    fi
+else
+    install -m755 "$SRC_DIR/gnulte-scan" "$BINDIR/gnulte-scan"
+fi
 
 # Verify what we just installed before calling it done
 if ! bash -n "$SRC_DIR/GNULTE" || ! bash -n "$SRC_DIR/gnulte-scan"; then
