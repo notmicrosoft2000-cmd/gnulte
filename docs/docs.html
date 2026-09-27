@@ -23,6 +23,7 @@
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html" aria-current="page">Documentation</a>
+      <a href="wiki.html">Wiki</a>
       <a href="scan.html">gnulte-scan</a>
       <a href="devices.html">gnulte-devices</a>
       <a href="download.html" class="nav-cta">Download</a>
@@ -36,7 +37,19 @@
       <p>Quick start, reference and operational details.</p>
     </section>
 
-    <section class="body-section">
+    <section class="body-section" style="padding-top:26px;padding-bottom:0;">
+      <div class="toc-chips" role="navigation" aria-label="Page contents">
+        <a href="#quickstart">Quick start</a>
+        <a href="#reference">Parameters &amp; profiles</a>
+        <a href="#toolbox">Toolbox</a>
+        <a href="#ops">Operational details</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="license.html">License</a>
+      </div>
+    </section>
+
+    <section class="body-section" id="quickstart">
       <div class="section-head" style="margin-bottom:36px;">
         <p class="kicker">Quick start</p>
         <h2 class="section-title">Run it as root</h2>
@@ -57,7 +70,7 @@
 <span class="cb-pr">$</span> sudo gnulte --dupcheck</div>
     </section>
 
-    <section class="band-shaded">
+    <section class="band-shaded" id="reference">
       <div class="body-section">
         <div class="section-head" style="margin-bottom:36px;">
           <p class="kicker">Reference</p>
@@ -87,17 +100,17 @@
               <tr><td><code>extreme</code></td><td>worst case</td></tr>
               <tr><td><code>throttle</code></td><td>dial-up energy</td></tr>
             </table>
-            <p class="dim" style="margin-top:14px;font-size:14px;">Save your own combos with <code>--save-profile NAME</code> and replay them any time. The full flag reference lives in <code>gnulte --help</code>.</p>
+            <p class="dim" style="margin-top:14px;font-size:14px;">List the presets with <code>--list-profiles</code>, and mix any preset with parameter flags. The full flag reference lives in <code>gnulte --help</code>.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="body-section">
+    <section class="body-section" id="toolbox">
       <div class="section-head" style="margin-bottom:24px;">
         <p class="kicker">Companion tools</p>
         <h2 class="section-title">The full toolbox</h2>
-        <p class="section-sub">One shared identification engine, five focused binaries.</p>
+        <p class="section-sub">One shared identification engine, five focused binaries. The <a href="wiki.html#tools">wiki tool reference</a> covers flags in more depth.</p>
       </div>
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
         <article class="card tile-card">
@@ -115,7 +128,7 @@
       </div>
     </section>
 
-    <section class="body-section">
+    <section class="body-section" id="ops">
       <div class="section-head">
         <p class="kicker">Operational</p>
         <h2 class="section-title">Evidence, state and safety</h2>
@@ -141,7 +154,7 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12a10 10 0 0 1 20 0"/><path d="M2 12a7 7 0 0 1 14 0"/><path d="M2 12a4 4 0 0 1 8 0"/><circle cx="6" cy="20" r="1.2" fill="currentColor"/></svg></div>
             <h3>Safety &amp; state</h3>
           </div>
-          <div class="card-body">Versioned safety acceptance persists in <code>~/.config/gnulte-go/acceptance.json</code>; the documents (SAFETY.md, DISCLAIMER.md, AUTHORIZED-USE.md, NETWORK-TESTING.md, FIRST-RUN-NOTICE.md) live alongside <a href="license.html">the licence</a> in the repository and are bundled at install time. Editor defaults live in <code>~/.config/gnulte-go/settings.json</code>.</div>
+          <div class="card-body">Versioned safety acceptance persists in <code>~/.config/gnulte-go/acceptance.json</code>; the documents (SAFETY.md, DISCLAIMER.md, AUTHORIZED-USE.md, NETWORK-TESTING.md, FIRST-RUN-NOTICE.md) live alongside <a href="license.html">the license</a> in the repository and are bundled at install time. Editor defaults live in <code>~/.config/gnulte-go/config.json</code>.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">
@@ -162,8 +175,22 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16v3H4z"/><path d="M4 11h10v3H4z"/><path d="M4 16h16v3H4z"/><path d="M17 11v8"/></svg></div>
             <h3>Settings</h3>
           </div>
-          <div class="card-body"><code>sudo gnulte --settings</code> opens a full-screen colour editor with live preview: themes (<code>classic</code>, <code>hacker</code>, <code>ocean</code>, <code>sunset</code>, <code>highcontrast</code>, <code>mono</code>, <code>custom</code>), verbosity (<code>easy</code>, <code>normal</code>, <code>expert</code>) and console log mode. Saved defaults live in <code>~/.config/gnulte-go/settings.json</code>.</div>
+          <div class="card-body"><code>sudo gnulte --settings</code> opens a full-screen colour editor with live preview: themes (<code>classic</code>, <code>hacker</code>, <code>ocean</code>, <code>sunset</code>, <code>highcontrast</code>, <code>mono</code>, <code>custom</code>), verbosity (<code>easy</code>, <code>normal</code>, <code>expert</code>) and console log mode. Saved defaults live in <code>~/.config/gnulte-go/config.json</code>.</div>
         </article>
+      </div>
+
+      <div class="card" style="margin-top:28px;">
+        <div class="card-head" style="margin-bottom:6px;">
+          <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16v11H4z"/><path d="M4 4h16"/><path d="M8 11h4"/></svg></div>
+          <h3>Where things live</h3>
+        </div>
+        <table class="preset-table" style="margin-top:12px;">
+          <tr><td>Settings / defaults</td><td><code>~/.config/gnulte-go/config.json</code></td></tr>
+          <tr><td>Safety acceptance record</td><td><code>~/.config/gnulte-go/acceptance.json</code></td></tr>
+          <tr><td>Reports hub</td><td><code>~/GNULTE Reports/</code> &mdash; gnulte &rarr; <code>GNULTE go!/</code>, gnulte-scan &rarr; <code>Gnulte-scan/</code></td></tr>
+          <tr><td>Installed documentation</td><td><code>/usr/local/share/doc/gnulte-go/</code></td></tr>
+          <tr><td>Binaries</td><td><code>/usr/local/bin/</code></td></tr>
+        </table>
       </div>
     </section>
   </main>
@@ -178,8 +205,11 @@
         <h4>Project</h4>
         <a href="features.html">Features</a>
         <a href="docs.html">Documentation</a>
+      <a href="wiki.html">Wiki</a>
         <a href="scan.html">gnulte-scan</a>
         <a href="devices.html">gnulte-devices</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="changelog.html">Changelog</a>
         <a href="download.html">Download</a>
       </div>
       <div class="footer-links">
@@ -187,7 +217,7 @@
         <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go" target="_blank" rel="noopener">Repository</a>
         <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/releases" target="_blank" rel="noopener">Releases</a>
         <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/issues" target="_blank" rel="noopener">Issues</a>
-        <a href="license.html">Licence</a>
+        <a href="license.html">License</a>
       </div>
       <div class="footer-links">
         <h4>Neptune Productions</h4>

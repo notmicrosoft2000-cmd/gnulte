@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GNULTE changelog — every release since the Go rewrite, newest first.">
+  <meta name="theme-color" content="#070a11">
+  <title>Changelog — GNULTE</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="GNULTE home">
+      <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand-name">GNULTE</span>
+    </a>
+    <span class="addon"><i></i>v13.0</span>
+    <nav class="menubar" aria-label="Site navigation">
+      <a href="features.html">Features</a>
+      <a href="docs.html">Documentation</a>
+      <a href="wiki.html">Wiki</a>
+      <a href="scan.html">gnulte-scan</a>
+      <a href="devices.html">gnulte-devices</a>
+      <a href="download.html" class="nav-cta">Download</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+      <h1>Changelog</h1>
+      <p>Every release since the Go rewrite, newest first. Full commit history lives <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/commits/main" target="_blank" rel="noopener">on GitHub</a>.</p>
+    </section>
+
+    <section class="body-section">
+      <div class="changelog">
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v13.0</h3>
+            <span class="cl-tag">Latest</span>
+            <span class="cl-date">27 Sep 2026 &middot; <code>2642181</code></span>
+          </div>
+          <ul>
+            <li><strong>Stealth ARP spoofing</strong> — <code>gnulte -S/--stealth</code> uses a built-in AF_PACKET spoofer that answers only when asked and re-arms target caches on a slow, jittered ~30&nbsp;s schedule. Far less visible to other scanners on the LAN; drops the <code>arpspoof(8)</code> dependency in stealth mode.</li>
+            <li><strong>Wi-Fi testing that sticks</strong> — <code>gnulte-wifi</code> gains per-frame timing jitter (<code>--jitter-ms</code>, defeats reconnect timers), rotating deauth reason codes (<code>--mix</code>), channel-hopping (<code>--hop-channels</code>/<code>--channels</code>), and a second Ctrl+C to force-quit the summary.</li>
+            <li><strong>ARP discovery</strong> — <code>gnulte-scan</code> automatically sweeps the subnet when run as root, so hosts that block ping still show up.</li>
+            <li><strong>Tabbed monitor</strong> — <code>gnulte-scan -T</code> is now a Devices / Log / Summary window set (Tab or <code>1</code>/<code>2</code>/<code>3</code>), with <code>o</code> opening the settings page from inside the scanner.</li>
+            <li><strong>Per-target traffic windows</strong> — <code>gnulte --traffic-window</code> opens one monitor terminal per target when shaping several devices at once.</li>
+            <li><strong>Settings TUI</strong> — a categorized full-screen editor (jog/toggle keys, reset) across the tools; <code>StealthArp</code> preference added.</li>
+            <li><strong>Reports hub</strong> — all tools file HTML reports into <code>~/GNULTE Reports</code>, with an interactive y/N ask on interactive runs; the engine command transcript now prepends the report log.</li>
+            <li><strong>Clean exits</strong> — sessions always tear down sessions (<code>defer</code>-based stop), so spoofs and shapers are restored even on nested returns.</li>
+            <li><strong>SCANLTE</strong> — gnulte-scan gets the rebrand: ASCII block logo and &ldquo;side tool for GNULTE&rdquo; tagline.</li>
+            <li>Version 13.0 across all five binaries.</li>
+          </ul>
+        </div>
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v12.0</h3>
+            <span class="cl-date">17 Sep 2026 &middot; <code>f31e02f</code></span>
+          </div>
+          <ul>
+            <li><strong>SCANLTE accuracy work</strong> — confidence-scored OS identification, uptime read from TCP timestamps, and rogue-device flags.</li>
+            <li><strong>Tech settings</strong> — groundwork for verbosity and console-log mode that the v13 settings TUI builds on.</li>
+          </ul>
+        </div>
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v11.2</h3>
+            <span class="cl-date">16 Sep 2026 &middot; <code>9332241</code>, <code>9b48680</code></span>
+          </div>
+          <ul>
+            <li>Multi-signal OS fingerprinting in <code>gnulte-scan</code>.</li>
+            <li>Interactive <code>-T</code> device table for the scan monitor.</li>
+          </ul>
+        </div>
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v11.1</h3>
+            <span class="cl-date">15 Sep 2026 &middot; <code>017284c</code>, <code>5008d03</code></span>
+          </div>
+          <ul>
+            <li><code>gnulte</code> can target devices by name/attribute (<code>--device-type</code>, <code>--vendor</code>) as well as IP/MAC/range.</li>
+            <li>Top-tier device identification and type-coloured scan tables.</li>
+          </ul>
+        </div>
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v11.0</h3>
+            <span class="cl-date">14 Sep 2026 &middot; <code>bfdc9fd</code>, <code>e2bc6f3</code></span>
+          </div>
+          <ul>
+            <li>New <strong><a href="devices.html">gnulte-devices</a></strong> LAN inventory tool.</li>
+            <li>Device identification plumbing: embedded OUI vendor registry, mDNS reverse queries, type heuristics.</li>
+            <li><code>gnulte-scan -t</code> alias fix; version bump to 11.0.</li>
+          </ul>
+        </div>
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v10.0</h3>
+            <span class="cl-date">12&ndash;13 Sep 2026 &middot; <code>20f9108</code> +</span>
+          </div>
+          <ul>
+            <li><strong>Front-end parity</strong> — sudo handshake, animated step-by-step boot with check marks, spinner scan.</li>
+            <li><strong>Wizard-first start</strong> — banner art, real boot checks, device menu, parameter wizard, y/N confirm.</li>
+            <li><strong>Sound + monitor</strong> — latency-scaled ping beeps (<code>--no-sound</code> to mute), icon-based console log, one-press Ctrl+C with context-guarded pings.</li>
+            <li>Terminal-size adaptive console, full-log HTML reports, ICMP/TCP connectivity probe.</li>
+            <li>In-Go <strong>port scanner</strong>, arrow-key target selection, per-host traffic counters.</li>
+            <li>Targeted <strong>802.11 deauthentication</strong> for Wi-Fi testing (<code>gnulte-wifi</code>).</li>
+            <li>Full-screen settings editor, flicker-free dashboard, <code>gnulte-traffic</code> viewer.</li>
+            <li>CLI audit fixes; version 10.0.</li>
+          </ul>
+        </div>
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>Before v10 &mdash; the Go rewrite</h3>
+            <span class="cl-date">12 Sep 2026 &middot; <code>ea73f22</code></span>
+          </div>
+          <ul>
+            <li>First Go version: subnet scanner, traffic engine, safety gate with acceptance flow, preset profiles, HTML reports &mdash; replacing the original scripting-era implementation.</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-cols">
+      <div>
+        <p style="font-weight:700;color:var(--text);margin-bottom:10px;">GNULTE</p>
+        <p style="font-size:14px;max-width:280px;">GNU LAN Network Testing Environment. Authorised network testing — scan first, ask permission first, clean up after.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Project</h4>
+        <a href="features.html">Features</a>
+        <a href="docs.html">Documentation</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="download.html">Download</a>
+      </div>
+      <div class="footer-links">
+        <h4>Code</h4>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="license.html">License</a>
+      </div>
+      <div class="footer-links">
+        <h4>Neptune Productions</h4>
+        <a href="/">The hub</a>
+        <a href="https://github.com/notmicrosoft2000-cmd" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <p>© 2026 <a class="nep-link" href="/">Neptune Productions</a> · GNULTE · Authorised network testing only.</p>
+    </div>
+  </footer>
+</body>
+</html>
