@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Download GNULTE — GNU LAN Network Testing Environment. Source, packages and releases.">
+  <meta name="description" content="Install GNULTE — GNU LAN Network Testing Environment. Step-by-step Linux install guide with explanations, plus WSL2 support notes.">
   <meta name="theme-color" content="#070a11">
   <title>Download — GNULTE</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -33,75 +33,217 @@
     <section class="page-hero">
       <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></div>
       <h1>Get GNULTE</h1>
-      <p>Linux. A normal user can discover and inventory; root is needed for shaping and injection.</p>
+      <p>Four commands, about two minutes. Linux only — root unlocks shaping and injection. See the WSL2 notes below.</p>
     </section>
+
+    <!-- ============ STEP-BY-STEP INSTALL ============ -->
 
     <section class="body-section">
       <div class="section-head" style="margin-bottom:36px;">
         <p class="kicker">Install</p>
-        <h2 class="section-title">Straightforward to set up</h2>
+        <h2 class="section-title">Step by step</h2>
       </div>
 
-      <div class="code-block" style="max-width:640px;margin:0 auto;">
-<span class="cb-cmt"># clone the Go repository</span>
-<span class="cb-pr">$</span> git clone https://github.com/notmicrosoft2000-cmd/gnulte-go.git
-<span class="cb-pr">$</span> cd gnulte-go
-<span class="cb-cmt"># build and install to /usr/local/bin</span>
-<span class="cb-pr">$</span> sudo ./install.sh</div>
+      <div class="steps" style="grid-template-columns:1fr;max-width:780px;margin:0 auto;gap:18px;">
 
-      <div class="grid" style="grid-template-columns:1fr;" >
-        <div class="card" style="max-width:640px;margin:0 auto;width:100%;">
-          <div class="card-head" style="margin-bottom:6px;">
-            <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></div>
-            <h3>What the installer does</h3>
-          </div>
-          <ul class="checklist">
-            <li>Builds the five binaries: <code>gnulte</code>, <code>gnulte-scan</code>, <code>gnulte-devices</code>, <code>gnulte-traffic</code>, <code>gnulte-wifi</code></li>
-            <li>Installs them to <code>/usr/local/bin</code></li>
-            <li>Installs safety documentation under <code>/usr/local/share/doc/gnulte-go/</code></li>
-            <li>Run <code>sudo ./install.sh</code> again after <code>git pull</code> to update</li>
-          </ul>
+        <div class="step">
+          <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1-.5 2V21"/></svg></div>
+          <span class="step-n">STEP 1</span>
+          <h3>Download the source</h3>
+          <div class="code-block" style="margin-top:10px;">
+<span class="cb-pr">$</span> git clone https://github.com/notmicrosoft2000-cmd/gnulte-go.git</div>
+          <p>Copies the repository into a new <code>gnulte-go/</code> folder in your current directory. You only need <code>git</code> (already installed on most distros).</p>
+        </div>
+
+        <div class="step">
+          <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16v16H4z"/><path d="M8 9h3l3 3 3-3"/><path d="M8 15h8"/></svg></div>
+          <span class="step-n">STEP 2</span>
+          <h3>Open the folder</h3>
+          <div class="code-block" style="margin-top:10px;">
+<span class="cb-pr">$</span> cd gnulte-go</div>
+          <p>Moves you into the project directory, where the install script lives. Run every later command from here.</p>
+        </div>
+
+        <div class="step">
+          <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></div>
+          <span class="step-n">STEP 3</span>
+          <h3>Build &amp; install</h3>
+          <div class="code-block" style="margin-top:10px;">
+<span class="cb-pr">$</span> ./install.sh</div>
+          <p>Builds all five binaries, verifies them, then installs to <code>/usr/local/bin</code> with docs under <code>/usr/local/share/doc/gnulte-go/</code>. It re-runs itself with <code>sudo</code> when needed, so you'll just be asked for your password. You need a Go toolchain and <code>sudo</code> — nothing else.</p>
+        </div>
+
+        <div class="step">
+          <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <span class="step-n">STEP 4</span>
+          <h3>Check it works</h3>
+          <div class="code-block" style="margin-top:10px;">
+<span class="cb-pr">$</span> gnulte --version</div>
+          <p>Should print <code>GNULTE v13.0</code>. The other four tools are now on your PATH too: <code>gnulte-scan</code>, <code>gnulte-wifi</code>, <code>gnulte-traffic</code>, <code>gnulte-devices</code>.</p>
         </div>
       </div>
 
-      <div class="cols" style="margin-top:32px;">
+      <div class="card" style="max-width:780px;margin:26px auto 0;">
+        <div class="card-head" style="margin-bottom:6px;">
+          <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></div>
+          <h3>What you end up with</h3>
+        </div>
+        <ul class="checklist">
+          <li>Five binaries in <code>/usr/local/bin</code>: <code>gnulte</code>, <code>gnulte-scan</code>, <code>gnulte-devices</code>, <code>gnulte-traffic</code>, <code>gnulte-wifi</code></li>
+          <li>Safety documentation and the licence under <code>/usr/local/share/doc/gnulte-go/</code></li>
+          <li>Nothing is registered as a service or daemon — GNULTE only runs when you start it</li>
+          <li>First launch shows the safety documents and asks you to acknowledge them</li>
+        </ul>
+      </div>
+
+      <!-- ============ UPDATE / UNINSTALL / BUILD ============ -->
+
+      <div class="split" style="margin-top:52px;gap:30px;">
+
         <div>
           <div class="section-title" style="font-size:18px;">Update</div>
-          <div class="code-block" style="margin-top:12px;">
-<span class="cb-pr">$</span> cd gnulte-go
+          <p class="dim" style="margin-top:8px;margin-bottom:12px;font-size:14px;">Two commands. Pulls the latest commits, then rebuilds and reinstalls.</p>
+          <div class="code-block">
 <span class="cb-pr">$</span> git pull
 <span class="cb-pr">$</span> sudo ./install.sh</div>
-          <p class="dim" style="margin-top:10px;font-size:14px;">Pulls latest commits, rebuilds and reinstalls.</p>
         </div>
+
         <div>
           <div class="section-title" style="font-size:18px;">Uninstall</div>
-          <div class="code-block" style="margin-top:12px;">
+          <p class="dim" style="margin-top:8px;margin-bottom:12px;font-size:14px;">Removes the binaries and docs. Plain <code>uninstall.sh</code> keeps your config; <code>--purge</code> removes it too.</p>
+          <div class="code-block">
 <span class="cb-pr">$</span> sudo ./uninstall.sh
-<span class="cb-cmt"># --purge also removes config and acceptance records</span>
+<span class="cb-cmt"># also delete config + safety acceptance records</span>
 <span class="cb-pr">$</span> sudo ./uninstall.sh --purge</div>
         </div>
       </div>
 
       <div class="section-head" style="margin-top:56px;margin-bottom:28px;">
         <p class="kicker">From source</p>
-        <h2 class="section-title">Building without install</h2>
+        <h2 class="section-title">Building without installing</h2>
       </div>
+
       <div class="split" style="gap:40px;">
         <div>
           <div class="section-title" style="font-size:18px;">Build locally</div>
-          <div class="code-block" style="margin-top:12px;">
+          <p class="dim" style="margin-top:8px;margin-bottom:12px;font-size:14px;">Compiles the five binaries into the repo folder — no root, nothing installed. Tests and vet run first.</p>
+          <div class="code-block">
 <span class="cb-pr">$</span> ./build.sh
-<span class="cb-cmt"># runs tests and vet, then writes ./gnulte ./gnulte-scan ...</span></div>
-          <p class="dim" style="margin-top:10px;font-size:14px;">Needs a working Go toolchain; the script uses <code>~/.local/bin/go</code> if present, or the system Go.</p>
+<span class="cb-cmt"># writes ./gnulte ./gnulte-scan ./gnulte-wifi ./gnulte-traffic ./gnulte-devices</span></div>
+          <p class="dim" style="margin-top:10px;font-size:14px;">Needs a working Go toolchain; the script prefers <code>~/.local/bin/go</code> if present, otherwise the system Go.</p>
         </div>
         <div>
           <div class="section-title" style="font-size:18px;">Requirements</div>
-          <p style="color:var(--muted);margin-top:12px;">Traffic shaping needs root (ARP spoofing + <code>tc netem</code>), <code>iproute2</code> and an ICMP-capable network. Deep scans, inventory and traffic runs work as a normal user. <code>arp-scan</code> is optional and used opportunistically when available as root.</p>
+          <ul class="checklist" style="margin-top:12px;">
+            <li>A Linux distro with <code>sudo</code></li>
+            <li>A Go toolchain (build only)</li>
+            <li><code>iproute2</code> — provides <code>tc</code> for traffic shaping</li>
+            <li>Root for shaping, ARP spoofing and Wi-Fi injection; a normal user can scan and inventory</li>
+            <li><code>arp-scan</code> is optional — used opportunistically when running as root</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ============ LINUX ONLY / WSL2 ============ -->
+
+      <div class="section-head" style="margin-top:60px;margin-bottom:28px;">
+        <p class="kicker">Platform</p>
+        <h2 class="section-title">Why GNULTE is Linux-only</h2>
+      </div>
+
+      <div class="legal" style="margin-bottom:22px;border-color:rgba(90,168,245,0.3);background:rgba(90,168,245,0.08);color:#9cc6ff;">
+        GNULTE is built on <strong>Linux kernel networking interfaces</strong> that macOS and Windows don't expose. There is no port, and there won't be one — it needs the real kernel.
+      </div>
+
+      <div class="split" style="gap:30px;align-items:stretch;">
+
+        <div class="card">
+          <div class="card-head" style="margin-bottom:6px;">
+            <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+            <h3>What it leans on</h3>
+          </div>
+          <ul class="checklist">
+            <li><code>tc netem</code> — kernel-level traffic shaping and latency injection (iproute2)</li>
+            <li><strong>AF_PACKET raw sockets</strong> — GNULTE's built-in ARP spoofer speaks to the NIC directly for MITM tests</li>
+            <li><strong>802.11 monitor mode + frame injection</strong> — <code>gnulte-wifi</code> deauths from the driver level, not the app level</li>
+            <li><code>iptables</code>/<code>sysctl</code> — IP forwarding while a shaping session relays traffic</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-head" style="margin-bottom:6px;">
+            <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div>
+            <h3>What about Windows / macOS?</h3>
+          </div>
+          <p style="color:var(--muted);font-size:14.5px;margin-top:10px;">
+            <strong style="color:var(--text);">WSL2 runs a real Linux kernel in a VM</strong>, so the binaries <em>will compile and execute</em> there — but the network is the catch. WSL2's network card is a virtual adapter owned and NAT-ed by Windows:
+          </p>
+          <ul class="checklist">
+            <li>No layer-2 access to your real LAN — ARP spoofing can't reach other machines</li>
+            <li><code>tc</code> would only shape the VM's own connection, not your traffic</li>
+            <li>No monitor mode — Windows owns the Wi-Fi adapter, so injection is impossible</li>
+            <li>&ldquo;Mirrored&rdquo; networking still uses a synthetic adapter and doesn't change this</li>
+          </ul>
+          <p style="color:var(--muted);font-size:14.5px;margin-top:12px;">
+            In short: <strong style="color:var(--text);">WSL2 is fine for learning the CLI, not for testing a network.</strong>
+          </p>
+        </div>
+      </div>
+
+      <div class="section-head" style="margin-top:56px;margin-bottom:28px;">
+        <p class="kicker">Platform</p>
+        <h2 class="section-title">Windows users — what to use instead</h2>
+      </div>
+
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);align-items:stretch;">
+
+        <div class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 10V5a1 1 0 0 1 1-1h4"/><path d="M16 4h4a1 1 0 0 1 1 1v4"/><path d="M20 14v5a1 1 0 0 1-1 1h-4"/><path d="M8 20H4a1 1 0 0 1-1-1v-4"/><path d="M12 9v6"/><path d="M9 12h6"/></svg></div>
+            <h3>Dual-boot or native Linux</h3>
+          </div>
+          <div class="card-body">
+            <p>The full experience. Real NICs mean everything works — including Wi-Fi testing, as long as the wireless card supports monitor mode.</p>
+            <p class="dim" style="margin-top:12px;">Recommended if you test Wi-Fi.</p>
+          </div>
+        </div>
+
+        <div class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="9" width="16" height="11" rx="2"/><path d="M12 9V6"/><path d="M8 3h8"/></svg></div>
+            <h3>Linux VM, bridged network</h3>
+          </div>
+          <div class="card-body">
+            <p>VirtualBox / VMware / KVM with a <strong>bridged</strong> adapter puts the VM on your LAN at layer 2 — shaping and ARP spoofing work over ethernet.</p>
+            <p class="dim" style="margin-top:12px;">Wi-Fi still needs a USB adapter passed through with monitor-mode support.</p>
+          </div>
+        </div>
+
+        <div class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 18v3"/></svg></div>
+            <h3>WSL2 (limited)</h3>
+          </div>
+          <div class="card-body">
+            <p>Good for evaluating the toolset and reading the docs. Scans/inventory only see WSL2's own virtual network — not a real test environment.</p>
+            <p class="dim" style="margin-top:12px;">The core shaping, spoofing and Wi-Fi features don't work here.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ CTA ============ -->
+
+      <div class="cta-band" style="margin-top:56px;">
+        <h2>Ready to test a network the honest way?</h2>
+        <p style="max-width:560px;margin-inline:auto;">Clone the repo, run the four commands above, and read the safety documents before touching anything live.</p>
+        <div class="cta-row">
+          <a class="btn btn-light btn-big" href="https://github.com/notmicrosoft2000-cmd/gnulte-go" target="_blank" rel="noopener">Get it on GitHub</a>
+          <a class="btn btn-outline-light btn-big" href="docs.html">Read the documentation</a>
         </div>
       </div>
 
       <div class="legal" style="margin-top:44px;">
-        GNULTE uses <strong>ARP spoofing</strong> and kernel-level traffic shaping on the <code>gnulte</code> binary. Use it only on networks you own or have written permission to test. Distributed under the GPL-3.0-or-later licence.
+        GNULTE uses <strong>ARP spoofing</strong> and kernel-level traffic shaping on the <code>gnulte</code> binary, and driver-level deauth on <code>gnulte-wifi</code>. Use it only on networks you own or have written permission to test. Distributed under the GPL-3.0-or-later licence.
       </div>
     </section>
   </main>
