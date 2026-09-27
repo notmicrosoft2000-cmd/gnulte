@@ -19,7 +19,7 @@
 
 set -euo pipefail
 
-VERSION="8.3"
+VERSION="13.0"
 REPO="https://github.com/notmicrosoft2000-cmd/gnulte.git"
 PREFIX="${PREFIX:-/usr/local}"
 BINDIR="${PREFIX}/bin"
