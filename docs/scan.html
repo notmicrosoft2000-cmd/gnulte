@@ -19,7 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v11.2</span>
+    <span class="addon"><i></i>v13.0</span>
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
@@ -33,14 +33,14 @@
     <section class="page-hero">
       <div class="icon-tile tile-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div>
       <h1>gnulte-scan</h1>
-      <p>The companion scanner. No root required.</p>
+      <p>The companion scanner — branded <strong>SCANLTE</strong> on the terminal. Root optional.</p>
     </section>
 
     <section class="body-section">
       <div class="section-head">
         <p class="kicker">Discovery</p>
         <h2 class="section-title">Know what's on your network</h2>
-        <p class="section-sub">GNULTE needs root to shape traffic. Discovering your network does not.</p>
+        <p class="section-sub">GNULTE needs root to shape traffic. Discovering your network mostly does not — and when you do run it as root, it sweeps by ARP too, so hosts that block ping still show up.</p>
       </div>
       <div class="showcase">
         <div class="show-item">
@@ -51,7 +51,7 @@
         <div class="show-item">
           <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 9h8M8 13h5M9 5l-3 3 3 3"/><path d="M4 6a2 2 0 0 1 2-2h9l5 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg></div>
           <h3>Interactive table</h3>
-          <p><code>gnulte-scan -T</code> opens a full-screen, colour-coded device browser with instant filtering, column sorting and a per-device detail pane.</p>
+          <p><code>gnulte-scan -T</code> opens a full-screen, colour-coded device browser with instant filtering, column sorting and a per-device detail pane — organised into <strong>Devices / Log / Summary</strong> windows (Tab or <code>1</code>/<code>2</code>/<code>3</code>), with <code>o</code> opening the GNULTE settings page from inside the scanner.</p>
         </div>
         <div class="show-item">
           <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8 12l3 3 5-6"/></svg></div>
@@ -77,11 +77,12 @@
             <p style="color:var(--muted);margin-bottom:18px;">Add <code>--deep</code> for an in-Go port scan of every active device: per-port services and banners on top of the ARP-level inventory, feeding the device-type classifier and an OS fingerprint.</p>
             <ul class="checklist">
               <li>Parallel subnet sweep, then a deep in-Go port scan with <code>--deep</code></li>
+              <li>ARP sweep (<code>--arp</code>) automatic under root — hosts that filter ping still answer ARP</li>
               <li>Open ports, services and banners feeding device-type and OS detection</li>
               <li>OS guessed from TTL, banners (OpenSSH, dropbear, IIS, Samba…) and port signals (SMB, RDP, VNC, SSH)</li>
-              <li>Full-screen device browser with <code>-T</code>: <code>/</code> filter, <code>s</code> sort, Enter/Space for details</li>
+              <li>Full-screen device browser with <code>-T</code>: Devices / Log / Summary windows (<code>1</code>/<code>2</code>/<code>3</code>), <code>/</code> filter, <code>s</code> sort, Enter/Space for details, <code>o</code> for settings</li>
               <li>Vendor from an embedded OUI registry, plus your own override file</li>
-              <li>JSON / YAML / CSV export and a standalone HTML report</li>
+              <li>JSON / YAML / CSV export and a standalone HTML report filed into <code>~/GNULTE Reports</code></li>
             </ul>
           </div>
           <div>
@@ -92,11 +93,11 @@
             <div class="code-block">
 <span class="cb-cmt"># table view, details on each device</span>
 <span class="cb-pr">$</span> gnulte-scan --deep
-<span class="cb-cmt"># interactive full-screen browser (filter, sort, inspect)</span>
+<span class="cb-cmt"># interactive full-screen browser (Devices / Log / Summary windows)</span>
 <span class="cb-pr">$</span> gnulte-scan --interactive
 <span class="cb-cmt"># custom interface and subnet, JSON export</span>
 <span class="cb-pr">$</span> gnulte-scan -i wlan0 -C 192.168.0.0/24 -j &gt; devices.json</div>
-            <p class="dim" style="margin-top:14px;font-size:14px;">No root needed — the OUI database is embedded and the port scanner is pure Go.</p>
+            <p class="dim" style="margin-top:14px;font-size:14px;">No root needed for pings, names and the embedded OUI database — root unlocks the ARP sweep and the settings page.</p>
           </div>
         </div>
       </div>

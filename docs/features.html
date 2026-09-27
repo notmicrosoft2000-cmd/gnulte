@@ -19,7 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v11.2</span>
+    <span class="addon"><i></i>v13.0</span>
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html" aria-current="page">Features</a>
       <a href="docs.html">Documentation</a>
@@ -47,7 +47,7 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div>
             <h3>LAN scanning</h3>
           </div>
-          <div class="card-body">Scans your network in parallel and fingerprints every device with the shared identification engine — OUI vendor from an embedded registry (plus system files as fallback), mDNS <code>.local</code> names and reverse DNS, NetBIOS name lookups, open ports, device type and an OS fingerprint from TTL, banners and port signals. Routers, phones, TVs, printers, cameras and IoT, all labelled and colour-coded by type in the scan table — with a full-screen interactive browser via <code>-T</code>.</div>
+          <div class="card-body">Scans your network in parallel and fingerprints every device with the shared identification engine — OUI vendor from an embedded registry (plus system files as fallback), mDNS <code>.local</code> names and reverse DNS, NetBIOS name lookups, open ports, device type and an OS fingerprint from TTL, banners and port signals. Routers, phones, TVs, printers, cameras and IoT, all labelled and colour-coded by type in the scan table, with a full-screen interactive browser via <code>-T</code> (Devices / Log / Summary windows, <code>o</code> opens the settings page). When run as root it also sweeps by ARP so hosts that block ping still show up.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">
@@ -61,7 +61,7 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 3h7v7"/><path d="M21 3l-8 8"/><path d="M3 14h7v7"/><path d="M3 21l8-8"/></svg></div>
             <h3>Traffic shaping</h3>
           </div>
-          <div class="card-body">IP forwarding on, ARP spoof routing the target through your machine, and <code>tc netem</code> applied on the wire: latency, jitter, loss, duplication, reordering and bandwidth. Bandwidth caps chain underneath the qdisc, so shaping is never lost.</div>
+          <div class="card-body">IP forwarding on, ARP spoof routing the target through your machine, and <code>tc netem</code> applied on the wire: latency, jitter, loss, duplication, reordering and bandwidth. Bandwidth caps chain underneath the qdisc, so shaping is never lost. Spoofing can run in stealth mode (<code>-S</code>): an in-Go, on-demand ARP spoofer answers only when asked and re-arms caches on a slow jittered refresh, so other scanners on the LAN see far less activity.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">
@@ -89,7 +89,7 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6a2 2 0 0 1 2-2h9l5 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M12 10v4 M10 12h4"/></svg></div>
             <h3>Reports &amp; capture</h3>
           </div>
-          <div class="card-body">Every session ends in an HTML report with SVG latency charts and the full console log. Scan and inventory tools export JSON, YAML, CSV or a standalone HTML report. Capture traffic with <code>--capture</code>, or stream per-second CSV with <code>--export</code>.</div>
+          <div class="card-body">Every session ends in an HTML report with SVG latency charts and the full console log, filed into a <code>~/GNULTE Reports</code> hub (a per-tool folder per report). Scan and inventory tools export JSON, YAML, CSV or a standalone HTML report. Capture traffic with <code>--capture</code>, or stream per-second CSV with <code>--export</code>. Interactive runs are asked first before a report is written.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">
@@ -104,6 +104,27 @@
             <h3>LAN hygiene</h3>
           </div>
           <div class="card-body"><code>--dupcheck</code> detects duplicate IPs and ARP conflicts; <code>--minimal</code>/<code>--no-banner</code> give a plain startup; profiles and <code>--save-profile</code> reproduce conditions exactly.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/></svg></div>
+            <h3>Discreet spoofing</h3>
+          </div>
+          <div class="card-body">Classic spoofing heartbeats unsolicited ARP replies every few seconds. Stealth mode (<code>-S</code>) answers only when a victim asks who owns the gateway (or the gateway asks about a victim), arms each cache once, then re-freshens on an irregular ~30s jittered schedule — ordinary-looking traffic to anyone sweeping the LAN.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg></div>
+            <h3>Wi-Fi testing</h3>
+          </div>
+          <div class="card-body"><code>gnulte-wifi</code> injects targeted 802.11 deauthentication frames for authorized disassociation testing, with per-frame jitter so the timing is irregular, rotating deauth reason codes each burst, and an optional channel-hopping mode (<code>--hop-channels</code>) that swims the adapter across the configured channels — plus a second Ctrl+C to force-quit during the summary.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></svg></div>
+            <h3>Settings editor</h3>
+          </div>
+          <div class="card-body">One settings TUI (<code>--settings</code>, or <code>o</code> inside the interactive scanner) organizes every tunable into categories — beeps, report behaviour, ARP sweep, Wi-Fi timing, stealth spoofing. Scroll, jog integers with <code>←</code>/<code>→</code>, toggle booleans, reset current or all, with a help footer per item.</div>
         </article>
       </div>
     </section>

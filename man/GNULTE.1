@@ -1,4 +1,4 @@
-.TH GNULTE 1 "2026-09-12" "GNULTE 8.3" "User Commands"
+.TH GNULTE 1 "2026-09-27" "GNULTE 13.0" "User Commands"
 .SH NAME
 GNULTE \- GNU LAN Network Testing Environment
 .SH SYNOPSIS
@@ -8,12 +8,20 @@ GNULTE \- GNU LAN Network Testing Environment
 .B GNULTE
 is an interactive tool for running authorised network tests on networks you own
 or have explicit written permission to test. It applies kernel-level traffic
-shaping (\fBtc netem\fR) and ARP spoofing (\fBarpspoof\fR) to simulate network
+shaping (\fBtc netem\fR) and ARP spoofing to simulate network
 degradation against target devices, so you can observe how applications behave
 under poor network conditions.
 .PP
+ARP spoofing defaults to the external \fBarpspoof(8)\fR client. In stealth mode
+(\fB\-S\fR) GNULTE switches to its built-in raw-socket spoofer, which answers
+ARP only when a victim asks about the gateway (or the gateway asks about a
+victim), arms each cache once and refreshes it on a slow, jittered ~30s cadence
+\-\- so nearby scanners on the LAN see far less activity.
+.PP
 During monitoring GNULTE pings each target once per second and shows a live
 dashboard; spoof processes are watched and restarted automatically if they die.
+With two or more targets, \fB\-\-traffic\-window\fR opens one separate terminal
+window per target running the traffic &amp; speed monitor.
 .PP
 On first run (and whenever versioned safety documents change) GNULTE shows the
 legal and safety documents and requires explicit acknowledgment before any
@@ -31,7 +39,8 @@ interface are not shaped. On exit the original
 .B net.ipv4.ip_forward
 value and the previous root qdisc are restored, only the
 .B arpspoof
-instances GNULTE started are terminated, and the gateway's ARP entry is
+instances GNULTE started are terminated (the built-in stealth spoofer stops
+itself), and the gateway's ARP entry is
 broadcast so target caches re-converge quickly.
 .B \-\-capture
 stores everything a target sends unencrypted — treat the resulting
@@ -100,6 +109,22 @@ test runs, so you can later inspect what the applications actually experienced.
 Scan the LAN for duplicate IP addresses / ARP conflicts (an IP answered by more
 than one MAC), then exit.
 .TP
+.B \-S, \-\-stealth
+Stealth ARP spoofing: use the built-in in-Go spoofer instead of
+\fBarpspoof(8)\fR. It replies only when asked (no periodic unsolicited
+broadcasts) and refreshes caches on a slow jittered schedule, making the test
+far less visible to other scanners on the LAN. Defaults from the settings file
+when the flag is not given.
+.TP
+.B \-\-traffic\-window
+With two or more targets, open one terminal window per target running the live
+traffic &amp; speed monitor instead of a single combined window.
+.TP
+.B \-\-report
+Write the post-test HTML report (full log history, including the boot
+transcript) to FILE. Without this, interactive runs are asked whether a report
+should be filed into the \fI~/GNULTE Reports\fR hub.
+.TP
 .B \-\-force
 Skip interactive configuration prompts (requires explicit flags).
 .TP
@@ -136,17 +161,23 @@ Print the version and exit.
 Show help text and exit.
 .SH FILES
 .TP
-.I ~/.config/gnulte/acceptance
+.I ~/.config/gnulte-go/acceptance.json
 Safety-policy acceptance record (data file, versioned via SAFETY_POLICY_VERSION).
 .TP
+.I ~/.config/gnulte-go/config.json
+Per-user settings (themes, defaults, log mode, ARP sweep, stealth spoofing,
+Wi-Fi timing) edited via \fB\-\-settings\fR.
+.TP
 .I ~/.gnulte.conf
-User configuration.
+User configuration (legacy shell-era file).
 .TP
 .I ~/.gnulte_profiles.conf
 Custom saved profiles.
 .TP
-.I gnulte-report-<timestamp>/
-Post-test reports containing report.txt and report.html with latency graphs.
+.I ~/GNULTE Reports/GNULTE go!/gnulte-go-report-<timestamp>/
+Post-test reports containing report.html with latency charts and the full
+console log. gnulte-scan files reports under
+.I ~/GNULTE Reports/Gnulte-scan/
 .PP
 The legacy marker \fI~/.gnulte_accepted\fR is no longer read.
 .SH EXIT STATUS
@@ -155,8 +186,9 @@ on success (including normal Ctrl+C cleanup).
 .PP
 non-zero on configuration failure, interrupted setup, or missing dependencies.
 .SH SECURITY
-Root is required only for arpspoof, tc, and sysctl operations; GNULTE elevates
-those via sudo. Prefer running GNULTE as your normal user rather than as root.
+Root (or CAP_NET_RAW) is required for arpspoof, tc, sysctl, and the built-in
+stealth raw-socket spoofer; GNULTE elevates those via sudo. Prefer running
+GNULTE as your normal user rather than as root.
 Only ever use on networks you own or have written permission to test. Report
 vulnerabilities per SECURITY.md (privately, without credentials or captures).
 .SH SEE ALSO

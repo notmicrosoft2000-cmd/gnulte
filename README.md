@@ -6,11 +6,11 @@ LAN. Scan the network, shape a target, watch the results live, then clean up.
 
 | Binary | Root | What it does |
 | --- | --- | --- |
-| `gnulte` | **yes** | Interactive traffic shaping engine (ARP spoof → `tc netem` → live dashboard → HTML report) |
-| `gnulte-scan` | no | Parallel subnet scanner + in-Go deep port scanner, OUI vendor, mDNS/NetBIOS names, device types, OS fingerprinting, colour-coded tables + interactive `-T` browser |
+| `gnulte` | **yes** | Interactive traffic shaping engine (ARP spoof → `tc netem` → live dashboard → HTML report). Discreet `-S` stealth spoofing mode |
+| `gnulte-scan` | optional | Parallel subnet scanner + in-Go deep port scanner, ARP sweep when root, OUI vendor, mDNS/NetBIOS names, device types, OS fingerprinting, colour-coded tables + tabbed interactive `-T` monitor (Devices / Log / Summary, `o` = settings page) |
 | `gnulte-devices` | no | Instant ARP/neighbour inventory — vendors, mDNS hostnames, type guesses, HTML reports |
 | `gnulte-traffic` | no | Lightweight per-second latency / jitter / loss monitor against one or several hosts |
-| `gnulte-wifi` | **yes** | Targeted 802.11 deauthentication for authorized Wi-Fi disassociation testing |
+| `gnulte-wifi` | **yes** | Targeted 802.11 deauthentication for authorized Wi-Fi disassociation testing — per-frame jitter, rotating deauth reason codes, optional channel hopping |
 
 ## Safety Warning
 
@@ -95,9 +95,10 @@ a normal user.
 sudo gnulte                                            # interactive: scan → select → configure → run
 sudo gnulte -t 192.168.1.20 --profile voip --duration 300
 sudo gnulte -r 192.168.1.0/24 -w 192.168.1.100 --profile throttle --duration 600
+sudo gnulte -t 192.168.1.20 --profile voip --duration 300 -S   # discreet spoofing: answer only when asked
 
 gnulte-scan --deep                                     # parallel sweep + in-Go port scan + OS fingerprint
-gnulte-scan -T                                         # interactive full-screen device browser
+gnulte-scan -T                                         # tabbed interactive monitor (Devices / Log / Summary)
 gnulte-devices -s                                      # ARP inventory + optional live sweep
 gnulte-traffic -t 192.168.1.20 -duration 60            # watch one host's latency
 ```
@@ -118,6 +119,7 @@ gnulte-traffic -t 192.168.1.20 -duration 60            # watch one host's latenc
 | `-b, --bandwidth KBPS` | Bandwidth cap (0 = unlimited) |
 | `--profile NAME` | Preset: `gaming`, `streaming`, `voip`, `web`, `extreme`, `throttle` |
 | `--random` | Vary parameters during the run |
+| `-S, --stealth` | Discreet ARP spoofing: built-in in-Go spoofer, replies only when asked, slow jittered cache refresh (defaults from settings) |
 | `--duration SECS` | Auto-stop after N seconds |
 | `--traffic-window` | Open the multi-target traffic monitor in a separate terminal window |
 | `--export FILE` | Stream per-second results to CSV |
@@ -132,17 +134,22 @@ gnulte-traffic -t 192.168.1.20 -duration 60            # watch one host's latenc
 
 ## gnulte-scan
 
-No root needed — parallel sweep + in-Go deep port scanner.
+Parallel sweep + in-Go deep port scanner. No root needed for pings; run it as
+root and it also sweeps by ARP automatically, so hosts that block ping still
+show up (`--arp` forces it, `--no-arp` disables).
 
 ```sh
 gnulte-scan                                    # device table
 gnulte-scan --deep                             # + ports & service banners
+gnulte-scan -T                                 # tabbed monitor: Devices / Log / Summary (Tab or 1/2/3), 'o' = settings page
+sudo gnulte-scan                              # ... with the automatic ARP sweep
 gnulte-scan -i wlan0 -C 192.168.0.0/24 -j > devices.json
 ```
 
 Reports IP, MAC, OUI vendor (embedded registry), mDNS `.local` / reverse-DNS
 hostname, gateway detection, device type, and optional in-Go port scan with
-banners. Export JSON, YAML, CSV, or an HTML report.
+banners. Export JSON, YAML, CSV, or an HTML report filed into the
+`~/GNULTE Reports` hub — on the terminal it brands itself **SCANLTE**.
 
 ## gnulte-devices
 
@@ -168,19 +175,27 @@ gnulte-traffic -t 10.0.0.5,10.0.0.6 -duration 120
 ## gnulte-wifi
 
 Targeted 802.11 deauthentication. Needs an interface in monitor mode and root.
+Frames are sent with per-frame jitter (`--jitter-ms`, default 2ms) so the
+timing is irregular, the deauth reason code rotates every burst
+(`--mix-reasons`), and `--hop-channels` swims the adapter across your configured
+channels after each burst. A second Ctrl+C force-quits during the summary.
 
 ```sh
 sudo gnulte-wifi -i wlan0mon -a 00:11:22:33:44:55 -s AA:BB:CC:DD:EE:FF
+sudo gnulte-wifi -i wlan0mon --channels 1,6,11 --hop-channels
 ```
 
 ## Dependencies
 
 ### gnulte (shaping engine, root)
 Required: `iproute2` (`tc`), `arp-scan` or `dsniff` (`arpspoof`), `iputils`
+Stealth mode (`-S`) drops the `arpspoof(8)` requirement — spoofing is done
+in-Go over a raw socket (root / `CAP_NET_RAW`).
 
 ### gnulte-scan / gnulte-devices / gnulte-traffic
 None beyond the Go toolchain (everything is in-Go). `arp-scan` is used
-opportunistically as root for faster device discovery but is not required.
+opportunistically as root for faster device discovery but is not required;
+gnulte-scan's own in-Go ARP sweep takes over automatically under root.
 
 ### gnulte-wifi (802.11 injection)
 Root + a wireless adapter in monitor mode (`iw dev set type monitor` or
@@ -193,8 +208,12 @@ All state lives under `~/.config/gnulte-go/`:
 | File | Contents |
 | --- | --- |
 | `acceptance.json` | Versioned safety-policy acknowledgment record |
-| `settings.json` | Theme, verbosity, console log mode, saved scan defaults |
+| `config.json` | Settings TUI state: theme, verbosity, log mode, ARP sweep, stealth spoofing, Wi-Fi timing, saved scan defaults |
 | `profiles.json` | User-created `--save-profile` combinations |
+
+Post-test HTML reports are filed under `~/GNULTE Reports/` (a per-tool
+folder per run): `GNULTE go!/gnulte-go-report-<timestamp>/` for `gnulte` and
+`Gnulte-scan/` for `gnulte-scan`.
 
 ## License
 
