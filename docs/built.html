@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="How GNULTE is built — the Go stack, source layout, the Linux tools and standards it builds on, and an honest look at Windows support.">
+  <meta name="theme-color" content="#070a11">
+  <title>Built with — GNULTE</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="GNULTE home">
+      <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand-name">GNULTE</span>
+    </a>
+    <span class="addon"><i></i>v13.0</span>
+        <nav class="menubar" aria-label="Site navigation">
+      <a href="features.html">Features</a>
+      <a href="docs.html">Documentation</a>
+      <a href="wiki.html">Wiki</a>
+      <a href="built.html" aria-current="page">Built with</a>
+      <a href="scan.html">gnulte-scan</a>
+      <a href="devices.html">gnulte-devices</a>
+      <a href="download.html" class="nav-cta">Download</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-7 7a2 2 0 1 0 2.8 2.8l7-7a4 4 0 0 0 5.4-5.4l-3 3-2.8-2.8z"/><path d="M15 9l4-4M20 8l-3 3"/></svg></div>
+      <h1>Built with Go &amp; the Linux kernel</h1>
+      <p>The stack, the source layout, the tools it links to — and an honest answer about Windows.</p>
+    </section>
+
+    <section class="body-section" style="padding-top:26px;padding-bottom:0;">
+      <div class="toc-chips" role="navigation" aria-label="Page contents">
+        <a href="#stack">The stack</a>
+        <a href="#source">Source layout</a>
+        <a href="#tools">Tools we build on</a>
+        <a href="#port">Portability</a>
+        <a href="#windows">Windows support</a>
+      </div>
+    </section>
+
+    <section class="body-section" id="stack">
+      <div class="section-head" style="margin-bottom:30px;">
+        <p class="kicker">The stack</p>
+        <h2 class="section-title">Standard library Go, kernel primitives, zero dependencies</h2>
+        <p class="section-sub"><code>go.mod</code> is two lines long — there is nothing to vendor and nothing to audit.</p>
+      </div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg></div><h3>Pure standard-library Go</h3></div>
+          <div class="card-body">GNULTE is written in Go using only the standard library. No third-party modules, no <code>go.sum</code> — every binary compiles to one static executable with the in-repo toolchain. That means a clean supply chain and trivially reproducible builds.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7l4-3 4 3 4-3 4 3"/><path d="M4 17l4 3 4-3 4 3 4-3"/><path d="M4 7v10M8 4v13M12 7v10M16 4v13M20 7v10"/></svg></div><h3>The kernel does the work</h3></div>
+          <div class="card-body">Shaping is a real <code>tc netem</code> qdisc at the interface. Spoofing and 802.11 injection are raw <code>AF_PACKET</code> frames. Forwarding rides <code>iptables</code>/<code>sysctl</code>. GNULTE doesn&rsquo;t emulate traffic — it sets up kernel mechanics and tears them down cleanly.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 3l14 9-14 9z"/></svg></div><h3>Portable seams by design</h3></div>
+          <div class="card-body">Platform code lives behind build tags: <code>inject_linux.go</code>, <code>arpspoof_linux.go</code>, <code>keys_linux.go</code>. The <code>*_other.go</code> counterparts compile everywhere, so the seams for a future port already exist — but the real functionality is, and remains, the Linux path.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg></div><h3>Self-contained distribution</h3></div>
+          <div class="card-body"><code>install.sh</code> builds and installs all five binaries to <code>/usr/local/bin</code>, bundling safety docs and the license. The OUI vendor registry ships embedded inside the binaries (<code>internal/ident/oui.txt</code>), so scans work fully offline.</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="band-shaded" id="source">
+      <div class="body-section">
+        <div class="section-head" style="margin-bottom:28px;">
+          <p class="kicker">Inside the repository</p>
+          <h2 class="section-title">Source layout</h2>
+          <p class="section-sub">Five commands, one shared identification engine, and small single-purpose packages. <code>cmd/</code> is the public face; <code>internal/</code> is where the work happens.</p>
+        </div>
+        <div class="tree-block">gnulte-go/
+├── cmd/
+│   ├── gnulte/               <span class="t-cmt"># the MITM shaping engine (main tool)</span>
+│   ├── gnulte-devices/       <span class="t-cmt"># LAN inventory</span>
+│   ├── gnulte-scan/          <span class="t-cmt"># scanner + tabbed monitor</span>
+│   ├── gnulte-traffic/       <span class="t-cmt"># live link monitor</span>
+│   └── gnulte-wifi/          <span class="t-cmt"># 802.11 deauth testing</span>
+├── internal/
+│   ├── airframes/  <span class="t-cmt"># 802.11 frame crafting + raw injection</span>
+│   ├── arpspoof/   <span class="t-cmt"># ARP spoofing (incl. stealth mode)</span>
+│   ├── discover/   <span class="t-cmt"># LAN discovery: neighbour table + sweep</span>
+│   ├── engine/     <span class="t-cmt"># session lifecycle: apply &#8594; monitor &#8594; restore</span>
+│   ├── ident/      <span class="t-cmt"># OUI, mDNS, NetBIOS, OS fingerprints</span>
+│   ├── monitor/    <span class="t-cmt"># per-target live dashboards</span>
+│   ├── netutil/    <span class="t-cmt"># interfaces, subnet math, sysctl/iptables helpers</span>
+│   ├── out/        <span class="t-cmt"># colour, tables, banners</span>
+│   ├── probe/      <span class="t-cmt"># ICMP + TCP fallback connectivity probes</span>
+│   ├── reportdir/  <span class="t-cmt"># the ~/GNULTE Reports hub</span>
+│   ├── safety/     <span class="t-cmt"># bundled docs + first-run acceptance record</span>
+│   ├── scanner/    <span class="t-cmt"># parallel ping sweep (ARP sweep as root)</span>
+│   ├── settings/   <span class="t-cmt"># config.json + settings TUI</span>
+│   ├── sound/      <span class="t-cmt"># latency-scaled terminal beeps</span>
+│   ├── traffic/    <span class="t-cmt"># per-target latency/jitter/loss accounting</span>
+│   ├── tui/        <span class="t-cmt"># windows, tabs, key handling</span>
+│   └── ux/         <span class="t-cmt"># wizard, boot checks, prompts</span>
+└── install.sh / uninstall.sh</div>
+        <p style="color:var(--muted);font-size:14px;margin-top:14px;">The <code>*_linux.go</code> / <code>*_other.go</code> pairs in <code>airframes</code>, <code>arpspoof</code>, <code>monitor</code> and <code>tui</code> are the portability seams mentioned above.</p>
+      </div>
+    </section>
+
+    <section class="body-section" id="tools">
+      <div class="section-head" style="margin-bottom:24px;">
+        <p class="kicker">Dependencies, external</p>
+        <h2 class="section-title">Tools and standards we build on</h2>
+        <p class="section-sub">No Go libraries — but GNULTE sits on well-known Linux machinery and open standards.</p>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="preset-table">
+          <tr><td><a href="https://go.dev" target="_blank" rel="noopener">Go</a></td><td>The language and toolchain — one static binary per tool.</td></tr>
+          <tr><td><a href="https://man7.org/linux/man-pages/man7/packet.7.html" target="_blank" rel="noopener">AF_PACKET · packet(7)</a></td><td>Raw socket domain used to craft and send ARP spoof and 802.11 frames.</td></tr>
+          <tr><td><a href="https://man7.org/linux/man-pages/man8/tc-netem.8.html" target="_blank" rel="noopener">tc / netem</a></td><td>Kernel network emulator — latency, jitter, loss, reorder, duplication, bandwidth.</td></tr>
+          <tr><td><a href="https://wiki.linuxfoundation.org/networking/iproute2" target="_blank" rel="noopener">iproute2</a></td><td>The <code>tc</code> and <code>ip</code> commands GNULTE drives at install/cleanup time.</td></tr>
+          <tr><td><a href="https://www.netfilter.org/projects/iptables/" target="_blank" rel="noopener">iptables / netfilter</a></td><td>Forwarding rules that route the target&rsquo;s traffic through this host during a session.</td></tr>
+          <tr><td><a href="https://www.tcpdump.org" target="_blank" rel="noopener">pcap / tcpdump</a></td><td><code>--capture</code> writes standard pcap files, readable by tcpdump/Wireshark.</td></tr>
+          <tr><td><a href="https://github.com/royhills/arp-scan" target="_blank" rel="noopener">arp-scan</a></td><td>Optional external source of discovery data when present; GNULTE ships its own spoofer and sweep either way.</td></tr>
+          <tr><td><a href="https://datatracker.ietf.org/doc/html/rfc6762" target="_blank" rel="noopener">mDNS · RFC 6762</a></td><td>Multicast DNS — used to resolve <code>.local</code> device names during identification.</td></tr>
+          <tr><td><a href="https://standards.ieee.org/products-programs/regauth/oui/" target="_blank" rel="noopener">IEEE OUI registry</a></td><td>The vendor-prefix database embedded in <code>internal/ident/oui.txt</code>.</td></tr>
+          <tr><td>ANSI escapes + termios</td><td>The interactive TUI renders on plain terminal control codes — no display server, works over SSH.</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <section class="band-shaded" id="port">
+      <div class="body-section">
+        <div class="section-head" style="margin-bottom:24px;">
+          <p class="kicker">Where it runs</p>
+          <h2 class="section-title">Portability at a glance</h2>
+          <p class="section-sub">Feature by feature, on native Linux, WSL2 and Windows.</p>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="preset-table">
+            <tr><td>Feature</td><td><strong>Linux native</strong></td><td><strong>WSL2</strong></td><td><strong>Windows native</strong></td></tr>
+            <tr><td>Discovery &amp; inventory</td><td>&#9989; Full</td><td>&#128993; VM subnet only — the virtual NAT NIC hides the LAN</td><td>&#128993; Possible via Npcap after porting</td></tr>
+            <tr><td>ARP-spoof MITM</td><td>&#9989; Full</td><td>&#10060; No layer-2 access to the LAN</td><td>&#10060; No AF_PACKET; raw frames fight the OS ARP stack</td></tr>
+            <tr><td><code>tc netem</code> shaping</td><td>&#9989; Full</td><td>&#128993; Shapes traffic inside the VM only, not the LAN</td><td>&#10060; No equivalent kernel shaping API</td></tr>
+            <tr><td>802.11 deauth / monitor mode</td><td>&#9989; With a compatible card</td><td>&#10060; No monitor mode</td><td>&#10060; Not exposed to userspace on mainstream adapters</td></tr>
+            <tr><td>HTML / CSV reports</td><td>&#9989; Full</td><td>&#9989; Full</td><td>&#128993; After porting the CLI</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="body-section" id="windows">
+      <div class="section-head" style="margin-bottom:24px;">
+        <p class="kicker">The Windows question</p>
+        <h2 class="section-title">Windows: an honest answer</h2>
+        <p class="section-sub">GNULTE is Linux-only by design. Here is why, and what it would take to change that.</p>
+      </div>
+
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-bottom:24px;">
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></div><h3>1. No netem on Windows</h3></div>
+          <div class="card-body">Shaping is applied with a kernel <code>qdisc</code>. Windows has no equivalent traffic-shaping API &mdash; recreating it means a WFP-based filter driver or a userspace proxy. That is a new tool, not a port.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 8l8 8"/><path d="M16 8H8v8"/></svg></div><h3>2. No AF_PACKET</h3></div>
+          <div class="card-body">Spoofing crafts raw Ethernet + ARP frames. Windows' Npcap can send raw frames, but sustaining a MITM ARP state against the OS's own ARP cache is fragile &mdash; the Linux raw-socket path is far more reliable.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M8 12.5a4 4 0 0 1 8 0"/></svg></div><h3>3. No monitor mode</h3></div>
+          <div class="card-body"><code>gnulte-wifi</code> injects 802.11 management frames. Windows does not expose monitor mode or frame injection to userspace on mainstream adapters &mdash; so the Wi-Fi tool has no Windows story at all.</div>
+        </article>
+      </div>
+
+      <div class="legal">
+        <strong>Verdict:</strong> native Windows support is not planned. The core features depend on Linux kernel APIs that Windows does not provide, and papering over them would produce a different, less reliable product. GNULTE&rsquo;s supported paths are <strong>native Linux</strong> (recommended), a <strong>bridged Linux VM</strong> (full functionality), or <strong>WSL2 as an evaluation sandbox</strong> &mdash; scanning, reports and CLI work; shaping, MITM and Wi-Fi do not.
+      </div>
+
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:24px;">
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 10h16"/></svg></div><h3>What already works</h3></div>
+          <div class="card-body">Because the <code>*_other.go</code> stubs compile cleanly, the tree cross-compiles for Windows today &mdash; but those paths are stubs by design. WSL2 can run the real Linux binaries for discovery, <a href="wiki.html#trouble">scanning and reporting</a>; nothing else does anything yet.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head"><div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><h3>What would change the answer</h3></div>
+          <div class="card-body">Three things: a Windows traffic-shaping engine (WFP-based), wireless vendors exposing monitor/injection, or GNULTE growing a remote architecture &mdash; a Linux shaper driven from any OS. If any of those land, this page gets updated.</div>
+        </article>
+      </div>
+
+      <p style="color:var(--muted);font-size:14.5px;margin-top:22px;">
+        Read the practical side in the <a href="download.html">Linux / WSL2 notes</a> and the <a href="wiki.html#faq">wiki FAQ</a>.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-cols">
+      <div>
+        <p style="font-weight:700;color:var(--text);margin-bottom:10px;">GNULTE</p>
+        <p style="font-size:14px;max-width:280px;">GNU LAN Network Testing Environment. Authorised network testing — scan first, ask permission first, clean up after.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Project</h4>
+        <a href="features.html">Features</a>
+        <a href="docs.html">Documentation</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="built.html">Built with</a>
+        <a href="scan.html">gnulte-scan</a>
+        <a href="devices.html">gnulte-devices</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="download.html">Download</a>
+      </div>
+      <div class="footer-links">
+        <h4>Code</h4>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/issues" target="_blank" rel="noopener">Issues</a>
+        <a href="license.html">License</a>
+      </div>
+      <div class="footer-links">
+        <h4>Neptune Productions</h4>
+        <a href="/">The hub</a>
+        <a href="https://github.com/notmicrosoft2000-cmd" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <p>© 2026 <a class="nep-link" href="/">Neptune Productions</a> · GNULTE · Authorised network testing only.</p>
+    </div>
+  </footer>
+</body>
+</html>

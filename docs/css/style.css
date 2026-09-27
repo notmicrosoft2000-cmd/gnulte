@@ -1065,6 +1065,24 @@ details.wikifa .fa-body { padding: 0 20px 16px; color: var(--muted); font-size: 
 .glossary dt { font-weight: 600; color: var(--text); font-size: 14px; white-space: nowrap; min-width: 118px; font-family: var(--mono); font-size: 13px; }
 .glossary dd { color: var(--muted); font-size: 14px; }
 
+/* ---------- built-with page ---------- */
+
+.tree-block {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.8;
+  background: rgba(8, 11, 18, 0.6);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  overflow-x: auto;
+  color: #c9d3e2;
+  white-space: pre;
+}
+
+.tree-block .t-cmt { color: #6f7b92; font-style: italic; }
+.tree-block .t-dir { color: #9fd0ff; }
+
 /* ---------- changelog ---------- */
 
 .changelog { max-width: 860px; margin: 0 auto; }
