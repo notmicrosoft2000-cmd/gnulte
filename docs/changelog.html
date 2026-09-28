@@ -19,7 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v13.2</span>
+    <span class="addon"><i></i>v13.3</span>
         <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
@@ -43,8 +43,26 @@
 
         <div class="cl-entry">
           <div class="cl-ver">
-            <h3>v13.2</h3>
+            <h3>v13.3</h3>
             <span class="cl-tag">Latest</span>
+            <span class="cl-date">28 Sep 2026 &middot; <code>497cda7</code></span>
+          </div>
+          <ul>
+            <li><strong>Banner &amp; boot polish</strong> — <code>gnulte-lan</code> opens with the GNULTE-LAN block wordmark, a purpose line that answers &ldquo;what is this for?&rdquo;, and width-aware boot notes (skipped with <code>-q</code>).</li>
+            <li><strong>Arrow keys work</strong> — the watch is now a real interactive screen: <code>↑</code>/<code>↓</code> move a host cursor, and the live frame redraws instantly between ticks.</li>
+            <li><strong>Host detail pane</strong> — <code>⏎</code>/<code>Tab</code> opens a per-host card: MAC/vendor/type/hostname, down/up with session peaks, latency min/avg/max/loss, three relative sparklines (latency, down, up), and the host's top conversations this interval.</li>
+            <li><strong>Sort, filter, panes</strong> — <code>s</code> cycles traffic &rarr; latency &rarr; address order, <code>a</code> filters to only the alarming hosts, <code>t</code> toggles the global top-talkers pane, and <code>h</code> expands the key hints footer.</li>
+            <li><strong>Options mid-watch</strong> — <code>o</code> opens the settings editor live: interval, history depth, timeout, alarm thresholds and beeps apply to the running watch without a restart.</li>
+            <li><strong>Scroll-safe frames</strong> — the host window is packed by line budget (not row count), so sparse multi-line rows fit any terminal height, the cursor never leaves the screen, and <code>▴</code>/<code>▾</code> indicate hidden hosts.</li>
+            <li><strong>Self-explaining help</strong> — <code>--help</code> now leads with gnulte-lan's purpose and ends with examples; the tool's doc comment tells the full story.</li>
+            <li><strong>tui.KeyStream.Poll</strong> — new non-blocking key decode in the shared terminal library (arrows, <code>⏎</code>, <code>Esc</code>, runes) that never drops a queued sequence; used by the interactive watch.</li>
+            <li>Version 13.3 across all five binaries.</li>
+          </ul>
+        </div>
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v13.2</h3>
             <span class="cl-date">28 Sep 2026 &middot; <code>0944a3a</code></span>
           </div>
           <ul>
