@@ -19,7 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v13.3</span>
+    <span class="addon"><i></i>v13.4</span>
         <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
@@ -43,8 +43,24 @@
 
         <div class="cl-entry">
           <div class="cl-ver">
-            <h3>v13.3</h3>
+            <h3>v13.4</h3>
             <span class="cl-tag">Latest</span>
+            <span class="cl-date">28 Sep 2026</span>
+          </div>
+          <ul>
+            <li><strong>Watch polish</strong> — <code>gnulte-lan</code> becomes a smooth, stable monitor you can trust while picking test targets: every host now occupies a fixed three-line block (traffic+latency, identity, session health), so rows neither grow nor shrink between ticks and the frame never jumps around.</li>
+            <li><strong>Pick-a-target grades</strong> — each row carries a one-glyph health verdict (<code>✓</code> stable, <code>~</code> jittery or lossy, <code>✗</code> flaky, <code>⚠</code> alarming) plus jitter, loss and whole-watch average speeds, so a good GNULTE test device is obvious at a glance.</li>
+            <li><strong>Test-recipe button</strong> — the detail pane ends with <code>test with: gnulte -t &lt;ip&gt;</code>, and pressing <code>g</code> echoes that exact command under the footer. The watch is explicitly the &ldquo;choose your target&rdquo; half of the toolkit now.</li>
+            <li><strong>Header health line</strong> — the status bar gains hosts-up count and a <code>self &middot; gateway &larr;&rarr; RTT</code> line (the gateway is pinged alongside the watch), so &ldquo;is my uplink fine?&rdquo; is answered without opening anything.</li>
+            <li><strong>Smooth keyboard</strong> — pings run in the background and results land between ticks, so a slow or silent host can never freeze the arrows; holding <code>↑</code>/<code>↓</code> scrolls fast just like htop (raw terminals deliver no auto-repeat).</li>
+            <li><strong>Locked columns</strong> — rate, latency and health cells are fixed-width everywhere (the alarm badge reserves its own column), and aligned totals replace the old cut-off line.</li>
+            <li>Version 13.4 across all five binaries.</li>
+          </ul>
+        </div>
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v13.3</h3>
             <span class="cl-date">28 Sep 2026 &middot; <code>497cda7</code></span>
           </div>
           <ul>

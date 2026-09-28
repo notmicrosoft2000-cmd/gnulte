@@ -19,7 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v13.3</span>
+    <span class="addon"><i></i>v13.4</span>
         <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
@@ -140,7 +140,7 @@
             <article class="card tile-card">
               <div class="card-head"><div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h3l2-6 4 12 3-9 1.5 3H21"/></svg></div><h3>gnulte-lan</h3></div>
               <div class="card-body">
-                <p>Live LAN watch. With no <code>-t</code> it discovers the whole subnet in seconds (router and self skipped), opens its banner, then repaints the LAN every interval &mdash; per-host down/up speed, packet rate and latency with device identity: MAC, vendor, type, hostname. The screen is interactive: <code>↑</code>/<code>↓</code> move a host cursor, <code>⏎</code> opens a detail pane, <code>s</code> re-sorts by traffic/latency/address, <code>a</code> filters to alarming hosts, <code>t</code> toggles top talkers, <code>o</code> edits settings live. Top talkers show who is talking to whom; lightweight alarms flag hosts over a rate or latency threshold; <code>--export</code> streams CSV and the session files an HTML report. <code>gnulte-lan -t 192.168.1.20 --duration 60</code> for a single target.</p>
+                <p>Live LAN watch. With no <code>-t</code> it discovers the whole subnet in seconds (router and self skipped), opens its banner, then repaints the LAN every interval &mdash; per-host down/up speed, packet rate and latency with device identity: MAC, vendor, type, hostname. The screen is interactive: <code>↑</code>/<code>↓</code> move a host cursor (hold to scroll fast), <code>⏎</code> opens a detail pane ending with <code>test with: gnulte -t &lt;ip&gt;</code> (and <code>g</code> echoes that command under the footer), <code>s</code> re-sorts by traffic/latency/address, <code>a</code> filters to alarming hosts, <code>t</code> toggles top talkers, <code>o</code> edits settings live. Rows are fixed three-line blocks: traffic+latency with a one-glyph health grade (<code>✓</code> stable / <code>~</code> jittery / <code>✗</code> flaky / <code>⚠</code> alarming), identity, and a session-health line (jitter, loss, average speeds). The header shows hosts up and the gateway's live RTT. Top talkers show who is talking to whom; lightweight alarms flag hosts over a rate or latency threshold; <code>--export</code> streams CSV and the session files an HTML report. <code>gnulte-lan -t 192.168.1.20 --duration 60</code> for a single target.</p>
               </div>
             </article>
             <article class="card tile-card">
