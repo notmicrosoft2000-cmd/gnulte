@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="gnulte — the core GNULTE tester. Route a device's traffic through your machine and apply tc netem latency, jitter, loss and bandwidth limits, with a live per-target dashboard.">
+  <meta name="theme-color" content="#070a11">
+  <title>gnulte — GNULTE</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <input type="checkbox" id="navcheck" class="nav-check" aria-hidden="true">
+
+  <header class="topbar">
+    <label for="navcheck" class="nav-toggle" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></label>
+    <a class="brand" href="index.html" aria-label="GNULTE home">
+      <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand-name">GNULTE</span>
+    </a>
+    <div class="top-actions">
+      <span class="addon"><i></i>v13.4</span>
+      <a href="download.html" class="nav-pill">Download</a>
+    </div>
+  </header>
+
+  <div class="shell">
+  <aside class="sidenav">
+    <nav aria-label="Sections">
+      <div class="side-group">
+        <p class="side-label">Tools</p>
+        <a class="side-link active" aria-current="page" href="gnulte.html"><span class="dot d-blue"></span>gnulte</a>
+        <a class="side-link" href="gnulte-lan.html"><span class="dot d-green"></span>gnulte-lan</a>
+        <a class="side-link" href="scan.html"><span class="dot d-orange"></span>gnulte-scan</a>
+        <a class="side-link" href="wifi.html"><span class="dot d-purple"></span>gnulte-wifi</a>
+        <a class="side-link" href="devices.html"><span class="dot d-teal"></span>gnulte-devices</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Studio</p>
+        <a class="side-link" href="preview.html"><span class="dot d-studio"></span>Live previews</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Learn</p>
+        <a class="side-link" href="features.html">Features</a>
+        <a class="side-link" href="docs.html">Documentation</a>
+        <a class="side-link" href="wiki.html">Wiki</a>
+        <a class="side-link" href="changelog.html">Changelog</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Project</p>
+        <a class="side-link" href="download.html">Download</a>
+        <a class="side-link" href="built.html">Built with</a>
+        <a class="side-link" href="license.html">License</a>
+      </div>
+    </nav>
+    <div class="side-foot">GNULTE v13.4<br>Linux · GPL-3.0-or-later</div>
+  </aside>
+  <div class="page-main">
+
+  <main>
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="index.html">GNULTE</a><i>/</i><span>Tools</span><i>/</i><a href="gnulte.html" aria-current="page">gnulte</a>
+    </nav>
+    <section class="page-hero">
+      <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h3l2-6 4 12 3-9 1.5 3H21"/></svg></div>
+      <h1>gnulte</h1>
+      <p>The core tester — route a target&rsquo;s traffic through your machine and shape it on the wire with <code>tc netem</code>.</p>
+      <p class="studio-link">▶ <a href="preview.html#gnulte">Watch a re-enactment in Studio</a></p>
+    </section>
+
+    <section class="body-section">
+      <div class="section-head">
+        <p class="kicker">The tester</p>
+        <h2 class="section-title">What your devices feel when the network misbehaves</h2>
+        <p class="section-sub"><code>gnulte</code> quietly interposes itself between a device and its gateway (ARP-spoofed routing), then applies kernel-level shaping with <code>tc netem</code> — latency, jitter, packet loss, duplication, reordering and bandwidth caps. Every target is pinged once per second while the test runs, and the whole session ends in an HTML report with SVG latency timelines.</p>
+      </div>
+      <div class="showcase">
+        <div class="show-item">
+          <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>Guided flow</h3>
+          <p>Boot checks verify real results — privileges, interface, <code>arpspoof</code>, <code>tc</code>, ping and <code>ip_forward</code> — before a session is built. Then a menu walks you from target to parameters.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <h3>Pick your target</h3>
+          <p>One IP, several IPs, a whole subnet (<code>-r</code>), a MAC (<code>-m</code>), or every device of a kind — <code>--device-type phone,router</code> or <code>--vendor Apple</code>.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 3h7v7"/><path d="M21 3l-8 8"/><path d="M3 14h7v7"/><path d="M3 21l8-8"/></svg></div>
+          <h3>Shape conditions</h3>
+          <p><code>--latency 300 --jitter 30 --loss 5</code> — one flag per condition, plus 12 built-in profiles via <code>--profile</code> and live re-rolling with <code>--random</code>.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3a7 7 0 0 0-7 7v6a2 2 0 0 0 2 2h2"/><path d="M12 21a7 7 0 0 0 7-7V8a2 2 0 0 0-2-2h-2"/><path d="M9 13v3 M15 13v3"/></svg></div>
+          <h3>Self-healing</h3>
+          <p>A spoof monitor revives <code>arpspoof</code> if it dies mid-test. Cleanup always runs — qdisc restored, forwarding restored, gateway ARP re-broadcast.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band-shaded">
+      <div class="body-section">
+        <div class="cols">
+          <div>
+            <div class="section-head" style="text-align:left;margin-bottom:18px;">
+              <p class="kicker">Quickstart</p>
+              <h2 class="section-title" style="font-size:26px;">Two steps to your first test</h2>
+            </div>
+            <div class="code-block">
+<span class="cb-cmt"># build all five tools from source (pure Go, no deps)</span>
+<span class="cb-pr">$</span> cd gnulte-go &amp;&amp; ./build.sh
+<span class="cb-cmt"># install into /usr/local/bin (asks for sudo)</span>
+<span class="cb-pr">$</span> sudo ./install.sh
+<span class="cb-cmt"># run the guided menu (or skip it with flags)</span>
+<span class="cb-pr">$</span> sudo gnulte
+<span class="cb-cmt"># one-liner: 300ms latency + 30ms jitter, 90s auto-stop</span>
+<span class="cb-pr">$</span> sudo gnulte -t 192.168.1.50 -l 300 -j 30 --duration 90</div>
+            <p class="dim" style="margin-top:14px;font-size:14px;">Root is required to shape traffic; the first launch prompts for sudo, and every <code>✓</code> in the boot banner is a live check.</p>
+          </div>
+          <div>
+            <div class="section-head" style="text-align:left;margin-bottom:18px;">
+              <p class="kicker">Everyday shapes</p>
+              <h2 class="section-title" style="font-size:26px;">Recipe-style flags</h2>
+            </div>
+            <ul class="checklist">
+              <li><code>sudo gnulte -t 192.168.1.50 -l 300 -j 30</code> — sluggish-but-real latency</li>
+              <li><code>-p 8</code> / <code>-d 2</code> / <code>-e 3</code> — loss, duplication, reordering percent</li>
+              <li><code>-b 2048</code> — bandwidth cap in kbps (2 Mbps)</li>
+              <li><code>-r 192.168.1.0/24 -w 192.168.1.88</code> — whole subnet, whitelist your phone</li>
+              <li><code>--device-type phone --random</code> — shape every phone, re-roll each second</li>
+              <li><code>--profile streaming</code> — one of 12 presets (<code>--list-profiles</code>)</li>
+              <li><code>--traffic-window</code> — open the <a href="gnulte-lan.html">GNULTE-LAN watch</a> in a second terminal</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="body-section">
+      <div class="section-head">
+        <p class="kicker">Options</p>
+        <h2 class="section-title">Key flags at a glance</h2>
+        <p class="section-sub">The full set is always one <code>--help</code> away — this is the everyday subset.</p>
+      </div>
+      <table class="flag-table">
+        <thead>
+          <tr><th>Flag</th><th>What it does</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>-t, --target IP</td><td>Target IP(s), comma-separated. Hostnames and <code>.local</code> names resolve.</td></tr>
+          <tr><td>-m, --mac MAC</td><td>Target by MAC address instead of IP.</td></tr>
+          <tr><td>-r, --range CIDR</td><td>Target an entire subnet, e.g. <code>192.168.1.0/24</code>.</td></tr>
+          <tr><td>-w, --whitelist IP</td><td>Exclude IP(s) from a range test.</td></tr>
+          <tr><td>--device-type KINDS</td><td>Target every LAN device of these kinds (<code>phone,router,printer</code>&hellip;).</td></tr>
+          <tr><td>--vendor NAMES</td><td>Target every LAN device matching a vendor (substring).</td></tr>
+          <tr><td>-l, --latency MS</td><td>Base delay in ms.</td></tr>
+          <tr><td>-j, --jitter MS</td><td>Random variation around the base delay in ms.</td></tr>
+          <tr><td>-p, --loss %</td><td>Packet drop percentage.</td></tr>
+          <tr><td>-d, --duplicate %</td><td>Duplicate packet percentage.</td></tr>
+          <tr><td>-e, --reorder %</td><td>Out-of-order packet percentage.</td></tr>
+          <tr><td>-b, --bandwidth KBPS</td><td>Bandwidth cap in kbps (0 = unlimited).</td></tr>
+          <tr><td>--profile NAME</td><td>Apply a preset — 12 built-in profiles (<code>--list-profiles</code>).</td></tr>
+          <tr><td>--random</td><td>Re-roll latency / jitter / loss every second.</td></tr>
+          <tr><td>--duration SECONDS</td><td>Auto-stop the test after N seconds.</td></tr>
+          <tr><td>--interval SECONDS</td><td>Ping interval (default 1s).</td></tr>
+          <tr><td>-c, --capture FILE</td><td>Capture the target&rsquo;s traffic with tcpdump.</td></tr>
+          <tr><td>-S, --stealth</td><td>Stealth ARP spoofing — answer only when asked, slow jittered cache refresh.</td></tr>
+          <tr><td>--block</td><td>Fully block the target&rsquo;s traffic (no forwarding).</td></tr>
+          <tr><td>--export FILE</td><td>Stream per-second results to CSV while the test runs.</td></tr>
+          <tr><td>--traffic-window</td><td>With 2+ targets, open the GNULTE-LAN watch in a separate terminal.</td></tr>
+        </tbody>
+      </table>
+      <p class="dim" style="margin-top:16px;font-size:14px;">Safety is structural: it refuses to target the gateway or your own machine, verifies each parameter and estimates its impact out loud, and never leaves forwarding or a qdisc behind.</p>
+    </section>
+
+    <section class="body-section">
+      <div class="cta-band">
+        <p class="kicker" style="color:rgba(255,255,255,0.7);">Core tool · v13.4</p>
+        <h2>Put a device through real conditions</h2>
+        <p>Three minutes to install, one command to run.</p>
+        <div class="cta-row">
+          <a class="btn btn-light btn-big" href="download.html">Download GNULTE</a>
+          <a class="btn btn-outline-light btn-big" href="preview.html#gnulte">See it in Studio</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  </div>
+</div>
+
+  <footer>
+    <div class="footer-cols">
+      <div>
+        <p style="font-weight:700;color:var(--text);margin-bottom:10px;">GNULTE</p>
+        <p style="font-size:14px;max-width:280px;">GNU LAN Network Testing Environment. Authorised network testing — scan first, ask permission first, clean up after.</p>
+        <a class="nep-link" href="/" style="font-size:13px;display:inline-block;margin-top:10px;">Neptune Productions hub</a>
+      </div>
+      <div class="footer-links">
+        <h4>Tools</h4>
+        <a href="gnulte.html">gnulte</a>
+        <a href="gnulte-lan.html">gnulte-lan</a>
+        <a href="scan.html">gnulte-scan</a>
+        <a href="wifi.html">gnulte-wifi</a>
+        <a href="devices.html">gnulte-devices</a>
+      </div>
+      <div class="footer-links">
+        <h4>Learn</h4>
+        <a href="preview.html">Studio previews</a>
+        <a href="features.html">Features</a>
+        <a href="docs.html">Documentation</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="changelog.html">Changelog</a>
+      </div>
+      <div class="footer-links">
+        <h4>Project</h4>
+        <a href="download.html">Download</a>
+        <a href="built.html">Built with</a>
+        <a href="license.html">License</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/releases" target="_blank" rel="noopener">Releases</a>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <p>© 2026 <a class="nep-link" href="/">Neptune Productions</a> · GNULTE · Authorised network testing only.</p>
+    </div>
+  </footer>
+</body>
+</html>

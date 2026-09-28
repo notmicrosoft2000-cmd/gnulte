@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="gnulte-wifi — targeted station disconnection for authorized Wi-Fi testing. Crafted 802.11 deauthentication frames from a monitor-mode adapter, with burst control, reason-code mixing and jitter.">
+  <meta name="theme-color" content="#070a11">
+  <title>gnulte-wifi — GNULTE</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <input type="checkbox" id="navcheck" class="nav-check" aria-hidden="true">
+
+  <header class="topbar">
+    <label for="navcheck" class="nav-toggle" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></label>
+    <a class="brand" href="index.html" aria-label="GNULTE home">
+      <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand-name">GNULTE</span>
+    </a>
+    <div class="top-actions">
+      <span class="addon"><i></i>v13.4</span>
+      <a href="download.html" class="nav-pill">Download</a>
+    </div>
+  </header>
+
+  <div class="shell">
+  <aside class="sidenav">
+    <nav aria-label="Sections">
+      <div class="side-group">
+        <p class="side-label">Tools</p>
+        <a class="side-link" href="gnulte.html"><span class="dot d-blue"></span>gnulte</a>
+        <a class="side-link" href="gnulte-lan.html"><span class="dot d-green"></span>gnulte-lan</a>
+        <a class="side-link" href="scan.html"><span class="dot d-orange"></span>gnulte-scan</a>
+        <a class="side-link active" aria-current="page" href="wifi.html"><span class="dot d-purple"></span>gnulte-wifi</a>
+        <a class="side-link" href="devices.html"><span class="dot d-teal"></span>gnulte-devices</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Studio</p>
+        <a class="side-link" href="preview.html"><span class="dot d-studio"></span>Live previews</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Learn</p>
+        <a class="side-link" href="features.html">Features</a>
+        <a class="side-link" href="docs.html">Documentation</a>
+        <a class="side-link" href="wiki.html">Wiki</a>
+        <a class="side-link" href="changelog.html">Changelog</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Project</p>
+        <a class="side-link" href="download.html">Download</a>
+        <a class="side-link" href="built.html">Built with</a>
+        <a class="side-link" href="license.html">License</a>
+      </div>
+    </nav>
+    <div class="side-foot">GNULTE v13.4<br>Linux · GPL-3.0-or-later</div>
+  </aside>
+  <div class="page-main">
+
+  <main>
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="index.html">GNULTE</a><i>/</i><span>Tools</span><i>/</i><a href="wifi.html" aria-current="page">gnulte-wifi</a>
+    </nav>
+    <section class="page-hero">
+      <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 9.5A15 15 0 0 1 22 9.5"/><path d="M5.2 12.7a10 10 0 0 1 13.6 0"/><path d="M8.4 15.9a5 5 0 0 1 7.2 0"/><circle cx="12" cy="19" r="1.4" fill="currentColor"/></svg></div>
+      <h1>gnulte-wifi</h1>
+      <p>Targeted station disconnection for <strong>authorized</strong> Wi-Fi testing — crafted 802.11 deauthentication frames from a monitor-mode adapter.</p>
+      <p class="studio-link">▶ <a href="preview.html#gnulte-wifi">Watch a re-enactment in Studio</a></p>
+    </section>
+
+    <section class="body-section">
+      <div class="section-head">
+        <p class="kicker">The audit</p>
+        <h2 class="section-title">The &ldquo;kick a client&rdquo; control, reproduced</h2>
+        <p class="section-sub">A deauthentication frame is crafted with the source MAC set to the access point&rsquo;s BSSID and the destination set to one victim station. The station assumes its router disconnected it and drops the Wi-Fi association. Repeated bursts keep kicking a client that rejoins — a router&rsquo;s &ldquo;kick client&rdquo; behaviour, reproduced for authorized testing on networks you own.</p>
+      </div>
+      <div class="showcase">
+        <div class="show-item">
+          <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M12 8a4 4 0 1 0 0 8"/></svg></div>
+          <h3>Monitor mode</h3>
+          <p>Point an adapter already in monitor mode at the network: <code>-i wlan0mon</code>. Airdecap-style setup (<code>airmon-ng start</code> / <code>iw dev set type monitor</code>) is expected.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><rect x="6" y="6" width="12" height="12" rx="3"/></svg></div>
+          <h3>Burst control</h3>
+          <p>Frames per burst (<code>--count</code>, default 64), seconds between bursts (<code>--delay</code>), and <code>--once</code> for a single shot.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6a2 2 0 0 1 2-2h9l5 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M12 10v4M10 12h4" fill="currentColor"/></svg></div>
+          <h3>Hard to filter</h3>
+          <p><code>--jitter-ms</code> defeats reconnect timers, <code>--mix</code> rotates the reason code each burst, <code>--hop-channels</code> keeps a channel-hopping AP in range.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 22s8-3.5 8-10V6l-8-4-8 4v6c0 6.5 8 10 8 10z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div>
+          <h3>Safety rails</h3>
+          <p>Interactive confirmations before a burst (<code>--force</code> skips them), a saved <code>--settings</code> page, and built-in safety documents (<code>--docs</code>).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band-shaded">
+      <div class="body-section">
+        <div class="cols">
+          <div>
+            <div class="section-head" style="text-align:left;margin-bottom:18px;">
+              <p class="kicker">Usage</p>
+              <h2 class="section-title" style="font-size:26px;">One command</h2>
+            </div>
+            <div class="code-block">
+<span class="cb-cmt"># put an adapter into monitor mode first</span>
+<span class="cb-pr">$</span> sudo airmon-ng start wlan0
+<span class="cb-cmt"># kick one station off its AP (run only on your own gear)</span>
+<span class="cb-pr">$</span> sudo gnulte-wifi -i wlan0mon -a 00:0c:41:63:45:6a -s aa:bb:cc:dd:ee:ff
+<span class="cb-cmt"># eject every client, mix reason codes, hop channels</span>
+<span class="cb-pr">$</span> sudo gnulte-wifi -i wlan0mon -a 00:0c:41:63:45:6a -s ff:ff:ff:ff:ff:ff --mix --hop-channels
+<span class="cb-cmt"># single 120-frame burst to test a reconnect timer</span>
+<span class="cb-pr">$</span> sudo gnulte-wifi -i wlan0mon -a 00:0c:41:63:45:6a -s aa:bb:cc:dd:ee:ff --count 120 --once</div>
+          </div>
+          <div>
+            <div class="section-head" style="text-align:left;margin-bottom:18px;">
+              <p class="kicker">Responsibility</p>
+              <h2 class="section-title" style="font-size:26px;">Authorized testing only</h2>
+            </div>
+            <div class="legal">
+              <p><strong>gnulte-wifi sends frames that disconnect real clients.</strong> Use it only on networks and devices you own or are explicitly paid / permitted to test. The tool prints a safety record on first run, keeps a <code>--reset-safety</code> acceptance gate, and is built to make the &ldquo;am I allowed to do this?&rdquo; question impossible to skip silently.</p>
+            </div>
+            <p class="dim" style="margin-top:14px;font-size:14px;">Some adapters cap injection rates — raise <code>--count</code> if a single frame rarely lands. The tool never associates to an AP; it only listens in monitor mode and emits.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="body-section">
+      <div class="section-head">
+        <p class="kicker">Options</p>
+        <h2 class="section-title">Fine control of the burst</h2>
+      </div>
+      <table class="flag-table">
+        <thead>
+          <tr><th>Flag</th><th>What it does</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>-i, --interface IFACE</td><td>Wireless interface in monitor mode (e.g. <code>wlan0mon</code>).</td></tr>
+          <tr><td>-a, --ap MAC</td><td>Access point BSSID (the router&rsquo;s MAC).</td></tr>
+          <tr><td>-s, --station MAC</td><td>Station to disconnect; <code>ff:ff:ff:ff:ff:ff</code> = all clients.</td></tr>
+          <tr><td>--reason CODE</td><td>Deauth reason code (default 7 = STA leaving BSS).</td></tr>
+          <tr><td>--count N</td><td>Frames per burst (default 64).</td></tr>
+          <tr><td>--delay SECONDS</td><td>Seconds between bursts (default 5).</td></tr>
+          <tr><td>--jitter-ms N</td><td>Random 0–N ms delay before each frame (defeats reconnect timers; 0 = no jitter).</td></tr>
+          <tr><td>--mix</td><td>Rotate the reason code each burst (default on; off when <code>--reason</code> is set).</td></tr>
+          <tr><td>--hop-channels</td><td>Hop the adapter through a channel list after each burst.</td></tr>
+          <tr><td>--channels LIST</td><td>Hop list, comma-separated (default 1,6,11).</td></tr>
+          <tr><td>--once</td><td>Send a single burst and exit.</td></tr>
+          <tr><td>--duration SECONDS</td><td>Auto-stop after N seconds (0 = until Ctrl+C).</td></tr>
+          <tr><td>--force</td><td>Skip interactive confirmations.</td></tr>
+          <tr><td>-q, --quiet</td><td>Results only.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="body-section">
+      <div class="cta-band">
+        <p class="kicker" style="color:rgba(255,255,255,0.7);">Wi-Fi audit tool · v13.4</p>
+        <h2>Test a station&rsquo;s resilience</h2>
+        <p>Authorized testing only — on your own network, your own devices.</p>
+        <div class="cta-row">
+          <a class="btn btn-light btn-big" href="download.html">Download GNULTE</a>
+          <a class="btn btn-outline-light btn-big" href="preview.html#gnulte-wifi">See it in Studio</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  </div>
+</div>
+
+  <footer>
+    <div class="footer-cols">
+      <div>
+        <p style="font-weight:700;color:var(--text);margin-bottom:10px;">GNULTE</p>
+        <p style="font-size:14px;max-width:280px;">GNU LAN Network Testing Environment. Authorised network testing — scan first, ask permission first, clean up after.</p>
+        <a class="nep-link" href="/" style="font-size:13px;display:inline-block;margin-top:10px;">Neptune Productions hub</a>
+      </div>
+      <div class="footer-links">
+        <h4>Tools</h4>
+        <a href="gnulte.html">gnulte</a>
+        <a href="gnulte-lan.html">gnulte-lan</a>
+        <a href="scan.html">gnulte-scan</a>
+        <a href="wifi.html">gnulte-wifi</a>
+        <a href="devices.html">gnulte-devices</a>
+      </div>
+      <div class="footer-links">
+        <h4>Learn</h4>
+        <a href="preview.html">Studio previews</a>
+        <a href="features.html">Features</a>
+        <a href="docs.html">Documentation</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="changelog.html">Changelog</a>
+      </div>
+      <div class="footer-links">
+        <h4>Project</h4>
+        <a href="download.html">Download</a>
+        <a href="built.html">Built with</a>
+        <a href="license.html">License</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/releases" target="_blank" rel="noopener">Releases</a>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <p>© 2026 <a class="nep-link" href="/">Neptune Productions</a> · GNULTE · Authorised network testing only.</p>
+    </div>
+  </footer>
+</body>
+</html>

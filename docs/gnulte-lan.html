@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="gnulte-lan — the GNULTE LAN watch. Discover what's online, identify each device and watch down/up speed, packet rate and latency live, with per-host grades and alarms. Passive — nothing is shaped.">
+  <meta name="theme-color" content="#070a11">
+  <title>gnulte-lan — GNULTE</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <input type="checkbox" id="navcheck" class="nav-check" aria-hidden="true">
+
+  <header class="topbar">
+    <label for="navcheck" class="nav-toggle" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></label>
+    <a class="brand" href="index.html" aria-label="GNULTE home">
+      <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand-name">GNULTE</span>
+    </a>
+    <div class="top-actions">
+      <span class="addon"><i></i>v13.4</span>
+      <a href="download.html" class="nav-pill">Download</a>
+    </div>
+  </header>
+
+  <div class="shell">
+  <aside class="sidenav">
+    <nav aria-label="Sections">
+      <div class="side-group">
+        <p class="side-label">Tools</p>
+        <a class="side-link" href="gnulte.html"><span class="dot d-blue"></span>gnulte</a>
+        <a class="side-link active" aria-current="page" href="gnulte-lan.html"><span class="dot d-green"></span>gnulte-lan</a>
+        <a class="side-link" href="scan.html"><span class="dot d-orange"></span>gnulte-scan</a>
+        <a class="side-link" href="wifi.html"><span class="dot d-purple"></span>gnulte-wifi</a>
+        <a class="side-link" href="devices.html"><span class="dot d-teal"></span>gnulte-devices</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Studio</p>
+        <a class="side-link" href="preview.html"><span class="dot d-studio"></span>Live previews</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Learn</p>
+        <a class="side-link" href="features.html">Features</a>
+        <a class="side-link" href="docs.html">Documentation</a>
+        <a class="side-link" href="wiki.html">Wiki</a>
+        <a class="side-link" href="changelog.html">Changelog</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Project</p>
+        <a class="side-link" href="download.html">Download</a>
+        <a class="side-link" href="built.html">Built with</a>
+        <a class="side-link" href="license.html">License</a>
+      </div>
+    </nav>
+    <div class="side-foot">GNULTE v13.4<br>Linux · GPL-3.0-or-later</div>
+  </aside>
+  <div class="page-main">
+
+  <main>
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="index.html">GNULTE</a><i>/</i><span>Tools</span><i>/</i><a href="gnulte-lan.html" aria-current="page">gnulte-lan</a>
+    </nav>
+    <section class="page-hero">
+      <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12h4l3-8 4 16 3-10 2 2h4"/></svg></div>
+      <h1>gnulte-lan</h1>
+      <p>The LAN watch — see who is online, how fast they&rsquo;re moving, and who is misbehaving. Passive: frames are counted, nothing is shaped or intercepted.</p>
+      <p class="studio-link">▶ <a href="preview.html#gnulte-lan">Watch a re-enactment in Studio</a></p>
+    </section>
+
+    <section class="body-section">
+      <div class="section-head">
+        <p class="kicker">The watch</p>
+        <h2 class="section-title">The whole network, live</h2>
+        <p class="section-sub">Run it with no target and it auto-discovers the subnet — your own host and the router are skipped. Each host gets a fixed three-line row: traffic + ping + grade up top, its identity below, and one line of figures. The layout is width-stable, so the frame never &ldquo;gets big and small&rdquo; as values change.</p>
+      </div>
+      <div class="showcase">
+        <div class="show-item">
+          <div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 10h16"/><path d="M8 13l2-3 2 4 2-2 1.5 1"/></svg></div>
+          <h3>Live rates</h3>
+          <p>Down/up speed and packet rate per host, refreshed every second, with a running history — who is saturating the network is visible at a glance.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>Health grades</h3>
+          <p>Every host is graded: <code>✓</code> stable · <code>~</code> jittery (&gt;30&nbsp;ms or loss &gt;2%) · <code>✗</code> loss ≥10% · <code>⚠</code> alarm. Defaults, or your own thresholds.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20.2 6.8a5.4 5.4 0 0 1-2 5.7A5 5 0 0 1 12 17l-9 3 3-9a5 5 0 0 1 4.5-6.6"/><path d="M8 8h.01M12 8h.01"/></svg></div>
+          <h3>Top talkers</h3>
+          <p><code>t</code> pivots to conversation view — who is talking to whom, with directional rates, so a noisy host is traced back to its peers.</p>
+        </div>
+        <div class="show-item">
+          <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3a7 7 0 0 0-7 7v6a2 2 0 0 0 2 2h2"/><path d="M12 21a7 7 0 0 0 7-7V8a2 2 0 0 0-2-2h-2"/><path d="M9 13v3 M15 13v3"/></svg></div>
+          <h3>Alarms</h3>
+          <p>Cross a rate or latency threshold (<code>--alarm-rate</code>, <code>--alarm-latency-ms</code>) and the host is flagged instantly — the launch pad for a real <code>gnulte -t</code> test.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band-shaded">
+      <div class="body-section">
+        <div class="cols">
+          <div>
+            <div class="section-head" style="text-align:left;margin-bottom:18px;">
+              <p class="kicker">Keys</p>
+              <h2 class="section-title" style="font-size:26px;">Drive it from the keyboard</h2>
+            </div>
+            <ul class="checklist">
+              <li><code>↑</code> / <code>↓</code> — move between hosts (hold to repeat, htop-style)</li>
+              <li><code>⏎</code> — detail pane for the selected host</li>
+              <li><code>s</code> — sort hosts · <code>t</code> — top talkers · <code>a</code> — alarm-only view</li>
+              <li><code>g</code> — echo the ready-made <code>gnulte -t &lt;ip&gt;</code> test command</li>
+              <li><code>o</code> — settings page · <code>h</code> — help · <code>q</code> — quit</li>
+              <li>Per-host <code>⏎</code> even shows the exact <code>gnulte -t &lt;ip&gt;</code> recipe to test that device</li>
+            </ul>
+          </div>
+          <div>
+            <div class="section-head" style="text-align:left;margin-bottom:18px;">
+              <p class="kicker">Usage</p>
+              <h2 class="section-title" style="font-size:26px;">Three ways to watch</h2>
+            </div>
+            <div class="code-block">
+<span class="cb-cmt"># watch the whole LAN (auto-discovery)</span>
+<span class="cb-pr">$</span> gnulte-lan
+<span class="cb-cmt"># one host, up close</span>
+<span class="cb-pr">$</span> gnulte-lan -t 192.168.1.20
+<span class="cb-cmt"># headless watch: 60s, CSV export, rate alarms</span>
+<span class="cb-pr">$</span> gnulte-lan --duration 60 --export watch.csv --alarm-rate 500</div>
+            <p class="dim" style="margin-top:14px;font-size:14px;">No root needed — the watch is passive. Without a raw socket it still runs, marked <code>¡ speeds-free</code>, with rates dimmed and health pings intact.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="body-section">
+      <div class="section-head">
+        <p class="kicker">Options</p>
+        <h2 class="section-title">Watching, tuned</h2>
+      </div>
+      <table class="flag-table">
+        <thead>
+          <tr><th>Flag</th><th>What it does</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>-t STRING</td><td>Host IP(s) to watch, comma-separated (empty = watch the whole LAN).</td></tr>
+          <tr><td>-i STRING</td><td>Network interface (default: auto-detect).</td></tr>
+          <tr><td>--interval N</td><td>Seconds between updates (default from settings / 1).</td></tr>
+          <tr><td>--duration N</td><td>Auto-stop after N seconds (0 = until Ctrl+C).</td></tr>
+          <tr><td>--history N</td><td>Rate / ping samples kept per host (settings / 60).</td></tr>
+          <tr><td>--alarm-rate N</td><td>Alarm hosts above N kbps.</td></tr>
+          <tr><td>--alarm-latency-ms N</td><td>Alarm hosts above N ms average ping.</td></tr>
+          <tr><td>--export FILE</td><td>Append per-tick samples as CSV to FILE.</td></tr>
+          <tr><td>--no-report</td><td>Skip the end-of-session HTML report.</td></tr>
+          <tr><td>-q</td><td>Quiet: no banner, plain transcript for logs.</td></tr>
+          <tr><td>--version</td><td>Print version and exit.</td></tr>
+        </tbody>
+      </table>
+      <p class="dim" style="margin-top:16px;font-size:14px;">Every session ends with an HTML report (per-tool folder under <code>~/GNULTE Reports</code>) unless you pass <code>--no-report</code>.</p>
+    </section>
+
+    <section class="body-section">
+      <div class="cta-band">
+        <p class="kicker" style="color:rgba(255,255,255,0.7);">Watcher tool · v13.4</p>
+        <h2>See your network breathe</h2>
+        <p>Install the suite once, then just run <code>gnulte-lan</code>.</p>
+        <div class="cta-row">
+          <a class="btn btn-light btn-big" href="download.html">Download GNULTE</a>
+          <a class="btn btn-outline-light btn-big" href="preview.html#gnulte-lan">See it in Studio</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  </div>
+</div>
+
+  <footer>
+    <div class="footer-cols">
+      <div>
+        <p style="font-weight:700;color:var(--text);margin-bottom:10px;">GNULTE</p>
+        <p style="font-size:14px;max-width:280px;">GNU LAN Network Testing Environment. Authorised network testing — scan first, ask permission first, clean up after.</p>
+        <a class="nep-link" href="/" style="font-size:13px;display:inline-block;margin-top:10px;">Neptune Productions hub</a>
+      </div>
+      <div class="footer-links">
+        <h4>Tools</h4>
+        <a href="gnulte.html">gnulte</a>
+        <a href="gnulte-lan.html">gnulte-lan</a>
+        <a href="scan.html">gnulte-scan</a>
+        <a href="wifi.html">gnulte-wifi</a>
+        <a href="devices.html">gnulte-devices</a>
+      </div>
+      <div class="footer-links">
+        <h4>Learn</h4>
+        <a href="preview.html">Studio previews</a>
+        <a href="features.html">Features</a>
+        <a href="docs.html">Documentation</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="changelog.html">Changelog</a>
+      </div>
+      <div class="footer-links">
+        <h4>Project</h4>
+        <a href="download.html">Download</a>
+        <a href="built.html">Built with</a>
+        <a href="license.html">License</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/releases" target="_blank" rel="noopener">Releases</a>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <p>© 2026 <a class="nep-link" href="/">Neptune Productions</a> · GNULTE · Authorised network testing only.</p>
+    </div>
+  </footer>
+</body>
+</html>

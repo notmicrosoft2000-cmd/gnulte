@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GNULTE Studio — faithful terminal re-enactments of gnulte, gnulte-lan, gnulte-scan, gnulte-wifi and gnulte-devices running in your browser. See every tool before you install anything.">
+  <meta name="theme-color" content="#070a11">
+  <title>Studio — GNULTE previews</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <input type="checkbox" id="navcheck" class="nav-check" aria-hidden="true">
+
+  <header class="topbar">
+    <label for="navcheck" class="nav-toggle" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></label>
+    <a class="brand" href="index.html" aria-label="GNULTE home">
+      <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand-name">GNULTE</span>
+    </a>
+    <div class="top-actions">
+      <span class="addon"><i></i>v13.4</span>
+      <a href="download.html" class="nav-pill">Download</a>
+    </div>
+  </header>
+
+  <div class="shell">
+  <aside class="sidenav">
+    <nav aria-label="Sections">
+      <div class="side-group">
+        <p class="side-label">Tools</p>
+        <a class="side-link" href="gnulte.html"><span class="dot d-blue"></span>gnulte</a>
+        <a class="side-link" href="gnulte-lan.html"><span class="dot d-green"></span>gnulte-lan</a>
+        <a class="side-link" href="scan.html"><span class="dot d-orange"></span>gnulte-scan</a>
+        <a class="side-link" href="wifi.html"><span class="dot d-purple"></span>gnulte-wifi</a>
+        <a class="side-link" href="devices.html"><span class="dot d-teal"></span>gnulte-devices</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Studio</p>
+        <a class="side-link active" aria-current="page" href="preview.html"><span class="dot d-studio"></span>Live previews</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Learn</p>
+        <a class="side-link" href="features.html">Features</a>
+        <a class="side-link" href="docs.html">Documentation</a>
+        <a class="side-link" href="wiki.html">Wiki</a>
+        <a class="side-link" href="changelog.html">Changelog</a>
+      </div>
+      <div class="side-group">
+        <p class="side-label">Project</p>
+        <a class="side-link" href="download.html">Download</a>
+        <a class="side-link" href="built.html">Built with</a>
+        <a class="side-link" href="license.html">License</a>
+      </div>
+    </nav>
+    <div class="side-foot">GNULTE v13.4<br>Linux · GPL-3.0-or-later</div>
+  </aside>
+  <div class="page-main">
+
+  <main>
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="index.html">GNULTE</a><i>/</i><span>Studio</span><i>/</i><a href="preview.html" aria-current="page">Live previews</a>
+    </nav>
+    <section class="page-hero">
+      <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M7 9h10M7 12h4"/></svg></div>
+      <h1>GNULTE Studio</h1>
+      <p>Faithful terminal re-enactments of every tool in the suite — the boot banner, the real checks, the live screens — typed out in your browser. No install, no root.</p>
+    </section>
+
+    <section class="body-section" style="max-width:980px;">
+      <div class="legal" style="margin-bottom:34px;">
+        <strong>How to read these.</strong> Every terminal below is a scripted re-enactment built from the real binaries&rsquo; banners and screens (v13.4). Values and hostnames are illustrative. Press <strong>Play</strong> on each one — they also start automatically — and <strong>4×</strong> to zip through.
+      </div>
+
+      <div class="studio-card" id="gnulte" data-studio="gnulte">
+        <div class="studio-head">
+          <h3>gnulte</h3>
+          <span class="tag">the core tester</span>
+          <div class="studio-actions">
+            <div class="speed-toggle" aria-label="Playback speed">
+              <button type="button" data-speed="1" class="on">1×</button>
+              <button type="button" data-speed="4">4×</button>
+            </div>
+            <button type="button" class="play-btn play"><span class="play-lab">▶ Play</span></button>
+          </div>
+        </div>
+        <div class="term">
+          <div class="term-bar">
+            <span class="t-r"></span><span class="t-y"></span><span class="t-g"></span>
+            <span class="term-title">sudo gnulte -t 192.168.99.13 · root@lanhost</span>
+          </div>
+          <pre class="term-body" aria-live="polite"></pre>
+        </div>
+        <div class="studio-run">
+          <span>Run it locally:</span>
+          <code>sudo gnulte -t 192.168.1.50 -l 300 -j 30</code>
+          <a class="go-page" href="gnulte.html">Full page →</a>
+        </div>
+        <p class="studio-note">The boot arc you&rsquo;ll really see: live privilege/utility checks, then a guided menu from target to conditions. <code>--duration</code> auto-stops any test.</p>
+      </div>
+
+      <div class="studio-card" id="gnulte-lan" data-studio="gnulte-lan">
+        <div class="studio-head">
+          <h3>gnulte-lan</h3>
+          <span class="tag">the LAN watch</span>
+          <div class="studio-actions">
+            <div class="speed-toggle" aria-label="Playback speed">
+              <button type="button" data-speed="1" class="on">1×</button>
+              <button type="button" data-speed="4">4×</button>
+            </div>
+            <button type="button" class="play-btn play"><span class="play-lab">▶ Play</span></button>
+          </div>
+        </div>
+        <div class="term">
+          <div class="term-bar">
+            <span class="t-r"></span><span class="t-y"></span><span class="t-g"></span>
+            <span class="term-title">gnulte-lan — watching the whole LAN</span>
+          </div>
+          <pre class="term-body" aria-live="polite"></pre>
+        </div>
+        <div class="studio-run">
+          <span>Run it locally:</span>
+          <code>gnulte-lan</code>
+          <a class="go-page" href="gnulte-lan.html">Full page →</a>
+        </div>
+        <p class="studio-note">Each host is a fixed three-line row — traffic + ping + grade, then identity, then jitter·loss·avg — so the frame never shifts. <code>g</code> hands you the ready-made <code>gnulte -t &lt;ip&gt;</code> command for an alarming host.</p>
+      </div>
+
+      <div class="studio-card" id="gnulte-scan" data-studio="gnulte-scan">
+        <div class="studio-head">
+          <h3>gnulte-scan</h3>
+          <span class="tag">the scanner</span>
+          <div class="studio-actions">
+            <div class="speed-toggle" aria-label="Playback speed">
+              <button type="button" data-speed="1" class="on">1×</button>
+              <button type="button" data-speed="4">4×</button>
+            </div>
+            <button type="button" class="play-btn play"><span class="play-lab">▶ Play</span></button>
+          </div>
+        </div>
+        <div class="term">
+          <div class="term-bar">
+            <span class="t-r"></span><span class="t-y"></span><span class="t-g"></span>
+            <span class="term-title">gnulte-scan -T — full-screen device browser</span>
+          </div>
+          <pre class="term-body" aria-live="polite"></pre>
+        </div>
+        <div class="studio-run">
+          <span>Run it locally:</span>
+          <code>gnulte-scan -T</code>
+          <a class="go-page" href="scan.html">Full page →</a>
+        </div>
+        <p class="studio-note">A parallel sweep, then a colour-coded table: vendor, type, ports and name. No root for pings and names — <code>--deep</code> adds ports, banners and an OS guess.</p>
+      </div>
+
+      <div class="studio-card" id="gnulte-wifi" data-studio="gnulte-wifi">
+        <div class="studio-head">
+          <h3>gnulte-wifi</h3>
+          <span class="tag">Wi-Fi audit</span>
+          <div class="studio-actions">
+            <div class="speed-toggle" aria-label="Playback speed">
+              <button type="button" data-speed="1" class="on">1×</button>
+              <button type="button" data-speed="4">4×</button>
+            </div>
+            <button type="button" class="play-btn play"><span class="play-lab">▶ Play</span></button>
+          </div>
+        </div>
+        <div class="term">
+          <div class="term-bar">
+            <span class="t-r"></span><span class="t-y"></span><span class="t-g"></span>
+            <span class="term-title">sudo gnulte-wifi -i wlan0mon -a 00:0c:41:63:45:6a -s aa:bb:cc:dd:ee:ff</span>
+          </div>
+          <pre class="term-body" aria-live="polite"></pre>
+        </div>
+        <div class="studio-run">
+          <span>Run it locally:</span>
+          <code>sudo gnulte-wifi -i wlan0mon -a 00:0C:41:63:45:6A -s AA:BB:CC:DD:EE:FF</code>
+          <a class="go-page" href="wifi.html">Full page →</a>
+        </div>
+        <p class="studio-note">Crafted 802.11 deauthentication frames from a monitor-mode adapter. Demo values above — authorized testing only, on networks you own.</p>
+      </div>
+
+      <div class="studio-card" id="gnulte-devices" data-studio="gnulte-devices">
+        <div class="studio-head">
+          <h3>gnulte-devices</h3>
+          <span class="tag">instant inventory</span>
+          <div class="studio-actions">
+            <div class="speed-toggle" aria-label="Playback speed">
+              <button type="button" data-speed="1" class="on">1×</button>
+              <button type="button" data-speed="4">4×</button>
+            </div>
+            <button type="button" class="play-btn play"><span class="play-lab">▶ Play</span></button>
+          </div>
+        </div>
+        <div class="term">
+          <div class="term-bar">
+            <span class="t-r"></span><span class="t-y"></span><span class="t-g"></span>
+            <span class="term-title">gnulte-devices -s — LAN inventory</span>
+          </div>
+          <pre class="term-body" aria-live="polite"></pre>
+        </div>
+        <div class="studio-run">
+          <span>Run it locally:</span>
+          <code>gnulte-devices -s</code>
+          <a class="go-page" href="devices.html">Full page →</a>
+        </div>
+        <p class="studio-note">Reads the neighbour table first — nothing leaves the machine before every known device is listed. The 33 000-prefix OUI registry names the vendors.</p>
+      </div>
+
+      <p class="center" style="margin-top:34px;"><a class="btn btn-primary btn-big" href="download.html">Install the real thing</a></p>
+    </section>
+  </main>
+  </div>
+</div>
+
+  <footer>
+    <div class="footer-cols">
+      <div>
+        <p style="font-weight:700;color:var(--text);margin-bottom:10px;">GNULTE</p>
+        <p style="font-size:14px;max-width:280px;">GNU LAN Network Testing Environment. Authorised network testing — scan first, ask permission first, clean up after.</p>
+        <a class="nep-link" href="/" style="font-size:13px;display:inline-block;margin-top:10px;">Neptune Productions hub</a>
+      </div>
+      <div class="footer-links">
+        <h4>Tools</h4>
+        <a href="gnulte.html">gnulte</a>
+        <a href="gnulte-lan.html">gnulte-lan</a>
+        <a href="scan.html">gnulte-scan</a>
+        <a href="wifi.html">gnulte-wifi</a>
+        <a href="devices.html">gnulte-devices</a>
+      </div>
+      <div class="footer-links">
+        <h4>Learn</h4>
+        <a href="preview.html">Studio previews</a>
+        <a href="features.html">Features</a>
+        <a href="docs.html">Documentation</a>
+        <a href="wiki.html">Wiki</a>
+        <a href="changelog.html">Changelog</a>
+      </div>
+      <div class="footer-links">
+        <h4>Project</h4>
+        <a href="download.html">Download</a>
+        <a href="built.html">Built with</a>
+        <a href="license.html">License</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go" target="_blank" rel="noopener">Repository</a>
+        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/releases" target="_blank" rel="noopener">Releases</a>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <p>© 2026 <a class="nep-link" href="/">Neptune Productions</a> · GNULTE · Authorised network testing only.</p>
+    </div>
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+  /* Studio screenplays — [colorClass, text, pauseAfter(ms)] per line.
+     Colors: bk=blue, dim=muted, ok=green, warn=amber, err=red, mg=magenta,
+             acc=bright blue, num=cyan, txt=default. */
+  var SCRIPTS = {
+    "gnulte": [
+      ["ok",   "[✓] Sudo access granted — running with administrator privileges.", 260],
+      ["",     "", 30],
+      ["acc",  "   GNULTE v13.4 — Initialising", 240],
+      ["dim",  "   Real checks only — every ✓ below is a live result.", 200],
+      ["",     "", 40],
+      ["txt",  "  ● Loading configuration...", 300],
+      ["dim",  "    [✓] flags + built-in defaults in use", 200],
+      ["txt",  "  ● Calibrating network interfaces...", 300],
+      ["dim",  "    [✓] interface wlan0 (192.168.99.132)", 200],
+      ["txt",  "  ● Verifying utilities...", 300],
+      ["ok",   "    [✓] arpspoof    [✓] tc    [✓] ping    [✓] arping    [✓] iptables", 260],
+      ["txt",  "  ● Preparing traffic engine...", 300],
+      ["ok",   "    [✓] ip_forward=1 (toggled only during a test)", 200],
+      ["",     "", 40],
+      ["mg",   "▸ GNULTE v13.4 ready — building your session below", 420],
+      ["",     "", 30],
+      ["txt",  "  Target setup:  type an IP by hand, or sweep the subnet?", 300],
+      ["dim",  "   1) type an IP (or hostname) manually", 120],
+      ["dim",  "   2) sweep 192.168.99.0/24 and pick from the device list", 180],
+      ["",     "", 30],
+      ["num",  "  choice [2]: ", 420],
+      ["mg",   "2", 320],
+      ["txt",  "  Sweeping 192.168.99.0/24", 300],
+      ["dim",  "    found .1 gateway · .13 pi · .15 tv · .20 camera · .25 printer · .31 iot", 320],
+      ["",     "", 30],
+      ["num",  "  target [.13]: ", 360],
+      ["mg",   "192.168.99.13", 320],
+      ["txt",  "  Conditions — latency 300ms · jitter 30ms · loss 5% · 90s", 380],
+      ["ok",   "  [✓] validated — estimated impact ≈ +350ms round-trip", 300],
+      ["dim",  "  (qdisc applied · spoof forwarding · dashboard live — Ctrl+C to stop)", 420]
+    ],
+    "gnulte-lan": [
+      ["acc",  "GNULTE-LAN v13.4 (Go) — the LAN watch", 300],
+      ["txt",  "Discovering LAN on wlan0 (192.168.99.132)…", 340],
+      ["ok",   "  found 8 hosts — router and self skipped", 280],
+      ["",     "", 40],
+      ["dim",  "  hosts up 6/8   self 192.168.99.132   gw 192.168.99.1 ↔ 8ms", 320],
+      ["",     "", 30],
+      ["num",  "  ⚠ 192.168.99.20 camera  810k down · 220k up · loss 14%   ✗ loss", 320],
+      ["dim",  "                livingroom-cam.lan · Samsung · cam", 200],
+      ["dim",  "                jitter 41ms · avg 342ms · peak 810ms", 240],
+      ["num",  "  ✓ 192.168.99.13 pi       120k down ·  34k up ·    12.4ms  ✓ ok", 320],
+      ["dim",  "                deskpi.local · Raspberry Pi Found · pi", 200],
+      ["dim",  "                jitter  2ms · avg 11.8ms · peak 24.1ms", 240],
+      ["num",  "  ~ 192.168.99.15 tv        55k down ·  12k up ·   342.2ms  ~ jitter", 340],
+      ["dim",  "                livingroom-tv.lan · Samsung · tv", 200],
+      ["dim",  "                jitter 68ms · avg 296ms · peak 657ms", 240],
+      ["",     "", 30],
+      ["ok",   "  health: 4 ok · 1 jittery · 1 loss · 1 idle", 300],
+      ["mg",   "  g — run: gnulte -t 192.168.99.20    (▲▼ browse · ⏎ detail · s sort · q quit)", 420]
+    ],
+    "gnulte-scan": [
+      ["acc",  "SCANLTE (gnulte-scan) v13.4 — side tool for GNULTE, authorized network testing only", 340],
+      ["",     "", 40],
+      ["txt",  "Sweeping 192.168.99.0/24 — 64 parallel threads", 320],
+      ["",     "", 40],
+      ["dim",  "  IP               VENDOR                TYPE       PORTS", 220],
+      ["txt",  "  192.168.99.1     TP-Link Technologies   router     53 80 443", 150],
+      ["txt",  "  192.168.99.13    Raspberry Pi Found     Pi         22", 150],
+      ["txt",  "  192.168.99.15    Apple, Inc.            phone      62078", 150],
+      ["txt",  "  192.168.99.20    Samsung Electronics    TV         8000 8080", 150],
+      ["txt",  "  192.168.99.25    Canon                  printer    515 631", 150],
+      ["txt",  "  192.168.99.31    Tuya Smart             IoT        6668", 150],
+      ["",     "", 30],
+      ["ok",   "  Found 6 hosts · 5 with open ports · 3 names resolved", 320],
+      ["dim",  "  (−T for the full-screen browser · --deep adds OS + banner guesses · q quits)", 420]
+    ],
+    "gnulte-wifi": [
+      ["ok",   "[✓] Sudo access granted — running with administrator privileges.", 260],
+      ["txt",  "gnulte-wifi v13.4 (Go) — authorized network testing only", 320],
+      ["",     "", 30],
+      ["ok",   "  [✓] interface wlan0mon — monitor mode confirmed", 260],
+      ["ok",   "  [✓] AP 00:0c:41:63:45:6a → station aa:bb:cc:dd:ee:ff", 280],
+      ["",     "", 40],
+      ["dim",  "  burst 1 → 64 deauth frames · reason 7", 320],
+      ["dim",  "  burst 2 → 64 deauth frames · reason 7 · jitter 12ms", 320],
+      ["dim",  "  burst 3 → 64 deauth frames · reason 3 · jitter  8ms", 320],
+      ["warn", "  station dropped association — retrying join ≪ 0.4s apart", 360],
+      ["",     "", 30],
+      ["mg",   "  (running until Ctrl+C · --duration 30 to auto-stop)", 380]
+    ],
+    "gnulte-devices": [
+      ["bk",   "  ══════════════════════════════════════════════════════════════", 200],
+      ["acc",  "  GNULTE DEVICES   v13.4   LAN inventory", 260],
+      ["dim",  "  authorized network testing only", 200],
+      ["bk",   "  ══════════════════════════════════════════════════════════════", 200],
+      ["",     "", 40],
+      ["dim",  "  IP             VENDOR              TYPE      HOSTNAME", 220],
+      ["txt",  "  192.168.99.1   TP-Link Technologies  router    router.lan", 130],
+      ["txt",  "  192.168.99.13  Raspberry Pi Found    Pi        deskpi.local", 130],
+      ["txt",  "  192.168.99.15  Apple, Inc.           phone     mikes-iphone.local", 130],
+      ["txt",  "  192.168.99.20  Samsung Electronics   TV        livingroom-tv.lan", 130],
+      ["txt",  "  192.168.99.25  Canon                 printer   canon-mg3600.lan", 130],
+      ["txt",  "  192.168.99.31  Tuya Smart            IoT       bulb-2.lan", 130],
+      ["",     "", 30],
+      ["ok",   "  6 devices · 0 sweeps · 33 000-prefix OUI registry", 340],
+      ["dim",  "  (json -j · yaml -y · csv -c · html -H — same data, any shape)", 400]
+    ]
+  };
+
+  var CHAR_MS = 7;
+  var LINE_MS = 80;
+
+  function each(cards, fn) {
+    for (var i = 0; i < cards.length; i++) fn(cards[i]);
+  }
+
+  function play(card) {
+    if (card.dataset.playing === "1") { return; }
+    var body = card.querySelector(".term-body");
+    var script = SCRIPTS[card.dataset.studio];
+    if (!script) return;
+    body.innerHTML = "";
+    var li = 0, alive = true;
+    var token = {};
+    card._token = token;
+    card.dataset.playing = "1";
+    var btn = card.querySelector(".play .play-lab");
+    btn.textContent = "Pause";
+
+    var cur = document.createElement("span");
+    cur.className = "t-cur";
+    body.appendChild(cur);
+
+    function after(fn, ms) { setTimeout(fn, Math.max(8, ms)); }
+
+    function nextLine(firstCharDelay) {
+      if (!alive || card._token !== token) return;
+      if (li >= script.length) {
+        card.dataset.playing = "0";
+        btn.textContent = "↻ Replay";
+        return;
+      }
+      var rule = script[li];
+      var span = document.createElement("span");
+      if (rule[0]) span.className = "t-" + rule[0];
+      body.insertBefore(span, cur);
+      var idx = 0;
+      function type() {
+        if (!alive || card._token !== token) return;
+        if (idx >= rule[1].length) {
+          body.insertBefore(document.createTextNode("\n"), cur);
+          li++;
+          var speed = Number(card.dataset.speed || "1");
+          var pause = Math.max(40, (rule[2] != null ? rule[2] : LINE_MS) / speed);
+          after(nextLine, pause);
+          if (body.scrollHeight > body.clientHeight + 4) body.scrollTop = body.scrollHeight;
+          return;
+        }
+        var cp = rule[1].codePointAt(idx);
+        span.textContent += String.fromCodePoint(cp);
+        idx += cp > 0xFFFF ? 2 : 1;
+        var spd = Number(card.dataset.speed || "1");
+        after(type, CHAR_MS / spd);
+      }
+      after(type, firstCharDelay);
+    }
+    nextLine(60);
+  }
+
+  function stop(card) {
+    card._token = {}; // invalidate any in-flight typing timers
+    var btn = card.querySelector(".play .play-lab");
+    btn.textContent = "▶ Play";
+    card.dataset.playing = "0";
+  }
+
+  each(document.querySelectorAll(".studio-card"), function (card) {
+    var playBtn = card.querySelector(".play");
+    playBtn.addEventListener("click", function () {
+      if (card.dataset.playing === "1") { stop(card); return; }
+      play(card);
+    });
+    each(card.querySelectorAll(".speed-toggle button"), function (b) {
+      b.addEventListener("click", function () {
+        card.dataset.speed = b.dataset.speed;
+        each(card.querySelectorAll(".speed-toggle button"), function (o) {
+          o.classList.toggle("on", o === b);
+        });
+      });
+    });
+  });
+
+  /* auto-play every terminal, slightly staggered */
+  var cards = document.querySelectorAll(".studio-card");
+  for (var c = 0; c < cards.length; c++) {
+    (function (card, delay) {
+      setTimeout(function () { play(card); }, 500 + delay);
+    })(cards[c], c * 700);
+  }
+})();
+</script>
+</body>
+</html>
