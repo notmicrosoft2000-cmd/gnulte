@@ -19,7 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v13.1</span>
+    <span class="addon"><i></i>v13.2</span>
         <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html" aria-current="page">Documentation</a>
@@ -124,8 +124,8 @@
           <div class="card-body">Instant ARP/neighbour inventory — vendors, mDNS names, type guesses, HTML reports. Add <code>-s</code> to sweep the subnet in parallel too.</div>
         </article>
         <article class="card tile-card">
-          <div class="card-head"><div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h3l2-6 4 12 3-9 1.5 3H21"/></svg></div><h3>gnulte-traffic</h3></div>
-          <div class="card-body">Live per-second latency + jitter + loss to one or several targets — a lightweight companion to the full shaping engine.</div>
+          <div class="card-head"><div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h3l2-6 4 12 3-9 1.5 3H21"/></svg></div><h3><a href="wiki.html#gnulte-lan">gnulte-lan</a></h3></div>
+          <div class="card-body">Live LAN watch: discovers the whole subnet (router skipped), then repaints per-host down/up speed, packet rate and latency every second with device identity — MAC, vendor, type, hostname. Tracks who talks to whom (top talkers), raises lightweight alarms when a host crosses a rate or latency threshold, streams per-tick CSV, and files a polished HTML report into <code>~/GNULTE Reports</code>.</div>
         </article>
       </div>
     </section>

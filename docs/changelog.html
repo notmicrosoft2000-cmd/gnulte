@@ -19,7 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v13.1</span>
+    <span class="addon"><i></i>v13.2</span>
         <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
@@ -43,8 +43,26 @@
 
         <div class="cl-entry">
           <div class="cl-ver">
-            <h3>v13.1</h3>
+            <h3>v13.2</h3>
             <span class="cl-tag">Latest</span>
+            <span class="cl-date">28 Sep 2026 &middot; <code>0944a3a</code></span>
+          </div>
+          <ul>
+            <li><strong>GNULTE-LAN</strong> — <code>gnulte-traffic</code> is renamed <code>gnulte-lan</code> and grows into a full live LAN watch: per-host down/up speed, packet rate and latency, refreshed every interval.</li>
+            <li><strong>Auto-discovery</strong> — with no <code>-t</code>, <code>gnulte-lan</code> sweeps the subnet in seconds and watches every live host, merging ARP-table neighbours so ping-silent devices still appear — while always skipping your own machine and the gateway.</li>
+            <li><strong>Identity layer</strong> — each watched host is labelled with MAC, vendor (embedded OUI), device type and hostname from the ARP+neighbour table and mDNS.</li>
+            <li><strong>Top talkers</strong> — a passive per-interval flow engine (AF_PACKET, TCP/UDP port parsing) shows which endpoints are exchanging the most bytes and packets, bolded when a watched host is involved.</li>
+            <li><strong>Lightweight alarms</strong> — rate (kbps) and latency (ms) thresholds, set in the settings editor or via <code>--alarm-rate</code>/<code>--alarm-latency-ms</code>; one beep per tick and a <code>⚠</code> marker on offending hosts. Zero disables.</li>
+            <li><strong>CSV export</strong> — <code>--export file.csv</code> appends a row per host per tick (rates, packets, RTT, loss).</li>
+            <li><strong>HTML report</strong> — the session report gains per-host cards with rate + latency sparklines, each host's top-5 conversations, and a global top-talkers table.</li>
+            <li><strong>Speeds-free fallback</strong> — without root the packet counter degrades gracefully (window warns once) and latency/identity/talkers still run.</li>
+            <li>Version 13.2 across all five binaries.</li>
+          </ul>
+        </div>
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v13.1</h3>
             <span class="cl-date">28 Sep 2026 &middot; <code>89de846</code></span>
           </div>
           <ul>
@@ -74,7 +92,7 @@
             <li><strong>Clean exits</strong> — sessions always tear down sessions (<code>defer</code>-based stop), so spoofs and shapers are restored even on nested returns.</li>
             <li><strong>SCANLTE</strong> — gnulte-scan gets the rebrand: ASCII block logo and &ldquo;side tool for GNULTE&rdquo; tagline.</li>
             <li><strong>Avahi-style service discovery</strong> — <code>gnulte-scan</code> asks the LAN's mDNS/DNS-SD responders (single two-phase PTR&rarr;SRV/A exchange) what each device offers: airplay, chromecast, homekit, matter, ssh, printer, scanner, vnc and more. Advertised services appear in a SERVICES column, the interactive detail pane and filter, JSON/YAML/CSV exports, and the scan summary.</li>
-            <li><strong>Ping history per host</strong> — the monitor dashboard and <code>gnulte-traffic</code> keep a rolling latency window per target, with a block sparkline under each live traffic row (last RTT, average, loss). Depth is configurable (ping history depth, 10&ndash;240).</li>
+            <li><strong>Ping history per host</strong> — the monitor dashboard and <code>gnulte-lan</code> (then <code>gnulte-traffic</code>) keep a rolling latency window per target, with a block sparkline under each live traffic row (last RTT, average, loss). Depth is configurable (ping history depth, 10&ndash;240).</li>
             <li><strong>Settings that scale</strong> — the settings TUI adapts to wider terminals (up to ~96 columns) and regroups every option under dim section headers (Network &amp; Monitor, Scanlte Scan, Traffic Engine, GNULTE-WIFI, Terminal &amp; UI), with <code>g</code>/<code>G</code> first/last keys and header-skipping navigation.</li>
             <li><strong>Advanced mode</strong> — a settings toggle controls whether gnulte echoes the exact command line for every tc/arpspoof/sysctl step as it runs; the HTML report transcript records them either way.</li>
             <li><strong>Typing animation</strong> — on live terminals the interactive confirmation is typed out character by character (instant when piped or quiet).</li>
@@ -139,7 +157,7 @@
             <li>Terminal-size adaptive console, full-log HTML reports, ICMP/TCP connectivity probe.</li>
             <li>In-Go <strong>port scanner</strong>, arrow-key target selection, per-host traffic counters.</li>
             <li>Targeted <strong>802.11 deauthentication</strong> for Wi-Fi testing (<code>gnulte-wifi</code>).</li>
-            <li>Full-screen settings editor, flicker-free dashboard, <code>gnulte-traffic</code> viewer.</li>
+            <li>Full-screen settings editor, flicker-free dashboard, <code>gnulte-lan</code> (then <code>gnulte-traffic</code>) viewer.</li>
             <li>CLI audit fixes; version 10.0.</li>
           </ul>
         </div>

@@ -19,7 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v13.1</span>
+    <span class="addon"><i></i>v13.2</span>
         <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
@@ -81,7 +81,7 @@
           <h3>Check it works</h3>
           <div class="code-block" style="margin-top:10px;">
 <span class="cb-pr">$</span> gnulte --version</div>
-          <p>Should print <code>GNULTE v13.1</code>. The other four tools are now on your PATH too: <code>gnulte-scan</code>, <code>gnulte-wifi</code>, <code>gnulte-traffic</code>, <code>gnulte-devices</code>.</p>
+          <p>Should print <code>GNULTE v13.2</code>. The other four tools are now on your PATH too: <code>gnulte-scan</code>, <code>gnulte-wifi</code>, <code>gnulte-lan</code>, <code>gnulte-devices</code>.</p>
         </div>
       </div>
 
@@ -91,7 +91,7 @@
           <h3>What you end up with</h3>
         </div>
         <ul class="checklist">
-          <li>Five binaries in <code>/usr/local/bin</code>: <code>gnulte</code>, <code>gnulte-scan</code>, <code>gnulte-devices</code>, <code>gnulte-traffic</code>, <code>gnulte-wifi</code></li>
+          <li>Five binaries in <code>/usr/local/bin</code>: <code>gnulte</code>, <code>gnulte-scan</code>, <code>gnulte-devices</code>, <code>gnulte-lan</code>, <code>gnulte-wifi</code></li>
           <li>Safety documentation and the license under <code>/usr/local/share/doc/gnulte-go/</code></li>
           <li>Nothing is registered as a service or daemon — GNULTE only runs when you start it</li>
           <li>First launch shows the safety documents and asks you to acknowledge them</li>
@@ -131,7 +131,7 @@
           <p class="dim" style="margin-top:8px;margin-bottom:12px;font-size:14px;">Compiles the five binaries into the repo folder — no root, nothing installed. Tests and vet run first.</p>
           <div class="code-block">
 <span class="cb-pr">$</span> ./build.sh
-<span class="cb-cmt"># writes ./gnulte ./gnulte-scan ./gnulte-wifi ./gnulte-traffic ./gnulte-devices</span></div>
+<span class="cb-cmt"># writes ./gnulte ./gnulte-scan ./gnulte-wifi ./gnulte-lan ./gnulte-devices</span></div>
           <p class="dim" style="margin-top:10px;font-size:14px;">Needs a working Go toolchain; the script prefers <code>~/.local/bin/go</code> if present, otherwise the system Go.</p>
         </div>
         <div>
