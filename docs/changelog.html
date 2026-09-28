@@ -19,7 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v13.0</span>
+    <span class="addon"><i></i>v13.1</span>
         <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
@@ -43,8 +43,24 @@
 
         <div class="cl-entry">
           <div class="cl-ver">
-            <h3>v13.0</h3>
+            <h3>v13.1</h3>
             <span class="cl-tag">Latest</span>
+            <span class="cl-date">28 Sep 2026 &middot; <code>89de846</code></span>
+          </div>
+          <ul>
+            <li><strong>Smarter target setup</strong> — before gnulte sweeps the whole subnet it now asks whether you'd rather type an IP (or hostname) by hand; one keypress skips the sweep and the device table entirely.</li>
+            <li><strong>Router-safe ranges</strong> — <code>-r</code> sweeps and the guided &ldquo;all devices&rdquo; pick never target the gateway (shaping the router would cut your own uplink). It stays selectable by number when you really mean it.</li>
+            <li><strong>Device-ID guidance</strong> — the device table now points at gnulte-scan (SCANLTE) for deeper identification: vendors, device types, mDNS/DNS-SD services and port scans.</li>
+            <li><strong>Enter = manual</strong> — the profile picker is a numbered grid and a bare Enter selects manual configuration, so you never have to type a profile name to skip the presets.</li>
+            <li><strong>Twice the profiles</strong> — six new presets join the lineup: satellite, cellular, dialup, congested, bufferbloat and nightmare.</li>
+            <li><strong>Polished session report</strong> — the SVG report is renamed <code>gnulte-go-scan-report-&lt;date&gt;-&lt;time&gt;-&lt;count&gt;.html</code> and redone: UP / DEGRADED / UNSTABLE status pills, a sorted target-summary table, and per-target cards with area-filled latency timelines, timeout markers and headline stats, above the full command history.</li>
+            <li>Version 13.1 across all five binaries.</li>
+          </ul>
+        </div>
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v13.0</h3>
             <span class="cl-date">27 Sep 2026 &middot; <code>2642181</code></span>
           </div>
           <ul>
