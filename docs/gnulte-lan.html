@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="gnulte-lan — the GNULTE LAN watch. Discover what's online, identify each device and watch down/up speed, packet rate and latency live, with per-host grades and alarms. Passive — nothing is shaped.">
+  <meta name="description" content="gnulte-lan — the GNULTE LAN watch. Discover what's online, identify each device and watch down/up speed, packet rate and latency live in a four-screen console: hosts, talkers, flows and neighbours, with per-IP colours and alarms. Passive — nothing is shaped.">
   <meta name="theme-color" content="#070a11">
   <title>gnulte-lan — GNULTE</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.4</span>
+      <span class="addon"><i></i>v13.5</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
         <a class="side-link" href="license.html">License</a>
       </div>
     </nav>
-    <div class="side-foot">GNULTE v13.4<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -76,7 +76,7 @@
       <div class="section-head">
         <p class="kicker">The watch</p>
         <h2 class="section-title">The whole network, live</h2>
-        <p class="section-sub">Run it with no target and it auto-discovers the subnet — your own host and the router are skipped. Each host gets a fixed three-line row: traffic + ping + grade up top, its identity below, and one line of figures. The layout is width-stable, so the frame never &ldquo;gets big and small&rdquo; as values change.</p>
+        <p class="section-sub">Run it with no target and it auto-discovers the subnet — your own host and the router are skipped. It is a four-screen console: <b>1 hosts</b> (the dashboard), <b>2 talkers</b> (ranked, with bars and peers), <b>3 flows</b> (per-pair conversations) and <b>4 neighbours</b> (the live ARP table). Rows shape themselves to your terminal — compact two-line blocks, the standard three-line block, or a four-line <code>MORE</code> variant with p50/p95 latency and session totals at 116+ columns — and the layout is stable per size, so the frame never &ldquo;gets big and small&rdquo; as values change. Every IP keeps one stable colour across every screen, so you can follow a device by hue alone.</p>
       </div>
       <div class="showcase">
         <div class="show-item">
@@ -90,14 +90,14 @@
           <p>Every host is graded: <code>✓</code> stable · <code>~</code> jittery (&gt;30&nbsp;ms or loss &gt;2%) · <code>✗</code> loss ≥10% · <code>⚠</code> alarm. Defaults, or your own thresholds.</p>
         </div>
         <div class="show-item">
-          <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20.2 6.8a5.4 5.4 0 0 1-2 5.7A5 5 0 0 1 12 17l-9 3 3-9a5 5 0 0 1 4.5-6.6"/><path d="M8 8h.01M12 8h.01"/></svg></div>
-          <h3>Top talkers</h3>
-          <p><code>t</code> pivots to conversation view — who is talking to whom, with directional rates, so a noisy host is traced back to its peers.</p>
+          <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 10h16"/><path d="M8 13l3-4 3 3 3-5"/></svg></div>
+          <h3>Four screens</h3>
+          <p><code>1</code> hosts · <code>2</code> talkers (ranked ↓/↑ with bars and peers) · <code>3</code> flows (A ⇄ B pairs, root socket) · <code>4</code> neighbours (ARP). Switch with the number keys, or <code>t</code>/<code>f</code>/<code>n</code>.</p>
         </div>
         <div class="show-item">
-          <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3a7 7 0 0 0-7 7v6a2 2 0 0 0 2 2h2"/><path d="M12 21a7 7 0 0 0 7-7V8a2 2 0 0 0-2-2h-2"/><path d="M9 13v3 M15 13v3"/></svg></div>
-          <h3>Alarms</h3>
-          <p>Cross a rate or latency threshold (<code>--alarm-rate</code>, <code>--alarm-latency-ms</code>) and the host is flagged instantly — the launch pad for a real <code>gnulte -t</code> test.</p>
+          <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>One colour per IP</h3>
+          <p>Stable per-host hues across hosts, talkers, flows, ARP and the detail pane — red stays reserved for alarms, so finding a busy device by colour is instant.</p>
         </div>
       </div>
     </section>
@@ -112,11 +112,11 @@
             </div>
             <ul class="checklist">
               <li><code>↑</code> / <code>↓</code> — move between hosts (hold to repeat, htop-style)</li>
-              <li><code>⏎</code> — detail pane for the selected host</li>
-              <li><code>s</code> — sort hosts · <code>t</code> — top talkers · <code>a</code> — alarm-only view</li>
-              <li><code>g</code> — echo the ready-made <code>gnulte -t &lt;ip&gt;</code> test command</li>
-              <li><code>o</code> — settings page · <code>h</code> — help · <code>q</code> — quit</li>
-              <li>Per-host <code>⏎</code> even shows the exact <code>gnulte -t &lt;ip&gt;</code> recipe to test that device</li>
+              <li><code>⏎</code> — detail pane for the selected host (p50/p95, net share, flows)</li>
+              <li><code>1</code>–<code>4</code> — switch screens: hosts · talkers · flows · neighbours (<code>t</code>/<code>f</code>/<code>n</code> too)</li>
+              <li><code>s</code> — sort hosts · <code>a</code> — alarm-only view · <code>g</code> — echo the <code>gnulte -t &lt;ip&gt;</code> command</li>
+              <li><code>o</code> — settings page · <code>h</code> — help · <code>Esc</code> — close pane / back to hosts · <code>q</code> — quit</li>
+              <li>On a wide terminal every row grows a fourth <code>MORE</code> line: session and peak averages, lifetime bytes, p50/p95 latency</li>
             </ul>
           </div>
           <div>
@@ -131,7 +131,7 @@
 <span class="cb-pr">$</span> gnulte-lan -t 192.168.1.20
 <span class="cb-cmt"># headless watch: 60s, CSV export, rate alarms</span>
 <span class="cb-pr">$</span> gnulte-lan --duration 60 --export watch.csv --alarm-rate 500</div>
-            <p class="dim" style="margin-top:14px;font-size:14px;">No root needed — the watch is passive. Without a raw socket it still runs, marked <code>¡ speeds-free</code>, with rates dimmed and health pings intact.</p>
+            <p class="dim" style="margin-top:14px;font-size:14px;">The watch is passive and needs no root to show latency, identity and alarms. Run it with the capture socket (<code>sudo gnulte-lan</code> — it auto-elevates) and screens 2–3 and the header gain byte-accurate talkers, per-pair flows and net rates; without it they degrade to a polite <code>¡ speeds-free</code> note and the FLOWS screen explains the root requirement instead of guessing.</p>
           </div>
         </div>
       </div>
@@ -165,7 +165,7 @@
 
     <section class="body-section">
       <div class="cta-band">
-        <p class="kicker" style="color:rgba(255,255,255,0.7);">Watcher tool · v13.4</p>
+        <p class="kicker" style="color:rgba(255,255,255,0.7);">Watcher tool · v13.5</p>
         <h2>See your network breathe</h2>
         <p>Install the suite once, then just run <code>gnulte-lan</code>.</p>
         <div class="cta-row">

@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.4</span>
+      <span class="addon"><i></i>v13.5</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
           <a class="side-link" href="license.html">License</a>
         </div>
     </nav>
-    <div class="side-foot">GNULTE v13.4<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -117,7 +117,7 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h4l2-7 4 14 3-9 1.5 3H21"/></svg></div>
             <h3>Live LAN watch</h3>
           </div>
-          <div class="card-body"><code>gnulte-lan</code> is a full interactive watch: with no <code>-t</code> it discovers the subnet in seconds, opens its GNULTE-LAN banner, and repaints the LAN every interval — per-host down/up speed, packet rate and latency, each row labelled with MAC, vendor, device type and hostname. Every host is a fixed three-line block (traffic+latency, identity, session health), so the screen stays steady while you watch; each row carries a health grade (<code>✓</code> stable, <code>~</code> jittery, <code>✗</code> flaky, <code>⚠</code> alarming) plus jitter and loss, so picking a good GNULTE test target is a glance away. <code>↑</code>/<code>↓</code> move the cursor (hold to scroll fast), <code>⏎</code> opens a per-host detail pane that ends with <code>test with: gnulte -t &lt;ip&gt;</code>, and <code>g</code> echoes that command under the footer. <code>s</code> re-sorts by traffic/latency/address, <code>a</code> filters to alarming hosts, <code>o</code> edits settings live; the header adds a hosts-up count and the gateway's live RTT. Top talkers reveal who's exchanging the most bytes; lightweight rate/latency alarms flag problem hosts; <code>--export</code> streams per-tick CSV and the session files an HTML report with per-host sparklines. Runs speeds-free without root.</div>
+          <div class="card-body"><code>gnulte-lan</code> is a full interactive console: with no <code>-t</code> it discovers the subnet in seconds, opens its GNULTE-LAN banner, and repaints the LAN every interval — per-host down/up speed, packet rate and latency, each row labelled with MAC, vendor, device type and hostname. It is now a four-screen console, switched with <code>1–4</code> (or <code>t</code>/<code>f</code>/<code>n</code>): <b>1 hosts</b> — the dashboard, every host a fixed-shape block (traffic+latency, identity, session health) that never jumps between ticks, with a one-glyph grade (<code>✓</code> stable, <code>~</code> jittery, <code>✗</code> flaky, <code>⚠</code> alarming); <b>2 talkers</b> — every host ranked by combined rate with down/up scale bars, peer counts, and a communicators block for LAN-internal pairs; <b>3 flows</b> — the A ⇄ B conversation table with per-direction rates and a <code>⟷LAN</code> tag, gated behind the root capture socket with an explicit <code>sudo gnulte-lan</code> hint; <b>4 neighbours</b> — the live ARP table (IP, MAC, vendor, type, hostname, ping) including the router. Every IP keeps one stable colour across all screens so you can follow a device by hue; rows scale with terminal width (compact, normal, a 4-line <code>MORE</code> variant at 116+ columns with p50/p95 and session totals). The header adds a hosts-up count, the gateway's live RTT and the LAN-wide net rate. <code>↑</code>/<code>↓</code> move the cursor (hold to scroll fast), <code>⏎</code> opens a detail pane that ends with <code>test with: gnulte -t &lt;ip&gt;</code> and <code>g</code> echoes it under the footer; <code>s</code> re-sorts, <code>a</code> filters to alarming hosts, <code>o</code> edits settings live, <code>Esc</code> peels panes/screens before quitting. Lightweight rate/latency alarms flag problem hosts; <code>--export</code> streams per-tick CSV and the session files an HTML report with per-host sparklines. Runs speeds-free without root; root unlocks flows, byte-accurate talkers and net rates.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">

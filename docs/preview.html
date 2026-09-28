@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.4</span>
+      <span class="addon"><i></i>v13.5</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
         <a class="side-link" href="license.html">License</a>
       </div>
     </nav>
-    <div class="side-foot">GNULTE v13.4<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -73,7 +73,7 @@
 
     <section class="body-section" style="max-width:980px;">
       <div class="legal" style="margin-bottom:34px;">
-        <strong>How to read these.</strong> Every terminal below is a scripted re-enactment built from the real binaries&rsquo; banners and screens (v13.4). Values and hostnames are illustrative. Press <strong>Play</strong> on each one — they also start automatically — and <strong>4×</strong> to zip through.
+        <strong>How to read these.</strong> Every terminal below is a scripted re-enactment built from the real binaries&rsquo; banners and screens (v13.5). Values and hostnames are illustrative. Press <strong>Play</strong> on each one — they also start automatically — and <strong>4×</strong> to zip through.
       </div>
 
       <div class="studio-card" id="gnulte" data-studio="gnulte">
@@ -264,7 +264,7 @@
     "gnulte": [
       ["ok",   "[✓] Sudo access granted — running with administrator privileges.", 260],
       ["",     "", 30],
-      ["acc",  "   GNULTE v13.4 — Initialising", 240],
+      ["acc",  "   GNULTE v13.5 — Initialising", 240],
       ["dim",  "   Real checks only — every ✓ below is a live result.", 200],
       ["",     "", 40],
       ["txt",  "  ● Loading configuration...", 300],
@@ -276,7 +276,7 @@
       ["txt",  "  ● Preparing traffic engine...", 300],
       ["ok",   "    [✓] ip_forward=1 (toggled only during a test)", 200],
       ["",     "", 40],
-      ["mg",   "▸ GNULTE v13.4 ready — building your session below", 420],
+      ["mg",   "▸ GNULTE v13.5 ready — building your session below", 420],
       ["",     "", 30],
       ["txt",  "  Target setup:  type an IP by hand, or sweep the subnet?", 300],
       ["dim",  "   1) type an IP (or hostname) manually", 120],
@@ -294,27 +294,23 @@
       ["dim",  "  (qdisc applied · spoof forwarding · dashboard live — Ctrl+C to stop)", 420]
     ],
     "gnulte-lan": [
-      ["acc",  "GNULTE-LAN v13.4 (Go) — the LAN watch", 300],
+      ["acc",  "GNULTE-LAN v13.5 (Go) — the LAN watch", 300],
       ["txt",  "Discovering LAN on wlan0 (192.168.99.132)…", 340],
       ["ok",   "  found 8 hosts — router and self skipped", 280],
       ["",     "", 40],
-      ["dim",  "  hosts up 6/8   self 192.168.99.132   gw 192.168.99.1 ↔ 8ms", 320],
+      ["dim",  "  LIVE LAN WATCH · HOSTS   every 1s · 8 hosts · sort traffic · 6 up · net ↓ 1.2MB/s · ↑ 310KB/s", 340],
+      ["dim",  "  self 192.168.99.132   gw 192.168.99.1 ↔ 8ms", 280],
       ["",     "", 30],
-      ["num",  "  ⚠ 192.168.99.20 camera  810k down · 220k up · loss 14%   ✗ loss", 320],
-      ["dim",  "                livingroom-cam.lan · Samsung · cam", 200],
-      ["dim",  "                jitter 41ms · avg 342ms · peak 810ms", 240],
-      ["num",  "  ✓ 192.168.99.13 pi       120k down ·  34k up ·    12.4ms  ✓ ok", 320],
-      ["dim",  "                deskpi.local · Raspberry Pi Found · pi", 200],
-      ["dim",  "                jitter  2ms · avg 11.8ms · peak 24.1ms", 240],
-      ["num",  "  ~ 192.168.99.15 tv        55k down ·  12k up ·   342.2ms  ~ jitter", 340],
-      ["dim",  "                livingroom-tv.lan · Samsung · tv", 200],
-      ["dim",  "                jitter 68ms · avg 296ms · peak 657ms", 240],
-      ["",     "", 30],
-      ["ok",   "  health: 4 ok · 1 jittery · 1 loss · 1 idle", 300],
-      ["mg",   "  g — run: gnulte -t 192.168.99.20    (▲▼ browse · ⏎ detail · s sort · q quit)", 420]
+      ["num",  "  ⚠ 192.168.99.20 camera  810k ↓ · 220k ↑ · loss 14%   ✗ loss", 320],
+      ["dim",  "      · livingroom-cam.lan · Samsung · cam", 200],
+      ["dim",  "      · jitter 41ms · avg 342ms · p50 318ms · p95 402ms", 240],
+      ["ok",   "  2 talkers — 1st .20 cam ▇▇▇▆ ↓ 2.1MB/s peers 4 · 2nd .13 pi ▂▁ ↑ 480KB/s", 340],
+      ["ok",   "  4 neighbours — .1 router · .13 pi · .15 tv · .20 cam · .25 printer · .31 iot", 340],
+      ["ok",   "  3 flows (sudo) — .20 ⇄ 151.101.1.69   A→B 810KB/s · B→A 220KB/s  ⟷.13 ⇄ .15 LAN", 360],
+      ["mg",   "  ▲▼ browse · ⏎ detail · s sort · a alarm-only · 1-4 screens · g test cmd · q quit", 420]
     ],
     "gnulte-scan": [
-      ["acc",  "SCANLTE (gnulte-scan) v13.4 — side tool for GNULTE, authorized network testing only", 340],
+      ["acc",  "SCANLTE (gnulte-scan) v13.5 — side tool for GNULTE, authorized network testing only", 340],
       ["",     "", 40],
       ["txt",  "Sweeping 192.168.99.0/24 — 64 parallel threads", 320],
       ["",     "", 40],
@@ -331,7 +327,7 @@
     ],
     "gnulte-wifi": [
       ["ok",   "[✓] Sudo access granted — running with administrator privileges.", 260],
-      ["txt",  "gnulte-wifi v13.4 (Go) — authorized network testing only", 320],
+      ["txt",  "gnulte-wifi v13.5 (Go) — authorized network testing only", 320],
       ["",     "", 30],
       ["ok",   "  [✓] interface wlan0mon — monitor mode confirmed", 260],
       ["ok",   "  [✓] AP 00:0c:41:63:45:6a → station aa:bb:cc:dd:ee:ff", 280],
@@ -345,7 +341,7 @@
     ],
     "gnulte-devices": [
       ["bk",   "  ══════════════════════════════════════════════════════════════", 200],
-      ["acc",  "  GNULTE DEVICES   v13.4   LAN inventory", 260],
+      ["acc",  "  GNULTE DEVICES   v13.5   LAN inventory", 260],
       ["dim",  "  authorized network testing only", 200],
       ["bk",   "  ══════════════════════════════════════════════════════════════", 200],
       ["",     "", 40],

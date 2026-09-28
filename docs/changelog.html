@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.4</span>
+      <span class="addon"><i></i>v13.5</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
           <a class="side-link" href="license.html">License</a>
         </div>
     </nav>
-    <div class="side-foot">GNULTE v13.4<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -73,6 +73,23 @@
 
     <section class="body-section">
       <div class="changelog">
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v13.5</h3>
+            <span class="cl-tag">Latest</span>
+            <span class="cl-date">28 Sep 2026</span>
+          </div>
+          <ul>
+            <li><strong>Four-screen console</strong> — the watch is now a real interactive console with <code>↑↓</code> host navigation and screen switching: <code>1</code> hosts (the live dashboard), <code>2</code> talkers (every host ranked by combined rate with down/up scale bars, peer counts, and a communicators block for LAN-internal pairs), <code>3</code> flows (the per-conversation table A ⇄ B with per-direction rates and a <code>⟷LAN</code> tag for pairs that never leave the subnet), and <code>4</code> neighbours (the live ARP table: IP, MAC, vendor, device type, hostname and live ping for every device on the link, router included). Letter aliases <code>t</code>/<code>f</code>/<code>n</code> switch the same screens.</li>
+            <li><strong>Sudo-gated sections</strong> — FLOWS needs the raw capture socket, so a speeds-free run explains itself instead of guessing: <code>⛔ needs the capture socket (root)</code> with the exact <code>sudo gnulte-lan</code> remedy. Screen 2's byte ranking and screen 3's pairs are the root-only view; latency, identity and alarms always keep working.</li>
+            <li><strong>One colour per IP</strong> — every host is assigned a stable hue in appearance order (red stays reserved for alarms), and that colour travels through the hosts, talkers, flows, ARP and detail panes — follow a device across the whole console by colour alone.</li>
+            <li><strong>Scaled TUI, stable per run</strong> — rows adapt to terminal width: a compact two-line block below 78 columns, the familiar three-line block at normal sizes, and a four-line &ldquo;MORE&rdquo; variant at 116+ columns that adds p50/p95 latency and a per-host session line (session/peak averages, lifetime bytes). Height only changes on a real resize, then holds.</li>
+            <li><strong>More information</strong> — the header now shows the LAN-wide net rate (<code>net ↓ x · ↑ y</code>) on every tick; the detail pane gains p50/p95 latency, the host's share of the net, and stays one keystroke (<code>⏎</code>/<code>Tab</code>) away; <code>Esc</code> peels layers (close pane → back to hosts → quit).</li>
+            <li><strong>Root socket required and wanted</strong> — run plain for the passive watch, or with <code>sudo gnulte-lan</code> for byte-accurate flows, talkers and net rates (the watch auto-elevates via sudo).</li>
+            <li>Version 13.5 across all five binaries.</li>
+          </ul>
+        </div>
 
         <div class="cl-entry">
           <div class="cl-ver">
