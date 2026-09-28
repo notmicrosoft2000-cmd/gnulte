@@ -56,7 +56,7 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 12l5-5"/><circle cx="8" cy="8" r="1.4" fill="currentColor" stroke="none"/><circle cx="17" cy="16" r="1.4" fill="currentColor" stroke="none"/></svg></div>
             <h3>Flexible targeting</h3>
           </div>
-          <div class="card-body">Select one IP, several IPs, an entire subnet, or resolve a target from its MAC address, hostname or <code>.local</code> name. Filter by device type (<code>--device-type</code>) or vendor (<code>--vendor</code>). Whitelist your own devices and range tests skip them automatically.</div>
+          <div class="card-body">Select one IP, several IPs, an entire subnet, or resolve a target from its MAC address, hostname or <code>.local</code> name. Filter by device type (<code>--device-type</code>) or vendor (<code>--vendor</code>). Whitelist your own devices and range tests skip them automatically. In the guided flow you're asked first whether you'd rather type an IP by hand, and range sweeps and the &ldquo;all devices&rdquo; pick always leave the router out of it (it's your way in and out, not a test target).</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">
@@ -91,7 +91,7 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6a2 2 0 0 1 2-2h9l5 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M12 10v4 M10 12h4"/></svg></div>
             <h3>Reports &amp; capture</h3>
           </div>
-          <div class="card-body">Every session ends in an HTML report with SVG latency charts and the full console log, filed into a <code>~/GNULTE Reports</code> hub (a per-tool folder per report). Scan and inventory tools export JSON, YAML, CSV or a standalone HTML report. Capture traffic with <code>--capture</code>, or stream per-second CSV with <code>--export</code>. Interactive runs are asked first before a report is written.</div>
+          <div class="card-body">Every session ends in an HTML report — <code>gnulte-go-scan-report-&lt;date&gt;-&lt;time&gt;-&lt;count&gt;.html</code> — with per-target SVG latency timelines, UP/DEGRADED/UNSTABLE status pills, a sorted target-summary table and the full console log, filed into a <code>~/GNULTE Reports</code> hub (a per-tool folder per report). Scan and inventory tools export JSON, YAML, CSV or a standalone HTML report. Capture traffic with <code>--capture</code>, or stream per-second CSV with <code>--export</code>. Interactive runs are asked first before a report is written.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">
@@ -105,7 +105,7 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 1 0-14 0"/><path d="M12 9v6"/></svg></div>
             <h3>LAN hygiene</h3>
           </div>
-          <div class="card-body"><code>--dupcheck</code> detects duplicate IPs and ARP conflicts; <code>--minimal</code>/<code>--no-banner</code> give a plain startup; profiles and <code>--list-profiles</code> reproduce conditions exactly.</div>
+          <div class="card-body"><code>--dupcheck</code> detects duplicate IPs and ARP conflicts; <code>--minimal</code>/<code>--no-banner</code> give a plain startup; twelve presets (<code>--list-profiles</code>) reproduce conditions exactly, with a numbered picker during setup — a bare Enter goes straight to manual values.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">
