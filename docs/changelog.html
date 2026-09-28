@@ -57,6 +57,11 @@
             <li><strong>Reports hub</strong> — all tools file HTML reports into <code>~/GNULTE Reports</code>, with an interactive y/N ask on interactive runs; the engine command transcript now prepends the report log.</li>
             <li><strong>Clean exits</strong> — sessions always tear down sessions (<code>defer</code>-based stop), so spoofs and shapers are restored even on nested returns.</li>
             <li><strong>SCANLTE</strong> — gnulte-scan gets the rebrand: ASCII block logo and &ldquo;side tool for GNULTE&rdquo; tagline.</li>
+            <li><strong>Avahi-style service discovery</strong> — <code>gnulte-scan</code> asks the LAN's mDNS/DNS-SD responders (single two-phase PTR&rarr;SRV/A exchange) what each device offers: airplay, chromecast, homekit, matter, ssh, printer, scanner, vnc and more. Advertised services appear in a SERVICES column, the interactive detail pane and filter, JSON/YAML/CSV exports, and the scan summary.</li>
+            <li><strong>Ping history per host</strong> — the monitor dashboard and <code>gnulte-traffic</code> keep a rolling latency window per target, with a block sparkline under each live traffic row (last RTT, average, loss). Depth is configurable (ping history depth, 10&ndash;240).</li>
+            <li><strong>Settings that scale</strong> — the settings TUI adapts to wider terminals (up to ~96 columns) and regroups every option under dim section headers (Network &amp; Monitor, Scanlte Scan, Traffic Engine, GNULTE-WIFI, Terminal &amp; UI), with <code>g</code>/<code>G</code> first/last keys and header-skipping navigation.</li>
+            <li><strong>Advanced mode</strong> — a settings toggle controls whether gnulte echoes the exact command line for every tc/arpspoof/sysctl step as it runs; the HTML report transcript records them either way.</li>
+            <li><strong>Typing animation</strong> — on live terminals the interactive confirmation is typed out character by character (instant when piped or quiet).</li>
             <li>Version 13.0 across all five binaries.</li>
           </ul>
         </div>
