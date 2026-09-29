@@ -12,26 +12,38 @@ LAN. Scan the network, shape a target, watch the results live, then clean up.
 | `gnulte-devices` | no | Instant ARP/neighbour inventory — vendors, mDNS hostnames, type guesses, HTML reports |
 | `gnulte-wifi` | **yes** | Targeted 802.11 deauthentication for authorized Wi-Fi disassociation testing — per-frame jitter, rotating deauth reason codes, optional channel hopping |
 
-## Live Interconnection (v15)
+## Steady Hands (v16)
 
-One shared device store (`~/.config/gnulte-go/devices.json`) wires the toolkit
-together — one watch feeds the whole suite:
+A stability release on top of v15's **Live Interconnection** — one shared
+device store (`~/.config/gnulte-go/devices.json`) wiring the toolkit together
+— with the sharp edges filed off and a few things added:
 
-- **gnulte-lan screen 5 — the map.** Devices become nodes, live flows become
-  edges that pulse (`▸`) as traffic moves; like FLOWS it needs the raw capture
-  socket and says so: `⛔ needs the capture socket (root)`.
-- **Handoff.** `⏎` (or `g`) on a host opens `gnulte -t <ip>` against it in a
-  fresh terminal (prints the command when no terminal emulator is found); the
-  detail pane moved to `Tab`/`d`.
-- **Live shaping telemetry.** During a run the dashboard reads the kernel
-  queue (`tc -s qdisc`) and shows `netem live · delayed … · dropped … ·
-  backlog … · delay …`.
-- **Targets from the watch.** `w` in gnulte's target menu picks devices
-  straight from the shared store; gnulte-scan's `-T` Summary cross-references
-  it (`known from last LAN watch`).
-- **Live re-scan.** `gnulte-scan --watch 5` re-discovers every N seconds and
-  prints `▲` new · `▼` gone · `~` changed; the `-T` browser runs the same
-  cadence, marks each row, and adds `/` filter focus + `v` vendor filtering.
+- **Ctrl+C exits cleanly instead of killing the run.** A shared signal handler
+  was racing each tool's own graceful shutdown and winning with a hard
+  `os.Exit(130)`, so the first Ctrl+C cut a run dead mid-teardown. It now
+  restores the screen and terminal first and lets the shutdown finish, forcing
+  the exit only on a *second* Ctrl+C or after a grace period. The old hard kill
+  also skipped cleanup, so targets were left with a poisoned ARP cache and no
+  connectivity.
+- **A live watch stops when you tell it to.** Interrupting a scan mid-sweep
+  took **10.9s** to respond, because the name-identification waits bounded
+  themselves by a deadline but never checked for cancellation. Every wait now
+  ends at once. Measured: **0.00s**.
+- **Honest sampling cadence.** The gap between readings is measured from when a
+  reading lands, not from when the probe started — so a target that takes two
+  seconds to answer still gets its full one-second gap, instead of the next
+  probe firing the instant the slow one returns.
+- **gnulte-lan arrows do one thing.** Holding an arrow key no longer scoots the
+  cursor dozens of rows past where you pointed it.
+- **`gnulte --note TEXT`** — label a run; the note rides into the console
+  header and the report.
+- **`gnulte-scan --watch N --json`** — one JSON object per sweep on stdout
+  (`{"kind":"baseline"}`, then `{"kind":"delta"}`), narrative to stderr, so
+  `gnulte-scan --watch 5 --json | jq` is a working motion sensor.
+- **Quick scan** — `r` re-scans on demand in the `-T` browser with a
+  `▲ new ▼ gone ~ changed` legend; devices the store already knows are marked
+  `*` in the target picker, and you can select by keyword (`Mobile`,
+  `@hostname`).
 
 ## Safety Warning
 

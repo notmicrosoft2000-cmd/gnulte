@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v15.0</span>
+      <span class="addon"><i></i>v16.0</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
           <a class="side-link" href="license.html">License</a>
         </div>
     </nav>
-    <div class="side-foot">GNULTE v15.0<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v16.0<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -76,8 +76,27 @@
 
         <div class="cl-entry">
           <div class="cl-ver">
-            <h3>v15.0</h3>
+            <h3>v16.0</h3>
             <span class="cl-tag">Latest</span>
+            <span class="cl-date">29 Sep 2026</span>
+          </div>
+          <ul>
+            <li><strong>Ctrl+C exits cleanly instead of killing the run</strong> — a fix for the reported bug <em>&ldquo;I select multiple devices, pick monitor mode 1, press Ctrl+C and it kills rather than exits.&rdquo;</em> The toolkit&rsquo;s shared signal handler was racing each tool&rsquo;s own graceful shutdown and winning with a hard <code>os.Exit(130)</code>, so a first Ctrl+C cut the session dead mid-teardown. It now restores the screen and terminal on the first signal and lets the shutdown finish, forcing the 130 exit only on a <em>second</em> Ctrl+C or after a grace period. This mattered beyond cosmetics: the old hard kill skipped <code>sess.Stop()</code>, so targets were left holding a poisoned ARP cache and lost connectivity.</li>
+            <li><strong>The terminal always comes back</strong> — raw keyboard mode is now registered as a cleanup instead of being restored only on the normal path, so an interrupt can never leave you at a prompt with no echo and no working Enter.</li>
+            <li><strong>gnulte-lan arrows do one thing</strong> — the reported phantom-repeat bug is gone. Holding an arrow key no longer &ldquo;scoots&rdquo; the cursor dozens of rows past where you pointed it: the app-side hold-repeat was removed in favour of your terminal&rsquo;s own key-repeat, and two quick taps still queue and drain as two moves. Verified by a PTY regression test that replays single taps, quick taps and a 2.6-second hold.</li>
+            <li><strong>Honest sampling cadence</strong> — the reported bug <em>&ldquo;when a ping takes longer than 1 second, the next one immediately fires&rdquo;</em>. A fixed-rate ticker starts every probe on schedule, so a slow probe left its tick already queued and the next one fired the instant the slow one returned: a 2-second target ran flat out with no gap at all. Both the single-target console and the multi-target dashboard now sample, show the reading, and <em>then</em> wait the full interval, so the one-second gap stays a one-second gap however slow the host is. A run also starts measuring immediately instead of after a blank second. Locked down by a test that drives the loops with a probe of a chosen duration and asserts the gap is <em>probe time plus interval</em>.</li>
+            <li><strong>gnulte --note</strong> — label a run at launch (<code>--note &quot;pentest · building 4&rdquo;</code>). The note rides into the console header and the session report, so a month of reports still say which engagement they belonged to.</li>
+            <li><strong>A live watch now stops when you tell it to</strong> — a second real bug, found while testing the above: interrupting a scan mid-sweep used to take up to 11 seconds to respond, because the name-identification waits (reverse DNS, mDNS, NetBIOS) bounded themselves by a <em>deadline</em> but never checked for <em>cancellation</em> — the exact shape <code>signal.NotifyContext</code> produces. Every wait now ends at once on cancel, and the per-host loops stop starting new lookups. Measured shutdown latency: <strong>10.9s &rarr; 0.00s</strong>.</li>
+            <li><strong>gnulte-scan --watch --json</strong> — a machine-readable feed for the same live rescan: one JSON object per sweep on stdout (<code>{"kind":"baseline"}</code> then <code>{"kind":"delta"}</code> with the movement), narrative to stderr, so <code>gnulte-scan --watch 5 --json | jq</code> is a working motion sensor. Mutually exclusive with <code>-q</code>/<code>--yaml</code>/<code>--csv</code>.</li>
+            <li><strong>Quick scan</strong> — in the <code>-T</code> device table, <code>r</code> re-scans the subnet on demand and the status line grows a <code>▲ new ▼ gone ~ changed</code> legend, so you can nudge the network and watch it react. The line leads with live state and keeps key hints last, because a narrow window truncates the tail first.</li>
+            <li><strong>Quieter, clearer menus</strong> — devices the shared store already knows are marked <code>*</code> in the target picker, and you can select by keyword (<code>Mobile</code>, <code>@hostname</code>). gnulte-lan footers carry live counts on every screen, and the map keeps a legend.</li>
+            <li>Version 16.0 across all five binaries. Also fixed: <code>GOOS=darwin</code> builds now succeed (the ARP package declared two methods twice against a Linux-only field).</li>
+          </ul>
+        </div>
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v15.0</h3>
             <span class="cl-date">29 Sep 2026</span>
           </div>
           <ul>

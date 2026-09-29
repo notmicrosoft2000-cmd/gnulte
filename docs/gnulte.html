@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v15.0</span>
+      <span class="addon"><i></i>v16.0</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
         <a class="side-link" href="license.html">License</a>
       </div>
     </nav>
-    <div class="side-foot">GNULTE v15.0<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v16.0<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -133,6 +133,7 @@
               <li><code>-r 192.168.1.0/24 -w 192.168.1.88</code> — whole subnet, whitelist your phone</li>
               <li><code>--device-type phone --random</code> — shape every phone, re-roll each second</li>
               <li><code>--profile streaming</code> — one of 12 presets (<code>--list-profiles</code>)</li>
+              <li><code>--note "pentest · building 4"</code> — label the run in the console header and the report</li>
               <li><code>--traffic-window</code> — open the <a href="gnulte-lan.html">GNULTE-LAN watch</a> in a second terminal</li>
               <li>During a run the dashboard shows <code>netem live</code> — dropped, backlog and limit read from the kernel qdisc</li>
             </ul>
@@ -172,6 +173,7 @@
           <tr><td>-S, --stealth</td><td>Stealth ARP spoofing — answer only when asked, slow jittered cache refresh.</td></tr>
           <tr><td>--block</td><td>Fully block the target&rsquo;s traffic (no forwarding).</td></tr>
           <tr><td>--export FILE</td><td>Stream per-second results to CSV while the test runs.</td></tr>
+          <tr><td>--note TEXT</td><td>Label the run &mdash; shown in the console header and written into the report.</td></tr>
           <tr><td>--traffic-window</td><td>With 2+ targets, open the GNULTE-LAN watch in a separate terminal.</td></tr>
         </tbody>
       </table>
@@ -180,7 +182,7 @@
 
     <section class="body-section">
       <div class="cta-band">
-        <p class="kicker" style="color:rgba(255,255,255,0.7);">Core tool · v15.0</p>
+        <p class="kicker" style="color:rgba(255,255,255,0.7);">Core tool · v16.0</p>
         <h2>Put a device through real conditions</h2>
         <p>Three minutes to install, one command to run.</p>
         <div class="cta-row">

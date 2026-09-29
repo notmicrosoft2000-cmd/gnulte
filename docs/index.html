@@ -19,7 +19,7 @@
       <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="brand-name">GNULTE</span>
     </a>
-    <span class="addon"><i></i>v15.0</span>
+    <span class="addon"><i></i>v16.0</span>
     <nav class="menubar" aria-label="Site navigation">
       <a href="features.html">Features</a>
       <a href="docs.html">Documentation</a>
@@ -69,7 +69,7 @@
     <div class="grid">
       <article class="card tile-card">
         <div class="card-head"><div class="icon-tile tile-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h3l2-6 4 12 3-9 1.5 3H21"/></svg></div><h3><a href="gnulte.html">gnulte</a></h3></div>
-        <div class="card-body">The core tester — ARP-spoof routing plus <code>tc netem</code> latency, jitter, loss, duplication, reordering and bandwidth caps, with a live dashboard, live shaping telemetry straight from <code>tc -s qdisc</code>, and an HTML report. Targets can be picked straight from the last LAN watch (<code>w</code>).</div>
+        <div class="card-body">The core tester — ARP-spoof routing plus <code>tc netem</code> latency, jitter, loss, duplication, reordering and bandwidth caps, with a live dashboard, live shaping telemetry straight from <code>tc -s qdisc</code>, and an HTML report. Targets can be picked straight from the last LAN watch (<code>w</code>), and a run can be labelled with <code>--note</code> so a month-old report still says which engagement it belonged to.</div>
       </article>
       <article class="card tile-card">
         <div class="card-head"><div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12h4l3-8 4 16 3-10 2 2h4"/></svg></div><h3><a href="gnulte-lan.html">gnulte-lan</a></h3></div>
@@ -77,7 +77,7 @@
       </article>
       <article class="card tile-card">
         <div class="card-head"><div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div><h3><a href="scan.html">gnulte-scan</a></h3></div>
-        <div class="card-body">The scanner — sweep or read the neighbour table; vendor from the embedded OUI registry, mDNS names, open ports and a type guess. Root optional. Re-scan live with <code>--watch N</code> and watch the network move — <code>▲</code> new, <code>▼</code> gone, <code>~</code> changed — or browse it in the <code>-T</code> full-screen browser.</div>
+        <div class="card-body">The scanner — sweep or read the neighbour table; vendor from the embedded OUI registry, mDNS names, open ports and a type guess. Root optional. Re-scan live with <code>--watch N</code> and watch the network move — <code>▲</code> new, <code>▼</code> gone, <code>~</code> changed — or pipe that feed to <code>jq</code> with <code>--json</code>; browse it in the <code>-T</code> full-screen browser, where <code>r</code> re-scans on demand.</div>
       </article>
       <article class="card tile-card">
         <div class="card-head"><div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 9.5A15 15 0 0 1 22 9.5"/><path d="M5.2 12.7a10 10 0 0 1 13.6 0"/><path d="M8.4 15.9a5 5 0 0 1 7.2 0"/><circle cx="12" cy="19" r="1.4" fill="currentColor"/></svg></div><h3><a href="wifi.html">gnulte-wifi</a></h3></div>
