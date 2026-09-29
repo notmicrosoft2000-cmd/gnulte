@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.5</span>
+      <span class="addon"><i></i>v15.0</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
           <a class="side-link" href="license.html">License</a>
         </div>
     </nav>
-    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v15.0<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -110,14 +110,21 @@
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3 M12 19v3 M2 12h3 M19 12h3"/></svg></div>
             <h3>Live dashboard</h3>
           </div>
-          <div class="card-body">Every target is pinged once per second during a run — last, min, max, average and loss — rendered live with a full-screen, full-data view.</div>
+          <div class="card-body">Every target is pinged once per second during a run — last, min, max, average and loss — rendered live with a full-screen, full-data view. While a shaping run is live, the dashboard also reads <code>tc -s qdisc</code> and shows the <code>netem live</code> line: dropped packets, backlog and limit straight from the kernel queue.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">
             <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12h4l2-7 4 14 3-9 1.5 3H21"/></svg></div>
             <h3>Live LAN watch</h3>
           </div>
-          <div class="card-body"><code>gnulte-lan</code> is a full interactive console: with no <code>-t</code> it discovers the subnet in seconds, opens its GNULTE-LAN banner, and repaints the LAN every interval — per-host down/up speed, packet rate and latency, each row labelled with MAC, vendor, device type and hostname. It is now a four-screen console, switched with <code>1–4</code> (or <code>t</code>/<code>f</code>/<code>n</code>): <b>1 hosts</b> — the dashboard, every host a fixed-shape block (traffic+latency, identity, session health) that never jumps between ticks, with a one-glyph grade (<code>✓</code> stable, <code>~</code> jittery, <code>✗</code> flaky, <code>⚠</code> alarming); <b>2 talkers</b> — every host ranked by combined rate with down/up scale bars, peer counts, and a communicators block for LAN-internal pairs; <b>3 flows</b> — the A ⇄ B conversation table with per-direction rates and a <code>⟷LAN</code> tag, gated behind the root capture socket with an explicit <code>sudo gnulte-lan</code> hint; <b>4 neighbours</b> — the live ARP table (IP, MAC, vendor, type, hostname, ping) including the router. Every IP keeps one stable colour across all screens so you can follow a device by hue; rows scale with terminal width (compact, normal, a 4-line <code>MORE</code> variant at 116+ columns with p50/p95 and session totals). The header adds a hosts-up count, the gateway's live RTT and the LAN-wide net rate. <code>↑</code>/<code>↓</code> move the cursor (hold to scroll fast), <code>⏎</code> opens a detail pane that ends with <code>test with: gnulte -t &lt;ip&gt;</code> and <code>g</code> echoes it under the footer; <code>s</code> re-sorts, <code>a</code> filters to alarming hosts, <code>o</code> edits settings live, <code>Esc</code> peels panes/screens before quitting. Lightweight rate/latency alarms flag problem hosts; <code>--export</code> streams per-tick CSV and the session files an HTML report with per-host sparklines. Runs speeds-free without root; root unlocks flows, byte-accurate talkers and net rates.</div>
+          <div class="card-body"><code>gnulte-lan</code> is a full interactive console: with no <code>-t</code> it discovers the subnet in seconds, opens its GNULTE-LAN banner, and repaints the LAN every interval — per-host down/up speed, packet rate and latency, each row labelled with MAC, vendor, device type and hostname. It is a five-screen console, switched with <code>1–5</code> (or <code>t</code>/<code>f</code>/<code>n</code>/<code>m</code>): <b>1 hosts</b> — the dashboard, every host a fixed-shape block (traffic+latency, identity, session health) that never jumps between ticks, with a one-glyph grade (<code>✓</code> stable, <code>~</code> jittery, <code>✗</code> flaky, <code>⚠</code> alarming); <b>2 talkers</b> — every host ranked by combined rate with down/up scale bars, peer counts, and a communicators block for LAN-internal pairs; <b>3 flows</b> — the A ⇄ B conversation table with per-direction rates and a <code>⟷LAN</code> tag, gated behind the root capture socket with an explicit <code>sudo gnulte-lan</code> hint; <b>4 neighbours</b> — the live ARP table (IP, MAC, vendor, type, hostname, ping) including the router; <b>5 map</b> — the Live Interconnection map, devices as nodes and live flows as edges that pulse (<code>▸</code>) with traffic, also gated behind the root socket. Every IP keeps one stable colour across all screens so you can follow a device by hue; rows scale with terminal width (compact, normal, a 4-line <code>MORE</code> variant at 116+ columns with p50/p95 and session totals). The header adds a hosts-up count, the gateway's live RTT and the LAN-wide net rate. <code>↑</code>/<code>↓</code> move the cursor (hold to scroll fast), <code>⏎</code> (or <code>g</code>) hands the selected host off to <code>gnulte -t &lt;ip&gt;</code> in a fresh terminal, <code>Tab</code>/<code>d</code> opens the detail pane (p50/p95, net share, flows), <code>x</code> saves the whole watch to the shared device store, <code>s</code> re-sorts, <code>a</code> filters to alarming hosts, <code>o</code> edits settings live, <code>Esc</code> peels panes/screens before quitting. Lightweight rate/latency alarms flag problem hosts; <code>--export</code> streams per-tick CSV and the session files an HTML report with per-host sparklines. Runs speeds-free without root; root unlocks flows, byte-accurate talkers, net rates and the live map.</div>
+        </article>
+        <article class="card tile-card">
+          <div class="card-head">
+            <div class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 9h16"/><path d="M9 9v10"/><circle cx="7" cy="19" r="1"/><circle cx="17" cy="19" r="1"/></svg></div>
+            <h3>Live interconnection</h3>
+          </div>
+          <div class="card-body">The tools are wired together by one shared device store (<code>~/.config/gnulte-go/devices.json</code>): gnulte-lan folds every watch into it (<code>x</code>, and again when you quit), gnulte offers its targets straight from it (<code>w</code> in the target menu), and gnulte-scan marks how much of its table the store already knew — in both the <code>-T</code> Summary window and the live <code>--watch</code> feed. One watch feeds the whole toolkit.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head">

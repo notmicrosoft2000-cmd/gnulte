@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.5</span>
+      <span class="addon"><i></i>v15.0</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
           <a class="side-link" href="license.html">License</a>
         </div>
     </nav>
-    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v15.0<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -173,7 +173,7 @@
             <article class="card tile-card">
               <div class="card-head"><div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12h3l2-6 4 12 3-9 1.5 3H21"/></svg></div><h3><a href="gnulte-lan.html">gnulte-lan</a></h3></div>
               <div class="card-body">
-                <p>Live LAN watch. With no <code>-t</code> it discovers the whole subnet in seconds (router and self skipped), opens its banner, then repaints the LAN every interval &mdash; per-host down/up speed, packet rate and latency with device identity: MAC, vendor, type, hostname. It is a four-screen console: <code>1</code> hosts (the dashboard), <code>2</code> talkers (ranked by combined rate with down/up bars, peers and LAN-internal communicators), <code>3</code> flows (per-pair A ⇄ B with per-direction rates, root socket) and <code>4</code> neighbours (the live ARP table with vendor, type and ping). <code>↑</code>/<code>↓</code> move a host cursor (hold to scroll fast), <code>⏎</code> opens a detail pane ending with <code>test with: gnulte -t &lt;ip&gt;</code> (with p50/p95 and net share; <code>g</code> echoes that command under the footer), <code>s</code> re-sorts by traffic/latency/address, <code>a</code> filters to alarming hosts, <code>1</code>–<code>4</code> (or <code>t</code>/<code>f</code>/<code>n</code>) switch screens, <code>Esc</code> peels a pane or returns to hosts, <code>o</code> edits settings live. Every IP keeps one stable colour across screens; rows scale with terminal width (compact two-line, standard three-line blocks, or a four-line <code>MORE</code> variant with p50/p95 and session totals at 116+ columns). The header shows hosts up, the gateway's live RTT and the LAN-wide net rate. Lightweight alarms flag hosts over a rate or latency threshold; <code>--export</code> streams CSV and the session files an HTML report. Root unlocks screens 2–3's byte-accurate talkers and flows (speeds-free runs show a polite <code>¡ speeds-free</code> note, and FLOWS explains the <code>sudo gnulte-lan</code> requirement). <code>gnulte-lan -t 192.168.1.20 --duration 60</code> for a single target.</p>
+                <p>Live LAN watch. With no <code>-t</code> it discovers the whole subnet in seconds (router and self skipped), opens its banner, then repaints the LAN every interval &mdash; per-host down/up speed, packet rate and latency with device identity: MAC, vendor, type, hostname. It is a five-screen console: <code>1</code> hosts (the dashboard), <code>2</code> talkers (ranked by combined rate with down/up bars, peers and LAN-internal communicators), <code>3</code> flows (per-pair A ⇄ B with per-direction rates, root socket), <code>4</code> neighbours (the live ARP table with vendor, type and ping) and <code>5</code> map (the Live Interconnection map &mdash; devices as nodes, live flows as pulsing edges, root socket). <code>↑</code>/<code>↓</code> move a host cursor (hold to scroll fast), <code>⏎</code> (or <code>g</code>) hands the host off &mdash; it opens <code>gnulte -t &lt;ip&gt;</code> in a fresh terminal or prints the exact command when no terminal emulator is found &mdash; <code>Tab</code>/<code>d</code> opens the detail pane (p50/p95 and net share), <code>x</code> saves the whole watch to the shared device store (<code>~/.config/gnulte-go/devices.json</code>), <code>s</code> re-sorts by traffic/latency/address, <code>a</code> filters to alarming hosts, <code>1</code>–<code>5</code> (or <code>t</code>/<code>f</code>/<code>n</code>/<code>m</code>) switch screens, <code>Esc</code> peels a pane or returns to hosts, <code>o</code> edits settings live. Every IP keeps one stable colour across screens; rows scale with terminal width (compact two-line, standard three-line blocks, or a four-line <code>MORE</code> variant with p50/p95 and session totals at 116+ columns). The header shows hosts up, the gateway's live RTT and the LAN-wide net rate. Lightweight alarms flag hosts over a rate or latency threshold; <code>--export</code> streams CSV and the session files an HTML report. Root unlocks screens 2–3 and 5's byte-accurate talkers, flows, net rates and the live-edge map (speeds-free runs show a polite <code>¡ speeds-free</code> note, and FLOWS/MAP explain the <code>sudo gnulte-lan</code> requirement). <code>gnulte-lan -t 192.168.1.20 --duration 60</code> for a single target.</p>
               </div>
             </article>
             <article class="card tile-card">

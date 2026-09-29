@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.5</span>
+      <span class="addon"><i></i>v15.0</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
         <a class="side-link" href="license.html">License</a>
       </div>
     </nav>
-    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v15.0<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -73,7 +73,7 @@
 
     <section class="body-section" style="max-width:980px;">
       <div class="legal" style="margin-bottom:34px;">
-        <strong>How to read these.</strong> Every terminal below is a scripted re-enactment built from the real binaries&rsquo; banners and screens (v13.5). Values and hostnames are illustrative. Press <strong>Play</strong> on each one — they also start automatically — and <strong>4×</strong> to zip through.
+        <strong>How to read these.</strong> Every terminal below is a scripted re-enactment built from the real binaries&rsquo; banners and screens (v15.0). Values and hostnames are illustrative. Press <strong>Play</strong> on each one — they also start automatically — and <strong>4×</strong> to zip through.
       </div>
 
       <div class="studio-card" id="gnulte" data-studio="gnulte">
@@ -264,7 +264,7 @@
     "gnulte": [
       ["ok",   "[✓] Sudo access granted — running with administrator privileges.", 260],
       ["",     "", 30],
-      ["acc",  "   GNULTE v13.5 — Initialising", 240],
+      ["acc",  "   GNULTE v15.0 — Initialising", 240],
       ["dim",  "   Real checks only — every ✓ below is a live result.", 200],
       ["",     "", 40],
       ["txt",  "  ● Loading configuration...", 300],
@@ -276,11 +276,12 @@
       ["txt",  "  ● Preparing traffic engine...", 300],
       ["ok",   "    [✓] ip_forward=1 (toggled only during a test)", 200],
       ["",     "", 40],
-      ["mg",   "▸ GNULTE v13.5 ready — building your session below", 420],
+      ["mg",   "▸ GNULTE v15.0 ready — building your session below", 420],
       ["",     "", 30],
       ["txt",  "  Target setup:  type an IP by hand, or sweep the subnet?", 300],
       ["dim",  "   1) type an IP (or hostname) manually", 120],
       ["dim",  "   2) sweep 192.168.99.0/24 and pick from the device list", 180],
+      ["dim",  "   w)  pick from the last LAN watch (7 device(s) in the store)", 200],
       ["",     "", 30],
       ["num",  "  choice [2]: ", 420],
       ["mg",   "2", 320],
@@ -291,10 +292,11 @@
       ["mg",   "192.168.99.13", 320],
       ["txt",  "  Conditions — latency 300ms · jitter 30ms · loss 5% · 90s", 380],
       ["ok",   "  [✓] validated — estimated impact ≈ +350ms round-trip", 300],
+      ["dim",  "  netem live · delayed 1281 · reordered 42 · dropped 9 · backlog 31p · delay 296ms  (shaping telemetry)", 380],
       ["dim",  "  (qdisc applied · spoof forwarding · dashboard live — Ctrl+C to stop)", 420]
     ],
     "gnulte-lan": [
-      ["acc",  "GNULTE-LAN v13.5 (Go) — the LAN watch", 300],
+      ["acc",  "GNULTE-LAN v15.0 (Go) — the LAN watch", 300],
       ["txt",  "Discovering LAN on wlan0 (192.168.99.132)…", 340],
       ["ok",   "  found 8 hosts — router and self skipped", 280],
       ["",     "", 40],
@@ -307,10 +309,12 @@
       ["ok",   "  2 talkers — 1st .20 cam ▇▇▇▆ ↓ 2.1MB/s peers 4 · 2nd .13 pi ▂▁ ↑ 480KB/s", 340],
       ["ok",   "  4 neighbours — .1 router · .13 pi · .15 tv · .20 cam · .25 printer · .31 iot", 340],
       ["ok",   "  3 flows (sudo) — .20 ⇄ 151.101.1.69   A→B 810KB/s · B→A 220KB/s  ⟷.13 ⇄ .15 LAN", 360],
-      ["mg",   "  ▲▼ browse · ⏎ detail · s sort · a alarm-only · 1-4 screens · g test cmd · q quit", 420]
+      ["ok",   "  5 map (sudo) — nodes 7 · edges 3 · ▸ .20 ⇄ 151.101.1.69  ·  ▸ .13 ⇄ .15  (pulse = live flow)", 380],
+      ["ok",   "  live devices saved → ~/.config/gnulte-go/devices.json (7 device(s))", 360],
+      ["mg",   "  ▲▼ browse · ⏎ open gnulte -t <ip> · Tab detail · 1-5 screens · x save · q quit", 420]
     ],
     "gnulte-scan": [
-      ["acc",  "SCANLTE (gnulte-scan) v13.5 — side tool for GNULTE, authorized network testing only", 340],
+      ["acc",  "SCANLTE (gnulte-scan) v15.0 — side tool for GNULTE, authorized network testing only", 340],
       ["",     "", 40],
       ["txt",  "Sweeping 192.168.99.0/24 — 64 parallel threads", 320],
       ["",     "", 40],
@@ -323,11 +327,13 @@
       ["txt",  "  192.168.99.31    Tuya Smart             IoT        6668", 150],
       ["",     "", 30],
       ["ok",   "  Found 6 hosts · 5 with open ports · 3 names resolved", 320],
-      ["dim",  "  (−T for the full-screen browser · --deep adds OS + banner guesses · q quits)", 420]
+      ["ok",   "  ▸ --watch 5  re-scan:   ▲ 192.168.99.17  (new) · ▼ .25 printer (gone) · ~ .31 Tuya (changed)", 380],
+      ["ok",   "  Summary: 6 live · 7 in shared device store (5 known, 1 new, 1 GONE)", 380],
+      ["dim",  "  (--watch N re-scans live · -T browser marks ▲▼~ rows · v filters by vendor · q quits)", 430]
     ],
     "gnulte-wifi": [
       ["ok",   "[✓] Sudo access granted — running with administrator privileges.", 260],
-      ["txt",  "gnulte-wifi v13.5 (Go) — authorized network testing only", 320],
+      ["txt",  "gnulte-wifi v15.0 (Go) — authorized network testing only", 320],
       ["",     "", 30],
       ["ok",   "  [✓] interface wlan0mon — monitor mode confirmed", 260],
       ["ok",   "  [✓] AP 00:0c:41:63:45:6a → station aa:bb:cc:dd:ee:ff", 280],
@@ -341,7 +347,7 @@
     ],
     "gnulte-devices": [
       ["bk",   "  ══════════════════════════════════════════════════════════════", 200],
-      ["acc",  "  GNULTE DEVICES   v13.5   LAN inventory", 260],
+      ["acc",  "  GNULTE DEVICES   v15.0   LAN inventory", 260],
       ["dim",  "  authorized network testing only", 200],
       ["bk",   "  ══════════════════════════════════════════════════════════════", 200],
       ["",     "", 40],

@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.5</span>
+      <span class="addon"><i></i>v15.0</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
           <a class="side-link" href="license.html">License</a>
         </div>
     </nav>
-    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v15.0<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -76,8 +76,25 @@
 
         <div class="cl-entry">
           <div class="cl-ver">
-            <h3>v13.5</h3>
+            <h3>v15.0</h3>
             <span class="cl-tag">Latest</span>
+            <span class="cl-date">29 Sep 2026</span>
+          </div>
+          <ul>
+            <li><strong>Live Interconnection</strong> — v13.5 &rarr; v15.0. The five tools now share one live view of the network, driven by a shared device store (<code>~/.config/gnulte-go/devices.json</code>): gnulte-lan folds every watch into the store (<code>x</code> saves, quit saves again), gnulte picks targets straight from it (<code>w</code> in the target menu), and gnulte-scan cross-references its summary and table against it. One watch feeds the whole toolkit.</li>
+            <li><strong>gnulte-lan screen 5 — the interconnection map</strong> — the watch grows a fifth screen (<code>5</code>/<code>m</code>): every device becomes a node and live flows become edges, pulsing as traffic moves, re-arranged to a stable layout each tick. Like FLOWS it needs the raw capture socket, so a speeds-free run shows the explicit <code>⛔ needs the capture socket (root)</code> gate with the <code>sudo gnulte-lan</code> remedy.</li>
+            <li><strong>Handoff</strong> — pressing <code>⏎</code> (or <code>g</code>) on a host opens <code>gnulte -t &lt;ip&gt;</code> against it in a fresh terminal (falling back to printing the exact command when no terminal emulator is found). The detail pane moves to <code>Tab</code>/<code>d</code>; the map shows the <code>▸</code> pulse that follows the selected pair.</li>
+            <li><strong>gnulte — live shaping telemetry</strong> — while a shaping run is live, the dashboard leans on <code>tc -s qdisc</code> and shows the <code>netem live</code> hand: dropped packets, backlog and limit directly from the kernel queue, polled on its own cadence and dimmed under the per-target live rows. The final snapshot is folded into the session report.</li>
+            <li><strong>gnulte-scan --watch N</strong> — the scanner re-sweeps live on an interval: <code>gnulte-scan --watch 5</code> re-discovers every N seconds and prints exactly what moved — <code>▲</code> new, <code>▼</code> gone, <code>~</code> changed — until Ctrl+C. In the <code>-T</code> full-screen browser the same cadence drives the table and marks each host with its delta marker; GONE hosts stay visible; the Summary window cross-references the shared device store. The interactive screen owns the watch, so quitting <code>-T --watch</code> exits cleanly (exit 0) instead of hanging on a second console loop.</li>
+            <li><strong>Target-picker polish</strong> — gnulte-scan <code>-T</code> gains <code>/</code> filter focus (type to refine, <code>Esc</code> to clear) and <code>v</code> to filter by vendor, so one re-scan isolates a single maker&rsquo;s devices.</li>
+            <li>Version 15.0 across all five binaries.</li>
+          </ul>
+        </div>
+
+
+        <div class="cl-entry">
+          <div class="cl-ver">
+            <h3>v13.5</h3>
             <span class="cl-date">28 Sep 2026</span>
           </div>
           <ul>
@@ -94,7 +111,6 @@
         <div class="cl-entry">
           <div class="cl-ver">
             <h3>v13.4</h3>
-            <span class="cl-tag">Latest</span>
             <span class="cl-date">28 Sep 2026</span>
           </div>
           <ul>

@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.5</span>
+      <span class="addon"><i></i>v15.0</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
           <a class="side-link" href="license.html">License</a>
         </div>
     </nav>
-    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v15.0<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -119,21 +119,22 @@
 │   ├── gnulte/               <span class="t-cmt"># the MITM shaping engine (main tool)</span>
 │   ├── gnulte-devices/       <span class="t-cmt"># LAN inventory</span>
 │   ├── gnulte-scan/          <span class="t-cmt"># scanner + tabbed monitor</span>
-│   ├── gnulte-lan/           <span class="t-cmt"># live LAN watch (speed + top talkers)</span>
+│   ├── gnulte-lan/           <span class="t-cmt"># live LAN watch (5 screens + live map)</span>
 │   └── gnulte-wifi/          <span class="t-cmt"># 802.11 deauth testing</span>
 ├── internal/
 │   ├── airframes/  <span class="t-cmt"># 802.11 frame crafting + raw injection</span>
 │   ├── arpspoof/   <span class="t-cmt"># ARP spoofing (incl. stealth mode)</span>
 │   ├── discover/   <span class="t-cmt"># LAN discovery: neighbour table + sweep</span>
-│   ├── engine/     <span class="t-cmt"># session lifecycle: apply &#8594; monitor &#8594; restore</span>
+│   ├── engine/     <span class="t-cmt"># session lifecycle: apply &#8594; monitor &#8594; restore (+ tc -s qdisc telemetry)</span>
 │   ├── ident/      <span class="t-cmt"># OUI, mDNS, NetBIOS, OS fingerprints</span>
+│   ├── inventory/  <span class="t-cmt"># shared device store (~/.config/gnulte-go/devices.json)</span>
 │   ├── monitor/    <span class="t-cmt"># per-target live dashboards</span>
 │   ├── netutil/    <span class="t-cmt"># interfaces, subnet math, sysctl/iptables helpers</span>
 │   ├── out/        <span class="t-cmt"># colour, tables, banners</span>
 │   ├── probe/      <span class="t-cmt"># ICMP + TCP fallback connectivity probes</span>
 │   ├── reportdir/  <span class="t-cmt"># the ~/GNULTE Reports hub</span>
 │   ├── safety/     <span class="t-cmt"># bundled docs + first-run acceptance record</span>
-│   ├── scanner/    <span class="t-cmt"># parallel ping sweep (ARP sweep as root)</span>
+│   ├── scanner/    <span class="t-cmt"># parallel ping sweep (ARP sweep as root) + --watch delta engine</span>
 │   ├── settings/   <span class="t-cmt"># config.json + settings TUI</span>
 │   ├── sound/      <span class="t-cmt"># latency-scaled terminal beeps</span>
 │   ├── traffic/    <span class="t-cmt"># per-target latency/jitter/loss accounting</span>

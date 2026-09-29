@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.5</span>
+      <span class="addon"><i></i>v15.0</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
           <a class="side-link" href="license.html">License</a>
         </div>
     </nav>
-    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v15.0<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -154,11 +154,11 @@
         </article>
         <article class="card tile-card">
           <div class="card-head"><div class="icon-tile tile-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3 M12 18v3 M3 12h3 M18 12h3"/><circle cx="12" cy="12" r="3"/></svg></div><h3><a href="scan.html">gnulte-scan</a></h3></div>
-          <div class="card-body">Parallel subnet scan + in-Go port scanner with <code>--deep</code>, OS fingerprinting, and an automatic ARP sweep under root that catches ping-blocking hosts. mDNS <code>.local</code> and NetBIOS names, embedded OUI vendor, device types, colour-coded scan tables, an interactive <code>-T</code> monitor with Devices / Log / Summary windows and an in-scanner settings page (<code>o</code>), HTML reports filed into <code>~/GNULTE Reports</code>, and JSON / YAML / CSV export.</div>
+          <div class="card-body">Parallel subnet scan + in-Go port scanner with <code>--deep</code>, OS fingerprinting, and an automatic ARP sweep under root that catches ping-blocking hosts. mDNS <code>.local</code> and NetBIOS names, embedded OUI vendor, device types, colour-coded scan tables, an interactive <code>-T</code> monitor with Devices / Log / Summary windows (Summary cross-references the shared device store) and an in-scanner settings page (<code>o</code>), live re-scanning with <code>--watch N</code> printing <code>▲</code>/<code>▼</code>/<code>~</code> deltas, HTML reports filed into <code>~/GNULTE Reports</code>, and JSON / YAML / CSV export.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head"><div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12h4l3-8 4 16 3-10 2 2h4"/></svg></div><h3><a href="gnulte-lan.html">gnulte-lan</a></h3></div>
-          <div class="card-body">Live LAN watch: discovers the whole subnet (router skipped), then repaints per-host down/up speed, packet rate and latency every second with device identity — MAC, vendor, type, hostname — scaled row blocks with a health grade, one stable colour per IP, and a four-screen console: hosts, ranked talkers (with bars and peers), per-pair flows (root socket) and the live ARP neighbours table. Tracks who talks to whom, raises lightweight alarms when a host crosses a rate or latency threshold, streams per-tick CSV, and files a polished HTML report into <code>~/GNULTE Reports</code>. Root unlocks byte-accurate flows and net rates.</div>
+          <div class="card-body">Live LAN watch: discovers the whole subnet (router skipped), then repaints per-host down/up speed, packet rate and latency every second with device identity — MAC, vendor, type, hostname — scaled row blocks with a health grade, one stable colour per IP, and a five-screen console: hosts, ranked talkers (with bars and peers), per-pair flows (root socket), the live ARP neighbours table and screen 5's Live Interconnection map (devices as nodes, live flows as pulsing edges, root socket). <code>⏎</code> hands a host off to <code>gnulte -t &lt;ip&gt;</code> in a fresh terminal and <code>x</code> saves the watch to the shared device store. Tracks who talks to whom, raises lightweight alarms when a host crosses a rate or latency threshold, streams per-tick CSV, and files a polished HTML report into <code>~/GNULTE Reports</code>. Root unlocks byte-accurate flows, the map and net rates.</div>
         </article>
         <article class="card tile-card">
           <div class="card-head"><div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 9.5A15 15 0 0 1 22 9.5"/><path d="M5.2 12.7a10 10 0 0 1 13.6 0"/><path d="M8.4 15.9a5 5 0 0 1 7.2 0"/><circle cx="12" cy="19" r="1.4" fill="currentColor"/></svg></div><h3><a href="wifi.html">gnulte-wifi</a></h3></div>

@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.5</span>
+      <span class="addon"><i></i>v15.0</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
           <a class="side-link" href="license.html">License</a>
         </div>
     </nav>
-    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v15.0<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -116,7 +116,9 @@
               <li>ARP sweep (<code>--arp</code>) automatic under root — hosts that filter ping still answer ARP</li>
               <li>Open ports, services and banners feeding device-type and OS detection</li>
               <li>OS guessed from TTL, banners (OpenSSH, dropbear, IIS, Samba…) and port signals (SMB, RDP, VNC, SSH)</li>
-              <li>Full-screen device browser with <code>-T</code>: Devices / Log / Summary windows (<code>1</code>/<code>2</code>/<code>3</code>), <code>/</code> filter, <code>s</code> sort, Enter/Space for details, <code>o</code> for settings</li>
+              <li>Full-screen device browser with <code>-T</code>: Devices / Log / Summary windows (<code>1</code>/<code>2</code>/<code>3</code>), <code>/</code> opens the filter (type to focus, <code>Esc</code> clears), <code>v</code> filters by vendor, <code>s</code> sort, Enter/Space for details, <code>o</code> for settings</li>
+              <li>Live re-scan with <code>--watch N</code> — re-discovers every N seconds and prints exactly what moved: <code>▲</code> new, <code>▼</code> gone, <code>~</code> changed. The <code>-T</code> browser runs the same cadence and marks each row</li>
+              <li>Summary window cross-references the shared device store — which devices the last LAN watch already knew</li>
               <li>Vendor from an embedded OUI registry, plus your own override file</li>
               <li>JSON / YAML / CSV export and a standalone HTML report filed into <code>~/GNULTE Reports</code></li>
             </ul>
@@ -132,7 +134,9 @@
 <span class="cb-cmt"># interactive full-screen browser (Devices / Log / Summary windows)</span>
 <span class="cb-pr">$</span> gnulte-scan --interactive
 <span class="cb-cmt"># custom interface and subnet, JSON export</span>
-<span class="cb-pr">$</span> gnulte-scan -i wlan0 -C 192.168.0.0/24 -j &gt; devices.json</div>
+<span class="cb-pr">$</span> gnulte-scan -i wlan0 -C 192.168.0.0/24 -j &gt; devices.json
+<span class="cb-cmt"># live re-scan every 5s — shows ▲ new / ▼ gone / ~ changed until Ctrl+C</span>
+<span class="cb-pr">$</span> gnulte-scan --watch 5</div>
             <p class="dim" style="margin-top:14px;font-size:14px;">No root needed for pings, names and the embedded OUI database — root unlocks the ARP sweep and the settings page.</p>
           </div>
         </div>

@@ -23,7 +23,7 @@
       <span class="brand-name">GNULTE</span>
     </a>
     <div class="top-actions">
-      <span class="addon"><i></i>v13.5</span>
+      <span class="addon"><i></i>v15.0</span>
       <a href="download.html" class="nav-pill">Download</a>
     </div>
   </header>
@@ -57,7 +57,7 @@
         <a class="side-link" href="license.html">License</a>
       </div>
     </nav>
-    <div class="side-foot">GNULTE v13.5<br>Linux · GPL-3.0-or-later</div>
+    <div class="side-foot">GNULTE v15.0<br>Linux · GPL-3.0-or-later</div>
   </aside>
   <div class="page-main">
 
@@ -76,7 +76,7 @@
       <div class="section-head">
         <p class="kicker">The tester</p>
         <h2 class="section-title">What your devices feel when the network misbehaves</h2>
-        <p class="section-sub"><code>gnulte</code> quietly interposes itself between a device and its gateway (ARP-spoofed routing), then applies kernel-level shaping with <code>tc netem</code> — latency, jitter, packet loss, duplication, reordering and bandwidth caps. Every target is pinged once per second while the test runs, and the whole session ends in an HTML report with SVG latency timelines.</p>
+        <p class="section-sub"><code>gnulte</code> quietly interposes itself between a device and its gateway (ARP-spoofed routing), then applies kernel-level shaping with <code>tc netem</code> — latency, jitter, packet loss, duplication, reordering and bandwidth caps. Every target is pinged once per second while the test runs; while shaping, a <code>netem live</code> line reads the kernel queue (<code>tc -s qdisc</code>) so you see exactly what your own conditions are doing to the wire. The whole session ends in an HTML report with SVG latency timelines.</p>
       </div>
       <div class="showcase">
         <div class="show-item">
@@ -87,7 +87,7 @@
         <div class="show-item">
           <div class="icon-tile tile-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>
           <h3>Pick your target</h3>
-          <p>One IP, several IPs, a whole subnet (<code>-r</code>), a MAC (<code>-m</code>), or every device of a kind — <code>--device-type phone,router</code> or <code>--vendor Apple</code>.</p>
+          <p>One IP, several IPs, a whole subnet (<code>-r</code>), a MAC (<code>-m</code>), every device of a kind — <code>--device-type phone,router</code> or <code>--vendor Apple</code> — or press <code>w</code> in the target menu to pick straight from the shared device store filled by the last LAN watch (gnulte-lan).</p>
         </div>
         <div class="show-item">
           <div class="icon-tile tile-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 3h7v7"/><path d="M21 3l-8 8"/><path d="M3 14h7v7"/><path d="M3 21l8-8"/></svg></div>
@@ -134,6 +134,7 @@
               <li><code>--device-type phone --random</code> — shape every phone, re-roll each second</li>
               <li><code>--profile streaming</code> — one of 12 presets (<code>--list-profiles</code>)</li>
               <li><code>--traffic-window</code> — open the <a href="gnulte-lan.html">GNULTE-LAN watch</a> in a second terminal</li>
+              <li>During a run the dashboard shows <code>netem live</code> — dropped, backlog and limit read from the kernel qdisc</li>
             </ul>
           </div>
         </div>
@@ -179,7 +180,7 @@
 
     <section class="body-section">
       <div class="cta-band">
-        <p class="kicker" style="color:rgba(255,255,255,0.7);">Core tool · v13.5</p>
+        <p class="kicker" style="color:rgba(255,255,255,0.7);">Core tool · v15.0</p>
         <h2>Put a device through real conditions</h2>
         <p>Three minutes to install, one command to run.</p>
         <div class="cta-row">
