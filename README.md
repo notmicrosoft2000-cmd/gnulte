@@ -7,10 +7,31 @@ LAN. Scan the network, shape a target, watch the results live, then clean up.
 | Binary | Root | What it does |
 | --- | --- | --- |
 | `gnulte` | **yes** | Interactive traffic shaping engine (ARP spoof → `tc netem` → live dashboard → HTML report). Discreet `-S` stealth spoofing mode |
-| `gnulte-scan` | optional | Parallel subnet scanner + in-Go deep port scanner, ARP sweep when root, OUI vendor, mDNS/NetBIOS names, device types, OS fingerprinting, colour-coded tables + tabbed interactive `-T` monitor (Devices / Log / Summary, `o` = settings page) |
+| `gnulte-lan` | optional | Live LAN watch — five-screen console: hosts, talkers (ranked with bars & peers), flows (A ⇄ B, root socket), neighbours (ARP) and screen 5's **Live Interconnection map** (devices as nodes, live flows as pulsing edges). Handoff (`⏎` → `gnulte -t <ip>`), `x` saves the watch to the shared device store |
+| `gnulte-scan` | optional | Parallel subnet scanner + in-Go deep port scanner, ARP sweep when root, OUI vendor, mDNS/NetBIOS names, device types, OS fingerprinting, colour-coded tables + tabbed interactive `-T` monitor (Devices / Log / Summary) and live re-scanning with `--watch N` |
 | `gnulte-devices` | no | Instant ARP/neighbour inventory — vendors, mDNS hostnames, type guesses, HTML reports |
-| `gnulte-traffic` | no | Lightweight per-second latency / jitter / loss monitor against one or several hosts |
 | `gnulte-wifi` | **yes** | Targeted 802.11 deauthentication for authorized Wi-Fi disassociation testing — per-frame jitter, rotating deauth reason codes, optional channel hopping |
+
+## Live Interconnection (v15)
+
+One shared device store (`~/.config/gnulte-go/devices.json`) wires the toolkit
+together — one watch feeds the whole suite:
+
+- **gnulte-lan screen 5 — the map.** Devices become nodes, live flows become
+  edges that pulse (`▸`) as traffic moves; like FLOWS it needs the raw capture
+  socket and says so: `⛔ needs the capture socket (root)`.
+- **Handoff.** `⏎` (or `g`) on a host opens `gnulte -t <ip>` against it in a
+  fresh terminal (prints the command when no terminal emulator is found); the
+  detail pane moved to `Tab`/`d`.
+- **Live shaping telemetry.** During a run the dashboard reads the kernel
+  queue (`tc -s qdisc`) and shows `netem live · delayed … · dropped … ·
+  backlog … · delay …`.
+- **Targets from the watch.** `w` in gnulte's target menu picks devices
+  straight from the shared store; gnulte-scan's `-T` Summary cross-references
+  it (`known from last LAN watch`).
+- **Live re-scan.** `gnulte-scan --watch 5` re-discovers every N seconds and
+  prints `▲` new · `▼` gone · `~` changed; the `-T` browser runs the same
+  cadence, marks each row, and adds `/` filter focus + `v` vendor filtering.
 
 ## Safety Warning
 
@@ -99,8 +120,10 @@ sudo gnulte -t 192.168.1.20 --profile voip --duration 300 -S   # discreet spoofi
 
 gnulte-scan --deep                                     # parallel sweep + in-Go port scan + OS fingerprint
 gnulte-scan -T                                         # tabbed interactive monitor (Devices / Log / Summary)
+gnulte-scan --watch 5                                  # live re-scan every 5s: ▲ new · ▼ gone · ~ changed
 gnulte-devices -s                                      # ARP inventory + optional live sweep
-gnulte-traffic -t 192.168.1.20 -duration 60            # watch one host's latency
+gnulte-lan                                             # five-screen live watch (auto-discovers subnet)
+gnulte-lan -t 192.168.1.20 --duration 60               # watch one host up close
 ```
 
 ## Flags
@@ -163,14 +186,30 @@ gnulte-devices -H dev.html    # HTML report
 
 Vendor, mDNS hostname, type guess, table / JSON / YAML / CSV / HTML export.
 
-## gnulte-traffic
+## gnulte-lan
 
-Lightweight latency / jitter / loss monitor — no shaping, no root.
+Live LAN watch — passive, auto-discovers the subnet (router and self
+skipped), then repaints the LAN every interval in a five-screen console:
+`1` hosts (dashboard) · `2` talkers (ranked with bars & peers) · `3` flows
+(A ⇄ B pairs, root socket) · `4` neighbours (live ARP) · `5` map (Live
+Interconnection — devices as nodes, live flows as pulsing edges, root
+socket).
 
 ```sh
-gnulte-traffic -t 192.168.1.20
-gnulte-traffic -t 10.0.0.5,10.0.0.6 -duration 120
+gnulte-lan                            # watch the whole LAN
+gnulte-lan -t 192.168.1.20            # one host, up close
+sudo gnulte-lan                       # + byte-accurate talkers, flows, net rates, live map
+gnulte-lan --duration 60 --export watch.csv --alarm-rate 500   # headless 60s watch
 ```
+
+Every IP keeps one stable colour across screens; rows scale with terminal
+width (compact, normal, or a 4-line `MORE` variant with p50/p95 at 116+
+columns). `⏎`/`g` hand the selected host off to `gnulte -t <ip>` in a fresh
+terminal, `Tab`/`d` open the detail pane, `x` saves the whole watch to the
+shared device store, `s` re-sorts, `a` filters to alarming hosts, `o` edits
+settings live, `Esc` peels screens before quitting. First-run is speeds-free:
+no raw capture socket means a polite `¡ speeds-free` note and an explicit
+FLOWS/MAP `⛔ needs the capture socket (root)` gate instead of guessing.
 
 ## gnulte-wifi
 
@@ -192,7 +231,12 @@ Required: `iproute2` (`tc`), `arp-scan` or `dsniff` (`arpspoof`), `iputils`
 Stealth mode (`-S`) drops the `arpspoof(8)` requirement — spoofing is done
 in-Go over a raw socket (root / `CAP_NET_RAW`).
 
-### gnulte-scan / gnulte-devices / gnulte-traffic
+### gnulte-lan (live watch)
+Runs fully without root (latency, identity, alarms). Root unlocks the raw
+capture socket: byte-accurate talkers, per-pair flows, net rates and screen
+5's live map. `tc` is shaped during a gnulte handoff, not by the watch itself.
+
+### gnulte-scan / gnulte-devices
 None beyond the Go toolchain (everything is in-Go). `arp-scan` is used
 opportunistically as root for faster device discovery but is not required;
 gnulte-scan's own in-Go ARP sweep takes over automatically under root.
@@ -209,6 +253,7 @@ All state lives under `~/.config/gnulte-go/`:
 | --- | --- |
 | `acceptance.json` | Versioned safety-policy acknowledgment record |
 | `config.json` | Settings TUI state: theme, verbosity, log mode, ARP sweep, stealth spoofing, Wi-Fi timing, saved scan defaults |
+| `devices.json` | Shared device store — the Live Interconnection database written by `gnulte-lan`, read by `gnulte` (`w` picker) and `gnulte-scan` |
 | `profiles.json` | User-created `--save-profile` combinations |
 
 Post-test HTML reports are filed under `~/GNULTE Reports/` (a per-tool
