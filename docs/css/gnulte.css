@@ -1,0 +1,372 @@
+/* GNULTE website stylesheet
+   GNULTE — GNU LAN Network Testing Environment
+   Copyright (C) 2026 Neptune Productions.
+   Licensed under the GNU GPL v3 or later.
+*/
+
+/* ---------------------------------------------------------------- base */
+
+html { background: #e4eaf0; }
+
+body {
+  margin: 0;
+  padding: 0 0 24px 0;
+  background: #e4eaf0;
+  color: #21292f;
+  font: 12px/1.6 Arial, "Liberation Sans", Helvetica, sans-serif;
+}
+
+a { color: #17468c; text-decoration: underline; }
+a:hover { color: #c04a1e; }
+a:focus { outline: 1px dotted #17468c; }
+
+p { margin: 0 0 10px 0; }
+ul, ol { margin: 0 0 10px 0; padding-left: 22px; }
+li { margin-bottom: 4px; }
+
+h1, h2, h3, h4 { font-family: Arial, "Liberation Sans", Helvetica, sans-serif; }
+
+h1 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  color: #14293f;
+}
+
+h2 {
+  margin: 20px 0 8px 0;
+  padding-bottom: 3px;
+  font-size: 16px;
+  color: #1d3a5c;
+  border-bottom: 1px solid #c6d2de;
+}
+
+h3 {
+  margin: 14px 0 6px 0;
+  font-size: 13px;
+  color: #1d3a5c;
+}
+
+h4 { margin: 10px 0 4px 0; font-size: 12px; color: #33414d; }
+
+code, kbd, samp, pre {
+  font-family: "DejaVu Sans Mono", Consolas, "Courier New", monospace;
+}
+
+code { font-size: 11px; background: #f0f3f6; padding: 0 2px; }
+
+pre {
+  margin: 0 0 10px 0;
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  background: #f4f6f8;
+  border: 1px solid #d5dde5;
+  overflow-x: auto;
+}
+
+pre code { background: none; padding: 0; }
+
+hr { margin: 14px 0; border: 0; border-top: 1px solid #d5dde5; }
+
+/* ------------------------------------------------------------- layout */
+
+.wrap {
+  width: 960px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-left: 1px solid #b9c5d1;
+  border-right: 1px solid #b9c5d1;
+}
+
+.pad { padding: 14px 16px; }
+
+/* three-column body: left nav 175, main 575, right 180 (incl. gutters) */
+
+.cols { overflow: hidden; }            /* clearfix */
+
+.col-left  { float: left; width: 175px; padding: 0 10px 14px 12px; }
+.col-main  { float: left; width: 565px; padding: 0 10px 14px 10px; }
+.col-right { float: left; width: 180px; padding: 0 12px 14px 10px; }
+
+/* two-column body: main 745 + right 180 */
+
+.cols2 { overflow: hidden; }
+.cols2 .col-main  { float: left; width: 745px; padding: 0 10px 14px 16px; }
+.cols2 .col-right { float: left; width: 180px; padding: 0 12px 14px 10px; }
+
+/* ------------------------------------------------------------- header */
+
+.head {
+  background: #1d3a5c;
+  background: linear-gradient(#2a4f78, #16304a);
+  border-bottom: 1px solid #0c1c2c;
+  padding: 12px 16px 10px 16px;
+  overflow: hidden;
+}
+
+.brand {
+  float: left;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.brand img { float: left; margin-right: 10px; border: 1px solid #0c1c2c; }
+
+.brand b {
+  display: block;
+  font-size: 26px;
+  letter-spacing: 1px;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.brand .tag { font-size: 11px; color: #b6cde4; }
+
+.head-search {
+  float: right;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #b6cde4;
+}
+
+.head-search input[type="text"] {
+  width: 130px;
+  font-size: 11px;
+  padding: 2px;
+  border: 1px solid #0c1c2c;
+}
+
+.head-search input[type="submit"] {
+  font-size: 11px;
+  padding: 1px 6px;
+}
+
+/* --------------------------------------------------------------- nav */
+
+.nav {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: #3a6ea5;
+  background: linear-gradient(#4a80b6, #2d5a8c);
+  border-bottom: 1px solid #1d3a5c;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.nav li { display: inline; }
+
+.nav a {
+  display: inline-block;
+  padding: 6px 14px;
+  color: #ffffff;
+  text-decoration: none;
+  border-right: 1px solid #27517f;
+  border-left: 1px solid #5b8fc4;
+}
+
+.nav a:hover { background: #27517f; color: #ffffff; }
+
+.nav a.active {
+  background: #1d3a5c;
+  color: #ffffff;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------------------------------------------------------- sidebars */
+
+.box {
+  margin: 0 0 12px 0;
+  border: 1px solid #c6d2de;
+  background: #fbfcfd;
+}
+
+.box h3 {
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: #1d3a5c;
+  background: #e6edf4;
+  background: linear-gradient(#eef3f8, #dde6ef);
+  border-bottom: 1px solid #c6d2de;
+}
+
+.box .b { padding: 8px; font-size: 11px; line-height: 1.55; }
+.box .b p:last-child { margin-bottom: 0; }
+.box ul { padding-left: 16px; margin-bottom: 0; }
+
+.box dl { margin: 0; }
+.box dt { font-weight: bold; color: #33414d; margin-top: 5px; }
+.box dd { margin: 0 0 0 0; }
+
+/* left navigation column */
+
+.navlist { margin: 0; padding: 0; list-style: none; font-size: 11px; }
+.navlist li { margin: 0; border-bottom: 1px solid #e2e8ee; }
+.navlist li:last-child { border-bottom: 0; }
+
+.navlist a {
+  display: block;
+  padding: 4px 8px;
+  text-decoration: none;
+  color: #17468c;
+}
+
+.navlist a:hover { background: #eef3f8; color: #c04a1e; }
+
+.navlist a.active {
+  background: #dde6ef;
+  color: #14293f;
+  font-weight: bold;
+  border-left: 3px solid #3a6ea5;
+  padding-left: 5px;
+}
+
+.navlist .grp {
+  padding: 5px 8px 2px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #5a6570;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* -------------------------------------------------------------- tables */
+
+table.data {
+  width: 100%;
+  margin: 0 0 12px 0;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+table.data th {
+  padding: 4px 6px;
+  text-align: left;
+  color: #1d3a5c;
+  background: #e6edf4;
+  border: 1px solid #c6d2de;
+}
+
+table.data td {
+  padding: 4px 6px;
+  border: 1px solid #d5dde5;
+  vertical-align: top;
+}
+
+table.data tr:nth-child(even) td { background: #f6f8fa; }
+
+table.data td.c { text-align: center; }
+
+/* ------------------------------------------------------------- notices */
+
+.note, .warn {
+  margin: 0 0 12px 0;
+  padding: 8px 10px;
+  font-size: 11px;
+  border: 1px solid #c6d2de;
+  background: #eef3f8;
+}
+
+.warn {
+  background: #fdf6e3;
+  border-color: #d9c58a;
+}
+
+.note b, .warn b { color: #14293f; }
+
+/* ------------------------------------------------------------ elements */
+
+.crumbs {
+  margin: 0 0 10px 0;
+  padding: 4px 0;
+  font-size: 11px;
+  color: #5a6570;
+  border-bottom: 1px solid #e2e8ee;
+}
+
+.meta {
+  margin: -2px 0 12px 0;
+  font-size: 11px;
+  color: #5a6570;
+}
+
+.lede { font-size: 12px; color: #33414d; }
+
+.status  { color: #1d7a1d; font-weight: bold; }
+.status-dev { color: #8f5600; font-weight: bold; }
+
+.badge {
+  display: inline-block;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #ffffff;
+  background: #3a6ea5;
+  border: 1px solid #1d3a5c;
+}
+
+.badge.root { background: #a03a2a; border-color: #6e2519; }
+.badge.opt  { background: #5a6570; border-color: #414b55; }
+.badge.no   { background: #1d7a1d; border-color: #145614; }
+
+dl.defs dt { font-weight: bold; color: #1d3a5c; margin-top: 8px; }
+dl.defs dd { margin: 1px 0 0 0; }
+
+.btn {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #ffffff;
+  background: #3a6ea5;
+  background: linear-gradient(#4a80b6, #2d5a8c);
+  border: 1px solid #1d3a5c;
+  text-decoration: none;
+}
+
+.btn:hover { background: #27517f; color: #ffffff; }
+
+/* -------------------------------------------------------------- footer */
+
+.foot {
+  clear: both;
+  padding: 12px 16px;
+  font-size: 11px;
+  color: #5a6570;
+  background: #eef2f6;
+  border-top: 1px solid #c6d2de;
+}
+
+.foot p { margin: 0 0 5px 0; }
+.foot .foot-nav { border-bottom: 1px solid #d5dde5; padding-bottom: 6px; margin-bottom: 6px; }
+.foot .foot-nav a { margin: 0 4px; }
+
+/* ------------------------------------------------------------ responsive
+   The fixed 960px layout is the design. Below that, the columns stack in
+   document order rather than overflowing sideways. */
+
+@media (max-width: 984px) {
+  html { background: #ffffff; }
+  .wrap { width: auto; border: 0; }
+  .col-left, .col-main, .col-right,
+  .cols2 .col-main, .cols2 .col-right {
+    float: none;
+    width: auto;
+    padding: 0 12px 12px 12px;
+  }
+  .col-left  { padding-top: 10px; }
+  .cols2 .col-main { padding-top: 14px; }
+  .head { padding: 10px 12px; }
+  .brand, .head-search { float: none; display: block; text-align: left; }
+  .head-search { margin-top: 8px; }
+  .nav a { padding: 6px 9px; }
+
+  /* comfortable touch targets once the layout has stacked */
+  .foot p { line-height: 2; }
+  .foot-nav a { display: inline-block; padding: 6px 2px; }
+  .box .b a { display: inline-block; padding: 6px 0; }
+  .navlist a { padding: 6px 8px; }
+  .col-main table.data a { display: inline-block; padding: 6px 0; }
+}

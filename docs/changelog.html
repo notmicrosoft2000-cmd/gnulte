@@ -1,338 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="GNULTE changelog — every release since the Go rewrite, newest first.">
-  <meta name="theme-color" content="#070a11">
-  <title>Changelog — GNULTE</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>Changelog — GNULTE</title>
+<meta name="description" content="Release history of the GNULTE Go edition, newest first, including the v17 Unplugged development programme.">
+<link rel="icon" href="img/favicon.ico">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="stylesheet" href="css/gnulte.css?v=16.13">
 </head>
 <body>
+<div class="wrap">
 
-  <input type="checkbox" id="navcheck" class="nav-check" aria-hidden="true">
-
-    <header class="topbar">
-    <label for="navcheck" class="nav-toggle" aria-label="Open menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></label>
-    <a class="brand" href="index.html" aria-label="GNULTE home">
-      <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="8" width="52" height="40" rx="6" fill="#1d3a5c" stroke="#62a0ea" stroke-width="5"/><path d="M6 17h52" stroke="#62a0ea" stroke-width="5"/><path d="M30 40h4v-6h3v11h3v-4h2v6h3v-3h4" fill="none" stroke="#99c1f1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span class="brand-name">GNULTE</span>
-    </a>
-    <div class="top-actions">
-      <span class="addon"><i></i>v16.0</span>
-      <a href="download.html" class="nav-pill">Download</a>
-    </div>
-  </header>
-
-  <div class="shell">
-  <aside class="sidenav">
-    <nav aria-label="Sections">
-        <div class="side-group">
-          <p class="side-label">Tools</p>
-          <a class="side-link" href="gnulte.html"><span class="dot d-blue"></span>gnulte</a>
-          <a class="side-link" href="gnulte-lan.html"><span class="dot d-green"></span>gnulte-lan</a>
-          <a class="side-link" href="scan.html"><span class="dot d-orange"></span>gnulte-scan</a>
-          <a class="side-link" href="wifi.html"><span class="dot d-purple"></span>gnulte-wifi</a>
-          <a class="side-link" href="devices.html"><span class="dot d-teal"></span>gnulte-devices</a>
-        </div>
-        <div class="side-group">
-          <p class="side-label">Studio</p>
-          <a class="side-link" href="preview.html"><span class="dot d-studio"></span>Live previews</a>
-        </div>
-        <div class="side-group">
-          <p class="side-label">Learn</p>
-          <a class="side-link" href="features.html">Features</a>
-          <a class="side-link" href="docs.html">Documentation</a>
-          <a class="side-link" href="wiki.html">Wiki</a>
-          <a class="side-link active" aria-current="page" href="changelog.html">Changelog</a>
-        </div>
-        <div class="side-group">
-          <p class="side-label">Project</p>
-          <a class="side-link" href="download.html">Download</a>
-          <a class="side-link" href="built.html">Built with</a>
-          <a class="side-link" href="license.html">License</a>
-        </div>
-    </nav>
-    <div class="side-foot">GNULTE v16.0<br>Linux · GPL-3.0-or-later</div>
-  </aside>
-  <div class="page-main">
-
-  <main>
-        <nav class="crumbs" aria-label="Breadcrumb">
-      <a href="index.html">GNULTE</a><i>/</i><span>Learn</span><i>/</i><a href="changelog.html" aria-current="page">Changelog</a>
-    </nav>
-  <section class="page-hero">
-      <div class="icon-tile tile-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
-      <h1>Changelog</h1>
-      <p>Every release since the Go rewrite, newest first. Full commit history lives <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/commits/main" target="_blank" rel="noopener">on GitHub</a>.</p>
-    </section>
-
-    <section class="body-section">
-      <div class="changelog">
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v16.0</h3>
-            <span class="cl-tag">Latest</span>
-            <span class="cl-date">29 Sep 2026</span>
-          </div>
-          <ul>
-            <li><strong>Ctrl+C exits cleanly instead of killing the run</strong> — a fix for the reported bug <em>&ldquo;I select multiple devices, pick monitor mode 1, press Ctrl+C and it kills rather than exits.&rdquo;</em> The toolkit&rsquo;s shared signal handler was racing each tool&rsquo;s own graceful shutdown and winning with a hard <code>os.Exit(130)</code>, so a first Ctrl+C cut the session dead mid-teardown. It now restores the screen and terminal on the first signal and lets the shutdown finish, forcing the 130 exit only on a <em>second</em> Ctrl+C or after a grace period. This mattered beyond cosmetics: the old hard kill skipped <code>sess.Stop()</code>, so targets were left holding a poisoned ARP cache and lost connectivity.</li>
-            <li><strong>The terminal always comes back</strong> — raw keyboard mode is now registered as a cleanup instead of being restored only on the normal path, so an interrupt can never leave you at a prompt with no echo and no working Enter.</li>
-            <li><strong>gnulte-lan arrows do one thing</strong> — the reported phantom-repeat bug is gone. Holding an arrow key no longer &ldquo;scoots&rdquo; the cursor dozens of rows past where you pointed it: the app-side hold-repeat was removed in favour of your terminal&rsquo;s own key-repeat, and two quick taps still queue and drain as two moves. Verified by a PTY regression test that replays single taps, quick taps and a 2.6-second hold.</li>
-            <li><strong>Honest sampling cadence</strong> — the reported bug <em>&ldquo;when a ping takes longer than 1 second, the next one immediately fires&rdquo;</em>. A fixed-rate ticker starts every probe on schedule, so a slow probe left its tick already queued and the next one fired the instant the slow one returned: a 2-second target ran flat out with no gap at all. Both the single-target console and the multi-target dashboard now sample, show the reading, and <em>then</em> wait the full interval, so the one-second gap stays a one-second gap however slow the host is. A run also starts measuring immediately instead of after a blank second. Locked down by a test that drives the loops with a probe of a chosen duration and asserts the gap is <em>probe time plus interval</em>.</li>
-            <li><strong>gnulte --note</strong> — label a run at launch (<code>--note &quot;pentest · building 4&rdquo;</code>). The note rides into the console header and the session report, so a month of reports still say which engagement they belonged to.</li>
-            <li><strong>A live watch now stops when you tell it to</strong> — a second real bug, found while testing the above: interrupting a scan mid-sweep used to take up to 11 seconds to respond, because the name-identification waits (reverse DNS, mDNS, NetBIOS) bounded themselves by a <em>deadline</em> but never checked for <em>cancellation</em> — the exact shape <code>signal.NotifyContext</code> produces. Every wait now ends at once on cancel, and the per-host loops stop starting new lookups. Measured shutdown latency: <strong>10.9s &rarr; 0.00s</strong>.</li>
-            <li><strong>gnulte-scan --watch --json</strong> — a machine-readable feed for the same live rescan: one JSON object per sweep on stdout (<code>{"kind":"baseline"}</code> then <code>{"kind":"delta"}</code> with the movement), narrative to stderr, so <code>gnulte-scan --watch 5 --json | jq</code> is a working motion sensor. Mutually exclusive with <code>-q</code>/<code>--yaml</code>/<code>--csv</code>.</li>
-            <li><strong>Quick scan</strong> — in the <code>-T</code> device table, <code>r</code> re-scans the subnet on demand and the status line grows a <code>▲ new ▼ gone ~ changed</code> legend, so you can nudge the network and watch it react. The line leads with live state and keeps key hints last, because a narrow window truncates the tail first.</li>
-            <li><strong>Quieter, clearer menus</strong> — devices the shared store already knows are marked <code>*</code> in the target picker, and you can select by keyword (<code>Mobile</code>, <code>@hostname</code>). gnulte-lan footers carry live counts on every screen, and the map keeps a legend.</li>
-            <li>Version 16.0 across all five binaries. Also fixed: <code>GOOS=darwin</code> builds now succeed (the ARP package declared two methods twice against a Linux-only field).</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v15.0</h3>
-            <span class="cl-date">29 Sep 2026</span>
-          </div>
-          <ul>
-            <li><strong>Live Interconnection</strong> — v13.5 &rarr; v15.0. The five tools now share one live view of the network, driven by a shared device store (<code>~/.config/gnulte-go/devices.json</code>): gnulte-lan folds every watch into the store (<code>x</code> saves, quit saves again), gnulte picks targets straight from it (<code>w</code> in the target menu), and gnulte-scan cross-references its summary and table against it. One watch feeds the whole toolkit.</li>
-            <li><strong>gnulte-lan screen 5 — the interconnection map</strong> — the watch grows a fifth screen (<code>5</code>/<code>m</code>): every device becomes a node and live flows become edges, pulsing as traffic moves, re-arranged to a stable layout each tick. Like FLOWS it needs the raw capture socket, so a speeds-free run shows the explicit <code>⛔ needs the capture socket (root)</code> gate with the <code>sudo gnulte-lan</code> remedy.</li>
-            <li><strong>Handoff</strong> — pressing <code>⏎</code> (or <code>g</code>) on a host opens <code>gnulte -t &lt;ip&gt;</code> against it in a fresh terminal (falling back to printing the exact command when no terminal emulator is found). The detail pane moves to <code>Tab</code>/<code>d</code>; the map shows the <code>▸</code> pulse that follows the selected pair.</li>
-            <li><strong>gnulte — live shaping telemetry</strong> — while a shaping run is live, the dashboard leans on <code>tc -s qdisc</code> and shows the <code>netem live</code> hand: dropped packets, backlog and limit directly from the kernel queue, polled on its own cadence and dimmed under the per-target live rows. The final snapshot is folded into the session report.</li>
-            <li><strong>gnulte-scan --watch N</strong> — the scanner re-sweeps live on an interval: <code>gnulte-scan --watch 5</code> re-discovers every N seconds and prints exactly what moved — <code>▲</code> new, <code>▼</code> gone, <code>~</code> changed — until Ctrl+C. In the <code>-T</code> full-screen browser the same cadence drives the table and marks each host with its delta marker; GONE hosts stay visible; the Summary window cross-references the shared device store. The interactive screen owns the watch, so quitting <code>-T --watch</code> exits cleanly (exit 0) instead of hanging on a second console loop.</li>
-            <li><strong>Target-picker polish</strong> — gnulte-scan <code>-T</code> gains <code>/</code> filter focus (type to refine, <code>Esc</code> to clear) and <code>v</code> to filter by vendor, so one re-scan isolates a single maker&rsquo;s devices.</li>
-            <li>Version 15.0 across all five binaries.</li>
-          </ul>
-        </div>
-
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v13.5</h3>
-            <span class="cl-date">28 Sep 2026</span>
-          </div>
-          <ul>
-            <li><strong>Four-screen console</strong> — the watch is now a real interactive console with <code>↑↓</code> host navigation and screen switching: <code>1</code> hosts (the live dashboard), <code>2</code> talkers (every host ranked by combined rate with down/up scale bars, peer counts, and a communicators block for LAN-internal pairs), <code>3</code> flows (the per-conversation table A ⇄ B with per-direction rates and a <code>⟷LAN</code> tag for pairs that never leave the subnet), and <code>4</code> neighbours (the live ARP table: IP, MAC, vendor, device type, hostname and live ping for every device on the link, router included). Letter aliases <code>t</code>/<code>f</code>/<code>n</code> switch the same screens.</li>
-            <li><strong>Sudo-gated sections</strong> — FLOWS needs the raw capture socket, so a speeds-free run explains itself instead of guessing: <code>⛔ needs the capture socket (root)</code> with the exact <code>sudo gnulte-lan</code> remedy. Screen 2's byte ranking and screen 3's pairs are the root-only view; latency, identity and alarms always keep working.</li>
-            <li><strong>One colour per IP</strong> — every host is assigned a stable hue in appearance order (red stays reserved for alarms), and that colour travels through the hosts, talkers, flows, ARP and detail panes — follow a device across the whole console by colour alone.</li>
-            <li><strong>Scaled TUI, stable per run</strong> — rows adapt to terminal width: a compact two-line block below 78 columns, the familiar three-line block at normal sizes, and a four-line &ldquo;MORE&rdquo; variant at 116+ columns that adds p50/p95 latency and a per-host session line (session/peak averages, lifetime bytes). Height only changes on a real resize, then holds.</li>
-            <li><strong>More information</strong> — the header now shows the LAN-wide net rate (<code>net ↓ x · ↑ y</code>) on every tick; the detail pane gains p50/p95 latency, the host's share of the net, and stays one keystroke (<code>⏎</code>/<code>Tab</code>) away; <code>Esc</code> peels layers (close pane → back to hosts → quit).</li>
-            <li><strong>Root socket required and wanted</strong> — run plain for the passive watch, or with <code>sudo gnulte-lan</code> for byte-accurate flows, talkers and net rates (the watch auto-elevates via sudo).</li>
-            <li>Version 13.5 across all five binaries.</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v13.4</h3>
-            <span class="cl-date">28 Sep 2026</span>
-          </div>
-          <ul>
-            <li><strong>Watch polish</strong> — <code>gnulte-lan</code> becomes a smooth, stable monitor you can trust while picking test targets: every host now occupies a fixed three-line block (traffic+latency, identity, session health), so rows neither grow nor shrink between ticks and the frame never jumps around.</li>
-            <li><strong>Pick-a-target grades</strong> — each row carries a one-glyph health verdict (<code>✓</code> stable, <code>~</code> jittery or lossy, <code>✗</code> flaky, <code>⚠</code> alarming) plus jitter, loss and whole-watch average speeds, so a good GNULTE test device is obvious at a glance.</li>
-            <li><strong>Test-recipe button</strong> — the detail pane ends with <code>test with: gnulte -t &lt;ip&gt;</code>, and pressing <code>g</code> echoes that exact command under the footer. The watch is explicitly the &ldquo;choose your target&rdquo; half of the toolkit now.</li>
-            <li><strong>Header health line</strong> — the status bar gains hosts-up count and a <code>self &middot; gateway &larr;&rarr; RTT</code> line (the gateway is pinged alongside the watch), so &ldquo;is my uplink fine?&rdquo; is answered without opening anything.</li>
-            <li><strong>Smooth keyboard</strong> — pings run in the background and results land between ticks, so a slow or silent host can never freeze the arrows; holding <code>↑</code>/<code>↓</code> scrolls fast just like htop (raw terminals deliver no auto-repeat).</li>
-            <li><strong>Locked columns</strong> — rate, latency and health cells are fixed-width everywhere (the alarm badge reserves its own column), and aligned totals replace the old cut-off line.</li>
-            <li>Version 13.4 across all five binaries.</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v13.3</h3>
-            <span class="cl-date">28 Sep 2026 &middot; <code>497cda7</code></span>
-          </div>
-          <ul>
-            <li><strong>Banner &amp; boot polish</strong> — <code>gnulte-lan</code> opens with the GNULTE-LAN block wordmark, a purpose line that answers &ldquo;what is this for?&rdquo;, and width-aware boot notes (skipped with <code>-q</code>).</li>
-            <li><strong>Arrow keys work</strong> — the watch is now a real interactive screen: <code>↑</code>/<code>↓</code> move a host cursor, and the live frame redraws instantly between ticks.</li>
-            <li><strong>Host detail pane</strong> — <code>⏎</code>/<code>Tab</code> opens a per-host card: MAC/vendor/type/hostname, down/up with session peaks, latency min/avg/max/loss, three relative sparklines (latency, down, up), and the host's top conversations this interval.</li>
-            <li><strong>Sort, filter, panes</strong> — <code>s</code> cycles traffic &rarr; latency &rarr; address order, <code>a</code> filters to only the alarming hosts, <code>t</code> toggles the global top-talkers pane, and <code>h</code> expands the key hints footer.</li>
-            <li><strong>Options mid-watch</strong> — <code>o</code> opens the settings editor live: interval, history depth, timeout, alarm thresholds and beeps apply to the running watch without a restart.</li>
-            <li><strong>Scroll-safe frames</strong> — the host window is packed by line budget (not row count), so sparse multi-line rows fit any terminal height, the cursor never leaves the screen, and <code>▴</code>/<code>▾</code> indicate hidden hosts.</li>
-            <li><strong>Self-explaining help</strong> — <code>--help</code> now leads with gnulte-lan's purpose and ends with examples; the tool's doc comment tells the full story.</li>
-            <li><strong>tui.KeyStream.Poll</strong> — new non-blocking key decode in the shared terminal library (arrows, <code>⏎</code>, <code>Esc</code>, runes) that never drops a queued sequence; used by the interactive watch.</li>
-            <li>Version 13.3 across all five binaries.</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v13.2</h3>
-            <span class="cl-date">28 Sep 2026 &middot; <code>0944a3a</code></span>
-          </div>
-          <ul>
-            <li><strong>GNULTE-LAN</strong> — <code>gnulte-traffic</code> is renamed <code>gnulte-lan</code> and grows into a full live LAN watch: per-host down/up speed, packet rate and latency, refreshed every interval.</li>
-            <li><strong>Auto-discovery</strong> — with no <code>-t</code>, <code>gnulte-lan</code> sweeps the subnet in seconds and watches every live host, merging ARP-table neighbours so ping-silent devices still appear — while always skipping your own machine and the gateway.</li>
-            <li><strong>Identity layer</strong> — each watched host is labelled with MAC, vendor (embedded OUI), device type and hostname from the ARP+neighbour table and mDNS.</li>
-            <li><strong>Top talkers</strong> — a passive per-interval flow engine (AF_PACKET, TCP/UDP port parsing) shows which endpoints are exchanging the most bytes and packets, bolded when a watched host is involved.</li>
-            <li><strong>Lightweight alarms</strong> — rate (kbps) and latency (ms) thresholds, set in the settings editor or via <code>--alarm-rate</code>/<code>--alarm-latency-ms</code>; one beep per tick and a <code>⚠</code> marker on offending hosts. Zero disables.</li>
-            <li><strong>CSV export</strong> — <code>--export file.csv</code> appends a row per host per tick (rates, packets, RTT, loss).</li>
-            <li><strong>HTML report</strong> — the session report gains per-host cards with rate + latency sparklines, each host's top-5 conversations, and a global top-talkers table.</li>
-            <li><strong>Speeds-free fallback</strong> — without root the packet counter degrades gracefully (window warns once) and latency/identity/talkers still run.</li>
-            <li>Version 13.2 across all five binaries.</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v13.1</h3>
-            <span class="cl-date">28 Sep 2026 &middot; <code>89de846</code></span>
-          </div>
-          <ul>
-            <li><strong>Smarter target setup</strong> — before gnulte sweeps the whole subnet it now asks whether you'd rather type an IP (or hostname) by hand; one keypress skips the sweep and the device table entirely.</li>
-            <li><strong>Router-safe ranges</strong> — <code>-r</code> sweeps and the guided &ldquo;all devices&rdquo; pick never target the gateway (shaping the router would cut your own uplink). It stays selectable by number when you really mean it.</li>
-            <li><strong>Device-ID guidance</strong> — the device table now points at gnulte-scan (SCANLTE) for deeper identification: vendors, device types, mDNS/DNS-SD services and port scans.</li>
-            <li><strong>Enter = manual</strong> — the profile picker is a numbered grid and a bare Enter selects manual configuration, so you never have to type a profile name to skip the presets.</li>
-            <li><strong>Twice the profiles</strong> — six new presets join the lineup: satellite, cellular, dialup, congested, bufferbloat and nightmare.</li>
-            <li><strong>Polished session report</strong> — the SVG report is renamed <code>gnulte-go-scan-report-&lt;date&gt;-&lt;time&gt;-&lt;count&gt;.html</code> and redone: UP / DEGRADED / UNSTABLE status pills, a sorted target-summary table, and per-target cards with area-filled latency timelines, timeout markers and headline stats, above the full command history.</li>
-            <li>Version 13.1 across all five binaries.</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v13.0</h3>
-            <span class="cl-date">27 Sep 2026 &middot; <code>2642181</code></span>
-          </div>
-          <ul>
-            <li><strong>Stealth ARP spoofing</strong> — <code>gnulte -S/--stealth</code> uses a built-in AF_PACKET spoofer that answers only when asked and re-arms target caches on a slow, jittered ~30&nbsp;s schedule. Far less visible to other scanners on the LAN; drops the <code>arpspoof(8)</code> dependency in stealth mode.</li>
-            <li><strong>Wi-Fi testing that sticks</strong> — <code>gnulte-wifi</code> gains per-frame timing jitter (<code>--jitter-ms</code>, defeats reconnect timers), rotating deauth reason codes (<code>--mix</code>), channel-hopping (<code>--hop-channels</code>/<code>--channels</code>), and a second Ctrl+C to force-quit the summary.</li>
-            <li><strong>ARP discovery</strong> — <code>gnulte-scan</code> automatically sweeps the subnet when run as root, so hosts that block ping still show up.</li>
-            <li><strong>Tabbed monitor</strong> — <code>gnulte-scan -T</code> is now a Devices / Log / Summary window set (Tab or <code>1</code>/<code>2</code>/<code>3</code>), with <code>o</code> opening the settings page from inside the scanner.</li>
-            <li><strong>Per-target traffic windows</strong> — <code>gnulte --traffic-window</code> opens one monitor terminal per target when shaping several devices at once.</li>
-            <li><strong>Settings TUI</strong> — a categorized full-screen editor (jog/toggle keys, reset) across the tools; <code>StealthArp</code> preference added.</li>
-            <li><strong>Reports hub</strong> — all tools file HTML reports into <code>~/GNULTE Reports</code>, with an interactive y/N ask on interactive runs; the engine command transcript now prepends the report log.</li>
-            <li><strong>Clean exits</strong> — sessions always tear down sessions (<code>defer</code>-based stop), so spoofs and shapers are restored even on nested returns.</li>
-            <li><strong>SCANLTE</strong> — gnulte-scan gets the rebrand: ASCII block logo and &ldquo;side tool for GNULTE&rdquo; tagline.</li>
-            <li><strong>Avahi-style service discovery</strong> — <code>gnulte-scan</code> asks the LAN's mDNS/DNS-SD responders (single two-phase PTR&rarr;SRV/A exchange) what each device offers: airplay, chromecast, homekit, matter, ssh, printer, scanner, vnc and more. Advertised services appear in a SERVICES column, the interactive detail pane and filter, JSON/YAML/CSV exports, and the scan summary.</li>
-            <li><strong>Ping history per host</strong> — the monitor dashboard and <code>gnulte-lan</code> (then <code>gnulte-traffic</code>) keep a rolling latency window per target, with a block sparkline under each live traffic row (last RTT, average, loss). Depth is configurable (ping history depth, 10&ndash;240).</li>
-            <li><strong>Settings that scale</strong> — the settings TUI adapts to wider terminals (up to ~96 columns) and regroups every option under dim section headers (Network &amp; Monitor, Scanlte Scan, Traffic Engine, GNULTE-WIFI, Terminal &amp; UI), with <code>g</code>/<code>G</code> first/last keys and header-skipping navigation.</li>
-            <li><strong>Advanced mode</strong> — a settings toggle controls whether gnulte echoes the exact command line for every tc/arpspoof/sysctl step as it runs; the HTML report transcript records them either way.</li>
-            <li><strong>Typing animation</strong> — on live terminals the interactive confirmation is typed out character by character (instant when piped or quiet).</li>
-            <li>Version 13.0 across all five binaries.</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v12.0</h3>
-            <span class="cl-date">17 Sep 2026 &middot; <code>f31e02f</code></span>
-          </div>
-          <ul>
-            <li><strong>SCANLTE accuracy work</strong> — confidence-scored OS identification, uptime read from TCP timestamps, and rogue-device flags.</li>
-            <li><strong>Tech settings</strong> — groundwork for verbosity and console-log mode that the v13 settings TUI builds on.</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v11.2</h3>
-            <span class="cl-date">16 Sep 2026 &middot; <code>9332241</code>, <code>9b48680</code></span>
-          </div>
-          <ul>
-            <li>Multi-signal OS fingerprinting in <code>gnulte-scan</code>.</li>
-            <li>Interactive <code>-T</code> device table for the scan monitor.</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v11.1</h3>
-            <span class="cl-date">15 Sep 2026 &middot; <code>017284c</code>, <code>5008d03</code></span>
-          </div>
-          <ul>
-            <li><code>gnulte</code> can target devices by name/attribute (<code>--device-type</code>, <code>--vendor</code>) as well as IP/MAC/range.</li>
-            <li>Top-tier device identification and type-coloured scan tables.</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v11.0</h3>
-            <span class="cl-date">14 Sep 2026 &middot; <code>bfdc9fd</code>, <code>e2bc6f3</code></span>
-          </div>
-          <ul>
-            <li>New <strong><a href="devices.html">gnulte-devices</a></strong> LAN inventory tool.</li>
-            <li>Device identification plumbing: embedded OUI vendor registry, mDNS reverse queries, type heuristics.</li>
-            <li><code>gnulte-scan -t</code> alias fix; version bump to 11.0.</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>v10.0</h3>
-            <span class="cl-date">12&ndash;13 Sep 2026 &middot; <code>20f9108</code> +</span>
-          </div>
-          <ul>
-            <li><strong>Front-end parity</strong> — sudo handshake, animated step-by-step boot with check marks, spinner scan.</li>
-            <li><strong>Wizard-first start</strong> — banner art, real boot checks, device menu, parameter wizard, y/N confirm.</li>
-            <li><strong>Sound + monitor</strong> — latency-scaled ping beeps (<code>--no-sound</code> to mute), icon-based console log, one-press Ctrl+C with context-guarded pings.</li>
-            <li>Terminal-size adaptive console, full-log HTML reports, ICMP/TCP connectivity probe.</li>
-            <li>In-Go <strong>port scanner</strong>, arrow-key target selection, per-host traffic counters.</li>
-            <li>Targeted <strong>802.11 deauthentication</strong> for Wi-Fi testing (<code>gnulte-wifi</code>).</li>
-            <li>Full-screen settings editor, flicker-free dashboard, <code>gnulte-lan</code> (then <code>gnulte-traffic</code>) viewer.</li>
-            <li>CLI audit fixes; version 10.0.</li>
-          </ul>
-        </div>
-
-        <div class="cl-entry">
-          <div class="cl-ver">
-            <h3>Before v10 &mdash; the Go rewrite</h3>
-            <span class="cl-date">12 Sep 2026 &middot; <code>ea73f22</code></span>
-          </div>
-          <ul>
-            <li>First Go version: subnet scanner, traffic engine, safety gate with acceptance flow, preset profiles, HTML reports &mdash; replacing the original scripting-era implementation.</li>
-          </ul>
-        </div>
-
-      </div>
-    </section>
-  </main>
-
-  </div>
+<div class="head">
+  <a class="brand" href="index.html">
+    <img src="img/logo-48.png" alt="GNULTE icon" width="48" height="48">
+    <b>GNULTE</b>
+    <span class="tag">GNU LAN Network Testing Environment &middot; v16.13</span>
+  </a>
+  <form class="head-search" action="search.html" method="get">
+    <label for="hq">Search</label>
+    <input id="hq" type="text" name="q" size="18">
+    <input type="submit" value="Go">
+  </form>
 </div>
 
-    <footer>
-    <div class="footer-cols">
-      <div>
-        <p style="font-weight:700;color:var(--text);margin-bottom:10px;">GNULTE</p>
-        <p style="font-size:14px;max-width:280px;">GNU LAN Network Testing Environment. Authorised network testing — scan first, ask permission first, clean up after.</p>
-        <a class="nep-link" href="/" style="font-size:13px;display:inline-block;margin-top:10px;">Neptune Productions hub</a>
-      </div>
-      <div class="footer-links">
-        <h4>Tools</h4>
-        <a href="gnulte.html">gnulte</a>
-        <a href="gnulte-lan.html">gnulte-lan</a>
-        <a href="scan.html">gnulte-scan</a>
-        <a href="wifi.html">gnulte-wifi</a>
-        <a href="devices.html">gnulte-devices</a>
-      </div>
-      <div class="footer-links">
-        <h4>Learn</h4>
-        <a href="preview.html">Studio previews</a>
-        <a href="features.html">Features</a>
-        <a href="docs.html">Documentation</a>
-        <a href="wiki.html">Wiki</a>
-        <a href="changelog.html">Changelog</a>
-      </div>
-      <div class="footer-links">
-        <h4>Project</h4>
-        <a href="download.html">Download</a>
-        <a href="built.html">Built with</a>
-        <a href="license.html">License</a>
-        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go" target="_blank" rel="noopener">Repository</a>
-        <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/releases" target="_blank" rel="noopener">Releases</a>
+<ul class="nav">
+  <li><a href="index.html">Home</a></li>
+  <li><a href="tools.html">Tools</a></li>
+  <li><a href="docs.html">Documentation</a></li>
+  <li><a href="downloads.html">Downloads</a></li>
+  <li><a class="active" href="changelog.html">Changelog</a></li>
+  <li><a href="about.html">About</a></li>
+</ul>
+
+<div class="cols2">
+
+  <div class="col-main" role="main">
+    <p class="crumbs"><a href="index.html">Home</a> &rsaquo; Changelog</p>
+    <h1>Changelog</h1>
+    <p class="meta">All releases of the Go edition, newest first &middot; last updated 2026-10-15</p>
+
+    <h2>Unreleased</h2>
+    <table class="data">
+      <tr><th style="width:12%">Version</th><th style="width:14%">Date</th><th>Changes</th></tr>
+      <tr>
+        <td><b>16.14</b></td>
+        <td>in development</td>
+        <td>Sweepers with memory and <code>gnulte --compare</code> (diff two
+            <code>-j</code> report JSON snapshots, optionally as an HTML comparison
+            report). Work in progress on <code>main</code>; not yet released.</td>
+      </tr>
+    </table>
+
+    <h2>Release history</h2>
+    <table class="data">
+      <tr><th style="width:12%">Version</th><th style="width:14%">Date</th><th>Changes</th></tr>
+      <tr><td><b>16.13</b></td><td>2026-10-03</td>
+          <td>LAN-watch history &amp; a machine feed: JSONL up/down timeline, <code>--json</code>
+              JSON-lines event feed, <code>-alert-debounce</code> hysteresis, screen 6 history,
+              7-day latency trend and a 0&ndash;100 health score per host in the HTML report.</td></tr>
+      <tr><td><b>16.12</b></td><td>2026-10-03</td>
+          <td>Scenarios, per-target shaping, profiles &amp; a session summary:
+              <code>--scenario</code> timed phases, <code>--per-target</code> overrides,
+              <code>--profile save:NAME</code>, <code>--list-profiles</code>, and a run summary
+              with min/avg/p95/max, jitter, loss distribution and an E-model MOS.</td></tr>
+      <tr><td><b>16.11</b></td><td>2026-10-02</td>
+          <td><code>gnulte-top</code> — live per-host and per-conversation bandwidth from the
+              in-process AF_PACKET counter; <code>--flows</code>, <code>--csv</code>, <code>--json</code>.</td></tr>
+      <tr><td><b>16.10</b></td><td>2026-10-01</td>
+          <td><code>gnulte-trace</code> — mtr-style hop-by-hop path probe, in-process ICMP echo
+              per TTL, live table, <code>--json</code>, self-contained HTML report. No
+              <code>traceroute(8)</code>.</td></tr>
+      <tr><td><b>16.9</b></td><td>2026-10-01</td>
+          <td><code>gnulte-doctor</code> — zero-dependency pre-flight check: privileges,
+              <code>tc</code>/<code>iptables</code>, <code>ip_forward</code>, netem/netfilter
+              modules, default route, duplicate IPs, safety record. PASS/WARN/FAIL with hints,
+              <code>--json</code>, non-zero exit on failure.</td></tr>
+      <tr><td><b>16.8</b></td><td>2026-10-01</td>
+          <td>In-Go capture — <code>--capture FILE</code> writes pcap from a raw AF_PACKET
+              socket through a standard-library libpcap writer; <code>tcpdump</code> is no longer
+              required.</td></tr>
+      <tr><td><b>16.7</b></td><td>2026-10-01</td>
+          <td>In-Go ICMP echo — raw <code>IPPROTO_ICMP</code> echo in-process; the shaping
+              engine no longer needs <code>ping</code>. Non-root tools keep the system
+              <code>ping</code> as fallback.</td></tr>
+      <tr><td><b>16.6</b></td><td>2026-10-01</td>
+          <td>In-Go ARP sweep — who-has frames crafted over AF_PACKET in-process;
+              <code>arping</code> and <code>arp-scan</code> are no longer required anywhere.</td></tr>
+      <tr><td><b>16.5</b></td><td>2026-09-30</td>
+          <td>Toolkit version string aligned across all binaries.</td></tr>
+      <tr><td><b>16.1</b></td><td>2026-09-30</td>
+          <td>Bug batch: 18 audit fixes, each with a discriminating regression test.</td></tr>
+      <tr><td><b>16.0</b></td><td>2026-09-29</td>
+          <td>&ldquo;Steady Hands&rdquo; — a stability release: clean Ctrl+C teardown (no more
+              poisoned ARP caches), interruptible name-identification waits (10.9s &rarr; 0.00s),
+              honest sampling cadence, fixed phantom-repeat arrow keys in gnulte-lan,
+              <code>gnulte --note TEXT</code>, <code>gnulte-scan --watch N --json</code> and the
+              quick re-scan <code>r</code> key.</td></tr>
+      <tr><td><b>15.0</b></td><td>2026-09-29</td>
+          <td>&ldquo;Live Interconnection&rdquo; — one shared device store
+              (<code>~/.config/gnulte-go/devices.json</code>) wiring the tools together: the watch
+              feeds the engine's target picker and the scanner's cross-reference.</td></tr>
+      <tr><td>13.5</td><td>2026-09-28</td><td>GNULTE-LAN four-screen console.</td></tr>
+      <tr><td>13.4</td><td>2026-09-28</td><td>gnulte-lan watch polish — stable rows, health grades, async pings, hold-to-scroll.</td></tr>
+      <tr><td>13.3</td><td>2026-09-28</td><td>Interactive watch — banner, arrow-key navigation, host detail pane, sort/filter/talkers panes, live settings editor.</td></tr>
+      <tr><td>13.2</td><td>2026-09-28</td><td>gnulte-traffic renamed to <code>gnulte-lan</code> with LAN-watch mode, identity layer, top talkers, alarms, CSV export, HTML report.</td></tr>
+      <tr><td>13.1</td><td>2026-09-28</td><td>Guided target prompt before subnet sweep, router-safe ranges, 12 profiles, manual picker, polished SVG session report.</td></tr>
+      <tr><td>13.0</td><td>2026-09-28</td><td>Settings scaling + categories, typing animation, mDNS/DNS-SD scan services, per-host ping history.</td></tr>
+      <tr><td>12</td><td>2026-09-17</td><td>SCANLTE accuracy: confidence-scored OS fingerprinting, uptime from TCP timestamps, rogue flags; technology settings.</td></tr>
+      <tr><td>11.2</td><td>2026-09-16</td><td>Multi-signal OS fingerprinting and the interactive <code>-T</code> device table in gnulte-scan.</td></tr>
+      <tr><td>11.1</td><td>2026-09-15</td><td>Name/attribute targeting, top-tier device identification, type-coloured scan tables.</td></tr>
+      <tr><td>11.0</td><td>2026-09-14</td><td><code>gnulte-devices</code> added; device identification plumbing (embedded OUI registry, mDNS reverse queries, type heuristics).</td></tr>
+    </table>
+    <p>Releases before v11 are recorded in the
+    <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/commits/main">commit log</a>.
+    Every release above corresponds to a commit on <code>main</code>.</p>
+
+    <h2 id="unplugged">The Unplugged programme (v17)</h2>
+    <p>v17 is being delivered as a series of small, independently shippable increments
+    under one banner: replace every helper-binary shell-out with in-Go code so the
+    toolkit runs on a bare box. <code>tc</code> and <code>iptables</code> remain — they
+    <i>are</i> the kernel interface.</p>
+    <table class="data">
+      <tr><th style="width:22%">Increment</th><th style="width:14%">Status</th><th>Effect</th></tr>
+      <tr><td>16.6 ARP sweep</td><td class="c"><span class="status">shipped</span></td><td><code>arping</code>/<code>arp-scan</code> gone</td></tr>
+      <tr><td>16.7 ICMP echo</td><td class="c"><span class="status">shipped</span></td><td><code>ping</code> gone from the engine</td></tr>
+      <tr><td>16.8 capture</td><td class="c"><span class="status">shipped</span></td><td><code>tcpdump</code> gone</td></tr>
+      <tr><td>16.9 doctor</td><td class="c"><span class="status">shipped</span></td><td>new pre-flight tool</td></tr>
+      <tr><td>16.10 trace</td><td class="c"><span class="status">shipped</span></td><td><code>traceroute(8)</code> gone</td></tr>
+      <tr><td>16.11 top</td><td class="c"><span class="status">shipped</span></td><td>new bandwidth tool</td></tr>
+      <tr><td>16.12 scenarios</td><td class="c"><span class="status">shipped</span></td><td>scripted runs, profiles, summary</td></tr>
+      <tr><td>16.13 history</td><td class="c"><span class="status">shipped</span></td><td>watch history, JSON feed, 7-day trend</td></tr>
+      <tr><td>16.14 compare</td><td class="c"><span class="status-dev">in development</span></td><td>sweepers with memory, <code>--compare</code></td></tr>
+    </table>
+    <p>The full development plan lives in the repository as
+    <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/blob/main/docs/V17-PLAN.md"><code>docs/V17-PLAN.md</code></a>.</p>
+
+    <h2>Subscription</h2>
+    <p>Release announcements are published in the
+    <a href="feed.xml">Atom feed</a> and on the
+    <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/commits/main">GitHub commit log</a>;
+    watch the repository on GitHub to be notified of new releases.</p>
+  </div>
+
+  <div class="col-right">
+    <div class="box">
+      <h3>Current release</h3>
+      <div class="b">
+        <dl>
+          <dt>Version</dt><dd>16.13</dd>
+          <dt>Released</dt><dd>2026-10-03</dd>
+        </dl>
+        <p><a href="downloads.html">Download &raquo;</a></p>
       </div>
     </div>
-    <div class="footer-meta">
-      <p>© 2026 <a class="nep-link" href="/">Neptune Productions</a> · GNULTE · Authorised network testing only.</p>
+
+    <div class="box">
+      <h3>Feeds</h3>
+      <div class="b">
+        <ul>
+          <li><a href="feed.xml">News feed (Atom)</a></li>
+          <li><a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/commits/main">Commit log</a></li>
+        </ul>
+      </div>
     </div>
-  </footer>
+  </div>
+
+</div><!-- .cols2 -->
+
+<div class="foot">
+  <p class="foot-nav">
+    <a href="index.html">Home</a>
+    <a href="tools.html">Tools</a>
+    <a href="docs.html">Documentation</a>
+    <a href="downloads.html">Downloads</a>
+    <a href="changelog.html">Changelog</a>
+    <a href="about.html">About</a>
+    <a href="search.html">Search</a>
+    <a href="feed.xml">News feed</a>
+  </p>
+  <p>Copyright &copy; 2026 Neptune Productions. GNULTE is free software released under the
+     <a href="https://www.gnu.org/licenses/gpl-3.0.html">GNU GPL version 3 or later</a>.</p>
+  <p>Source: <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go">github.com/notmicrosoft2000-cmd/gnulte-go</a>
+     &middot; Issues: <a href="https://github.com/notmicrosoft2000-cmd/gnulte-go/issues">issue tracker</a>
+     &middot; Authorised network testing only.</p>
+  <p>This page last updated: 2026-10-15.</p>
+</div>
+
+</div><!-- .wrap -->
+<script src="js/search.js?v=16.13"></script>
 </body>
 </html>
