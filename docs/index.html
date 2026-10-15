@@ -7,7 +7,7 @@
 <meta name="description" content="GNULTE is a suite of eight focused Linux tools for testing, inspecting and troubleshooting networks you own or are explicitly authorised to test.">
 <link rel="icon" href="img/favicon.ico">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
-<link rel="stylesheet" href="css/gnulte.css?v=16.13">
+<link rel="stylesheet" href="css/gnulte.css?v=16.13-r2">
 </head>
 <body>
 <div class="wrap">
@@ -63,10 +63,17 @@
 
   <!-- ==================================================== main content -->
   <div class="col-main" role="main">
-    <h1>About GNULTE</h1>
-    <p class="lede">GNULTE — the <b>GNU LAN Network Testing Environment</b> — is a suite
-    of eight focused Linux tools for measuring how devices behave when their network
-    misbehaves: on networks you own or are explicitly authorised to test.</p>
+    <h1>GNULTE</h1>
+    <p class="fullname">GNU LAN Network Testing Environment</p>
+    <p class="lede">A suite of eight focused Linux tools for measuring how devices
+    behave when their network misbehaves — latency, jitter, loss, duplication,
+    reordering and bandwidth limits — on networks you own or are explicitly
+    authorised to test.</p>
+
+    <p class="cta">
+      <a class="btn" href="#install">Install GNULTE</a>
+      <a class="btn alt" href="downloads.html">Get the source</a>
+    </p>
 
     <p>Scan the LAN, shape a target's traffic with real kernel <code>tc netem</code>
     (latency, jitter, loss, duplication, reordering, bandwidth), watch every device
@@ -80,6 +87,36 @@
     impairment, packet capture, LAN discovery and 802.11 injection.
     <b>Only use these tools on networks, systems and devices you own or are
     explicitly authorised to test.</b> See <a href="about.html#safety">authorised use</a>.</p>
+
+    <h2 id="install">Install</h2>
+    <p>GNULTE builds from source with the Go toolchain. You need
+    <a href="https://go.dev/dl/">Go 1.21+</a> and, for shaping,
+    <code>iproute2</code> and <code>iptables</code>.</p>
+
+    <ol class="steps">
+      <li><b>Get the source</b>
+<pre><code>git clone https://github.com/notmicrosoft2000-cmd/gnulte-go.git
+cd gnulte-go</code></pre></li>
+
+      <li><b>Build and install.</b> <code>build.sh</code> refuses to emit binaries that
+          fail <code>go vet</code> or <code>go test ./...</code>.
+<pre><code>./build.sh
+sudo ./install.sh</code></pre></li>
+
+      <li><b>Check the machine</b> before your first run.
+<pre><code>gnulte-doctor</code></pre></li>
+    </ol>
+
+    <p>There is nothing else to fetch: no <code>arping</code>, <code>arp-scan</code>,
+    <code>tcpdump</code> or <code>ping</code> is required. The
+    <a href="docs/install.html">installation guide</a> covers requirements, updating
+    and uninstalling.</p>
+
+    <h3>First run</h3>
+<pre><code>sudo gnulte                                            # guided menu: target -&gt; conditions -&gt; run
+sudo gnulte -t 192.168.1.50 -l 300 -j 30 --duration 90 # 300ms latency + 30ms jitter, 90s auto-stop
+gnulte-lan                                             # six-screen live watch (auto-discovers subnet)
+gnulte-scan --deep                                     # sweep + in-Go port scan + OS fingerprint</code></pre>
 
     <h2>The tools</h2>
     <table class="data">
@@ -144,26 +181,6 @@
       </tr>
     </table>
 
-    <h2>Getting started</h2>
-    <p>Requires <a href="https://go.dev/dl/">Go 1.21+</a> and, for shaping,
-    <code>iproute2</code>, <code>iptables</code> and <code>iputils</code>. Build and
-    install from source:</p>
-
-<pre><code>git clone https://github.com/notmicrosoft2000-cmd/gnulte-go.git
-cd gnulte-go
-./build.sh          # builds all binaries, runs go vet + go test ./...
-sudo ./install.sh   # installs to /usr/local/bin + safety docs</code></pre>
-
-    <p>Then, for example:</p>
-
-<pre><code>sudo gnulte                                            # guided menu: target -&gt; conditions -&gt; run
-sudo gnulte -t 192.168.1.50 -l 300 -j 30 --duration 90 # 300ms latency + 30ms jitter, 90s auto-stop
-gnulte-lan                                            # six-screen live watch (auto-discovers subnet)
-gnulte-scan --deep                                    # sweep + in-Go port scan + OS fingerprint</code></pre>
-
-    <p>Full instructions: <a href="docs/install.html">installation</a> and
-    <a href="docs/usage.html">usage</a>.</p>
-
     <h2>Latest release</h2>
     <table class="data">
       <tr><th style="width:22%">Version</th><td>16.13 &mdash; &ldquo;watch history &amp; a machine feed&rdquo;</td></tr>
@@ -199,6 +216,16 @@ gnulte-scan --deep                                    # sweep + in-Go port scan 
 
   <!-- ==================================================== right sidebar -->
   <div class="col-right">
+    <div class="box">
+      <h3>Install</h3>
+      <div class="b">
+        <p>Build from source (needs <a href="https://go.dev/dl/">Go 1.21+</a>):</p>
+<pre><code>./build.sh
+sudo ./install.sh</code></pre>
+        <p><a href="docs/install.html">Installation guide &raquo;</a></p>
+      </div>
+    </div>
+
     <div class="box">
       <h3>Current release</h3>
       <div class="b">
@@ -266,6 +293,6 @@ gnulte-scan --deep                                    # sweep + in-Go port scan 
 </div>
 
 </div><!-- .wrap -->
-<script src="js/search.js?v=16.13"></script>
+<script src="js/search.js?v=16.13-r2"></script>
 </body>
 </html>
