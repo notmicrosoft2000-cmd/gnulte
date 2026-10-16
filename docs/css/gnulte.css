@@ -421,6 +421,19 @@ ol.steps > li > b { color: #1d3a5c; }
 .foot .foot-nav { border-bottom: 1px solid #d5dde5; padding-bottom: 7px; margin-bottom: 7px; }
 .foot .foot-nav a { margin: 0 5px; }
 
+/* -------------------------------------------------------- touch targets
+   Standalone links (sidebar lists, footer nav, table links, breadcrumbs)
+   get a ≥24px hit area at every width, per WCAG 2.5.8. Links that sit
+   inside a sentence are left as plain inline text. */
+
+.box .b ul li a,
+.box .b p a,
+.col-main table.data a,
+.foot .foot-nav a,
+.crumbs a { display: inline-block; padding: 4px 0; }
+
+.navlist a { min-height: 24px; }
+
 /* ------------------------------------------------------------ responsive
    The layout fills the window down to tablet width; below that the columns
    stack in document order rather than overflowing sideways. */
