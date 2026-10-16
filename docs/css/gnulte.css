@@ -186,14 +186,16 @@ hr { margin: 16px 0; border: 0; border-top: 1px solid #d5dde5; }
 
 .head-search input[type="text"] {
   width: 140px;
+  min-height: 26px;      /* keep the control at least 24px high (WCAG 2.5.8) */
   font-size: 12px;
-  padding: 3px;
+  padding: 3px 4px;
   border: 1px solid #0c1c2c;
 }
 
 .head-search input[type="submit"] {
+  min-height: 26px;      /* ditto: a comfortable, accessible target */
   font-size: 12px;
-  padding: 2px 7px;
+  padding: 3px 9px;
 }
 
 /* --------------------------------------------------------------- nav */
